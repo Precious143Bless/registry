@@ -2,8 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
-from django.db.models import Q, Sum, Count
-from django.http import HttpResponse
+from django.db.models import Q
 from .models import Member, Baptism, Confirmation, FirstHolyCommunion, Marriage, LastRites, Pledge, PledgePayment
 from .forms import (MemberForm, BaptismForm, ConfirmationForm, CommunionForm,
                     MarriageForm, LastRitesForm, PledgeForm, PledgePaymentForm)
@@ -11,13 +10,17 @@ from .forms import (MemberForm, BaptismForm, ConfirmationForm, CommunionForm,
 
 # ─── AUTH ────────────────────────────────────────────────────────────────────
 
+def landing_view(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+    return render(request, 'registry/landing.html')
+
+
 def login_view(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
     if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        user = authenticate(request, username=username, password=password)
+        user = authenticate(request, username=request.POST.get('username'), password=request.POST.get('password'))
         if user:
             login(request, user)
             return redirect('dashboard')
@@ -34,26 +37,16 @@ def logout_view(request):
 
 @login_required
 def dashboard(request):
-    total_members = Member.objects.filter(is_active=True).count()
-    total_baptisms = Baptism.objects.count()
-    total_confirmations = Confirmation.objects.count()
-    total_communions = FirstHolyCommunion.objects.count()
-    total_marriages = Marriage.objects.count()
-    total_last_rites = LastRites.objects.count()
-    total_pledges = Pledge.objects.count()
-    outstanding_pledges = Pledge.objects.filter(status__in=['unpaid', 'partial']).count()
-    recent_members = Member.objects.filter(is_active=True).order_by('-date_registered')[:5]
-
     context = {
-        'total_members': total_members,
-        'total_baptisms': total_baptisms,
-        'total_confirmations': total_confirmations,
-        'total_communions': total_communions,
-        'total_marriages': total_marriages,
-        'total_last_rites': total_last_rites,
-        'total_pledges': total_pledges,
-        'outstanding_pledges': outstanding_pledges,
-        'recent_members': recent_members,
+        'total_members':       Member.objects.filter(is_active=True).count(),
+        'total_baptisms':      Baptism.objects.count(),
+        'total_confirmations': Confirmation.objects.count(),
+        'total_communions':    FirstHolyCommunion.objects.count(),
+        'total_marriages':     Marriage.objects.count(),
+        'total_last_rites':    LastRites.objects.count(),
+        'total_pledges':       Pledge.objects.count(),
+        'outstanding_pledges': Pledge.objects.filter(status__in=['unpaid', 'partial']).count(),
+        'recent_members':      Member.objects.filter(is_active=True).order_by('-date_registered')[:5],
     }
     return render(request, 'registry/dashboard.html', context)
 
@@ -115,17 +108,18 @@ def member_deactivate(request, pk):
 @login_required
 def sacrament_list(request):
     q = request.GET.get('q', '')
-    baptisms = Baptism.objects.select_related('member')
+    baptisms      = Baptism.objects.select_related('member')
     confirmations = Confirmation.objects.select_related('member')
-    communions = FirstHolyCommunion.objects.select_related('member')
-    marriages = Marriage.objects.select_related('member')
-    last_rites = LastRites.objects.select_related('member')
+    communions    = FirstHolyCommunion.objects.select_related('member')
+    marriages     = Marriage.objects.select_related('member')
+    last_rites    = LastRites.objects.select_related('member')
     if q:
-        baptisms = baptisms.filter(Q(member__first_name__icontains=q) | Q(member__last_name__icontains=q))
-        confirmations = confirmations.filter(Q(member__first_name__icontains=q) | Q(member__last_name__icontains=q))
-        communions = communions.filter(Q(member__first_name__icontains=q) | Q(member__last_name__icontains=q))
-        marriages = marriages.filter(Q(member__first_name__icontains=q) | Q(member__last_name__icontains=q) | Q(spouse_name__icontains=q))
-        last_rites = last_rites.filter(Q(member__first_name__icontains=q) | Q(member__last_name__icontains=q))
+        f = Q(member__first_name__icontains=q) | Q(member__last_name__icontains=q)
+        baptisms      = baptisms.filter(f)
+        confirmations = confirmations.filter(f)
+        communions    = communions.filter(f)
+        marriages     = marriages.filter(f | Q(spouse_name__icontains=q))
+        last_rites    = last_rites.filter(f)
     context = {
         'baptisms': baptisms, 'confirmations': confirmations,
         'communions': communions, 'marriages': marriages,
@@ -135,7 +129,6 @@ def sacrament_list(request):
     return render(request, 'registry/sacraments/list.html', context)
 
 
-# Baptism
 @login_required
 def baptism_create(request, member_pk):
     member = get_object_or_404(Member, pk=member_pk)
@@ -165,11 +158,9 @@ def baptism_edit(request, pk):
 
 @login_required
 def baptism_print(request, pk):
-    baptism = get_object_or_404(Baptism, pk=pk)
-    return render(request, 'registry/sacraments/print_baptism.html', {'baptism': baptism})
+    return render(request, 'registry/sacraments/print_baptism.html', {'baptism': get_object_or_404(Baptism, pk=pk)})
 
 
-# Confirmation
 @login_required
 def confirmation_create(request, member_pk):
     member = get_object_or_404(Member, pk=member_pk)
@@ -203,7 +194,6 @@ def confirmation_print(request, pk):
     return render(request, 'registry/sacraments/print_confirmation.html', {'conf': conf})
 
 
-# First Holy Communion
 @login_required
 def communion_create(request, member_pk):
     member = get_object_or_404(Member, pk=member_pk)
@@ -237,7 +227,6 @@ def communion_print(request, pk):
     return render(request, 'registry/sacraments/print_communion.html', {'communion': communion})
 
 
-# Marriage
 @login_required
 def marriage_create(request, member_pk):
     member = get_object_or_404(Member, pk=member_pk)
@@ -268,7 +257,6 @@ def marriage_print(request, pk):
     return render(request, 'registry/sacraments/print_marriage.html', {'marriage': marriage})
 
 
-# Last Rites
 @login_required
 def last_rites_create(request, member_pk):
     member = get_object_or_404(Member, pk=member_pk)
@@ -329,8 +317,7 @@ def pledge_create(request):
 @login_required
 def pledge_detail(request, pk):
     pledge = get_object_or_404(Pledge, pk=pk)
-    payment_form = PledgePaymentForm()
-    return render(request, 'registry/pledges/detail.html', {'pledge': pledge, 'payment_form': payment_form})
+    return render(request, 'registry/pledges/detail.html', {'pledge': pledge, 'payment_form': PledgePaymentForm()})
 
 
 @login_required
@@ -383,8 +370,7 @@ def payment_delete(request, pk):
 
 @login_required
 def member_print(request, pk):
-    member = get_object_or_404(Member, pk=pk)
-    return render(request, 'registry/members/print_member.html', {'member': member})
+    return render(request, 'registry/members/print_member.html', {'member': get_object_or_404(Member, pk=pk)})
 
 
 @login_required
@@ -395,8 +381,7 @@ def member_list_print(request):
 
 @login_required
 def pledge_print(request, pk):
-    pledge = get_object_or_404(Pledge, pk=pk)
-    return render(request, 'registry/pledges/print_pledge.html', {'pledge': pledge})
+    return render(request, 'registry/pledges/print_pledge.html', {'pledge': get_object_or_404(Pledge, pk=pk)})
 
 
 @login_required
