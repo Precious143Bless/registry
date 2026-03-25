@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Parish Registry System</title>
+    <title>Log In — Parish Registry</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -14,30 +14,22 @@
         body {
             font-family: 'Inter', sans-serif;
             min-height: 100vh;
-            overflow-x: hidden;
+            background: #3a1a08;
         }
 
-        /* ── Hero ── */
-        .hero {
+        .page {
             position: relative;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            background: #1a0a00;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            overflow: hidden;
         }
 
-        .hero-bg {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(to bottom,
-                rgba(10,4,0,0.5) 0%,
-                rgba(10,4,0,0.35) 50%,
-                rgba(10,4,0,0.65) 100%);
-            z-index: 1;
-        }
-
-        .hero-video {
-            position: absolute;
+        .page-video {
+            position: fixed;
             inset: 0;
             width: 100%;
             height: 100%;
@@ -46,246 +38,240 @@
             z-index: 0;
         }
 
-        /* animated shimmer overlay */
-        .hero-bg::after {
-            content: '';
-            position: absolute;
+        .page-overlay {
+            position: fixed;
             inset: 0;
-            background: linear-gradient(120deg,
-                transparent 30%,
-                rgba(201,168,76,0.06) 50%,
-                transparent 70%);
-            animation: shimmer 6s ease-in-out infinite;
+            background: linear-gradient(135deg,
+                rgba(78,42,30,0.6) 0%,
+                rgba(60,26,8,0.5) 50%,
+                rgba(78,42,30,0.65) 100%);
+            z-index: 1;
         }
 
-        @keyframes shimmer {
-            0%, 100% { opacity: 0; }
-            50%       { opacity: 1; }
-        }
-
-        /* ── Navbar ── */
-        .top-nav {
-            position: relative;
-            z-index: 10;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 1.4rem 3rem;
-            border-bottom: 1px solid rgba(201,168,76,0.15);
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-            color: #fff;
-            font-family: 'Cinzel', serif;
-            font-size: 1rem;
-            font-weight: 700;
-            letter-spacing: 0.04em;
-            text-decoration: none;
-        }
-
-        .brand-icon {
-            width: 36px; height: 36px;
-            background: linear-gradient(135deg, #c9a84c, #e8c96a);
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.1rem;
-            color: #1a0a00;
-            flex-shrink: 0;
-        }
-
-        .btn-login-nav {
-            background: linear-gradient(135deg, #c9a84c, #e8c96a);
-            color: #1a0a00;
-            border: none;
-            border-radius: 50px;
-            padding: 0.5rem 1.6rem;
-            font-weight: 600;
-            font-size: 0.9rem;
-            text-decoration: none;
-            transition: transform 0.2s, box-shadow 0.2s;
-            letter-spacing: 0.03em;
-        }
-
-        .btn-login-nav:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(201,168,76,0.45);
-            color: #1a0a00;
-        }
-
-        /* ── Hero Content ── */
-        .hero-content {
-            position: relative;
-            z-index: 5;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 1.5rem 1.5rem 2rem;
-        }
-
-        .eyebrow {
-            font-size: 0.72rem;
-            letter-spacing: 0.25em;
-            color: rgba(255,255,255,0.6);
-            text-transform: uppercase;
-            margin-bottom: 1.4rem;
-        }
-
-        .eyebrow span {
-            display: inline-block;
-            width: 30px; height: 1px;
-            background: rgba(255,255,255,0.35);
-            vertical-align: middle;
-            margin: 0 0.6rem;
-        }
-
-        .hero-title {
-            font-family: 'Raleway', serif;
-            font-size: clamp(2.2rem, 5.5vw, 4rem);
-            font-weight: 900;
-            color: #fff;
-            line-height: 1.15;
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
-            margin-bottom: 0.4rem;
-            text-shadow: 0 4px 30px rgba(0,0,0,0.6);
-        }
-
-        .hero-title .accent {
-            color: #c9a84c;
-            display: block;
-        }
-
-        .hero-desc {
-            color: rgba(255,255,255,0.72);
-            font-size: 0.95rem;
-            max-width: 560px;
-            line-height: 1.2;
-            margin: 1.2rem auto 2.5rem;
-        }
-
-        /* ── CTA Button ── */
-        .btn-cta {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.6rem;
-            background: linear-gradient(135deg, #c9a84c, #e8c96a);
-            color: #1a0a00;
-            border: none;
-            border-radius: 50px;
-            padding: 0.85rem 2.4rem;
-            font-size: 1rem;
-            font-weight: 700;
-            text-decoration: none;
-            letter-spacing: 0.04em;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 4px 20px rgba(201,168,76,0.35);
-        }
-
-        .btn-cta:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(201,168,76,0.5);
-            color: #1a0a00;
-        }
-
-        /* ── Feature Pills ── */
-        .feature-pills {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 0.75rem;
-            margin-top: .5rem;
-        }
-
-        .pill {
+        .btn-home {
+            position: fixed;
+            top: 1.4rem;
+            left: 1.8rem;
+            z-index: 30;
             display: inline-flex;
             align-items: center;
             gap: 0.45rem;
-            background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.15);
-            backdrop-filter: blur(8px);
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.25);
             color: rgba(255,255,255,0.85);
             border-radius: 50px;
             padding: 0.45rem 1.1rem;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             font-weight: 500;
+            text-decoration: none;
+            backdrop-filter: blur(8px);
+            transition: background 0.2s, color 0.2s;
         }
 
-        .pill i { color: #c9a84c; font-size: 0.85rem; }
-
-        /* ── Divider line ── */
-        .gold-line {
-            width: 60px; height: 3px;
-            background: linear-gradient(90deg, #c9a84c, #e8c96a);
-            border-radius: 2px;
-            margin: 1.5rem auto 0;
+        .btn-home:hover {
+            background: rgba(201,168,76,0.25);
+            color: #c9a84c;
+            border-color: rgba(201,168,76,0.5);
         }
 
-        /* ── Footer strip ── */
-        .hero-footer {
+        .login-card {
             position: relative;
-            z-index: 5;
-            text-align: center;
-            padding: 1rem;
-            color: rgba(255,255,255,0.3);
+            z-index: 10;
+            width: 100%;
+            max-width: 400px;
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 20px;
+            padding: 2.4rem 2.2rem;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.25);
+            border: 1px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(14px);
+        }
+
+        .card-icon {
+            width: 52px; height: 52px;
+            background: linear-gradient(135deg, #c9a84c, #e8c96a);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem;
+            color: #3a1a08;
+            margin-bottom: 1rem;
+        }
+
+        .card-eyebrow {
+            font-size: 0.65rem;
+            letter-spacing: 0.2em;
+            color: #c9a84c;
+            text-transform: uppercase;
+            margin-bottom: 0.25rem;
+        }
+
+        .card-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 0.2rem;
+        }
+
+        .card-subtitle {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.45);
+            margin-bottom: 1.8rem;
+        }
+
+        .form-label {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.82rem;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+        }
+
+        .form-control {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            color: #fff;
+            padding: 0.65rem 1rem;
+            font-size: 0.9rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-control:focus {
+            background: rgba(255,255,255,0.16);
+            border-color: #c9a84c;
+            box-shadow: 0 0 0 3px rgba(201,168,76,0.2);
+            color: #fff;
+        }
+
+        .form-control::placeholder { color: rgba(255,255,255,0.25); }
+
+        .input-group-text {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-right: none;
+            color: rgba(255,255,255,0.4);
+        }
+
+        .input-group .form-control { border-left: none; }
+
+        .pw-toggle {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-left: none;
+            color: rgba(255,255,255,0.4);
+            cursor: pointer;
+            padding: 0 0.85rem;
+            border-radius: 0 8px 8px 0;
+            transition: color 0.2s;
+        }
+        .pw-toggle:hover { color: #c9a84c; }
+
+        .btn-signin {
+            width: 100%;
+            background: linear-gradient(135deg, #c9a84c, #e8c96a);
+            color: #3a1a08;
+            border: none;
+            border-radius: 8px;
+            padding: 0.72rem;
+            font-weight: 700;
+            font-size: 0.95rem;
+            letter-spacing: 0.04em;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 0.5rem;
+        }
+
+        .btn-signin:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(201,168,76,0.4);
+        }
+
+        .authorized-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            margin-top: 1.2rem;
+            color: rgba(255,255,255,0.25);
             font-size: 0.72rem;
             letter-spacing: 0.08em;
+        }
+
+        .authorized-badge::before,
+        .authorized-badge::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(255,255,255,0.12);
         }
     </style>
 </head>
 <body>
-<div class="hero">
-    <div class="hero-bg"></div>
-    <video class="hero-video" autoplay muted loop playsinline>
+<div class="page">
+    <video class="page-video" autoplay muted loop playsinline>
         <source src="{% static 'videos/bg1.mp4' %}" type="video/mp4">
     </video>
+    <div class="page-overlay"></div>
 
-    <!-- Navbar -->
-    <nav class="top-nav">
-        <a class="brand" href="#">
-            <div class="brand-icon">&#x271D;</div>
-            Parish Registry
-        </a>
-        <a href="{% url 'login' %}" class="btn-login-nav">
-            <i class="bi bi-box-arrow-in-right me-1"></i> Log In
-        </a>
-    </nav>
+    <a href="{% url 'landing' %}" class="btn-home">
+        <i class="bi bi-house-fill"></i> Home
+    </a>
 
-    <!-- Main Content -->
-    <div class="hero-content">
-        <p class="eyebrow"><span></span> Church Management System <span></span></p>
+    <div class="login-card">
+        <div class="card-icon">&#x271D;</div>
+        <p class="card-eyebrow">Parish Registry System</p>
+        <h1 class="card-title">Log In</h1>
+        <p class="card-subtitle">Church Management System</p>
 
-        <h1 class="hero-title">
-            Parish Registry
-            <span class="accent">Management System</span>
-        </h1>
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert py-2 mb-3" style="background:rgba(220,53,69,0.15);border:1px solid rgba(220,53,69,0.3);color:#ff8a8a;font-size:0.82rem;border-radius:8px;">
+                    <i class="bi bi-exclamation-circle me-1"></i>{{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
 
-        <div class="gold-line"></div>
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label">Username</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-person"></i></span>
+                    <input type="text" name="username" class="form-control"
+                           placeholder="Enter username" required autofocus>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                    <input type="password" name="password" id="passwordInput" class="form-control"
+                           placeholder="Enter password" required>
+                    <button type="button" class="pw-toggle" onclick="togglePw()">
+                        <i class="bi bi-eye" id="pwIcon"></i>
+                    </button>
+                </div>
+            </div>
+            <button type="submit" class="btn-signin">Sign In</button>
+        </form>
 
-        <p class="hero-desc">
-            A secure, organized, and data-driven system to manage parish members,
-            sacramental records, pledges, and community reports.
-        </p>
-
-        <div class="feature-pills">
-            <div class="pill"><i class="bi bi-shield-check"></i> Secure Access</div>
-            <div class="pill"><i class="bi bi-people-fill"></i> Member Registry</div>
-            <div class="pill"><i class="bi bi-journal-bookmark-fill"></i> Sacraments</div>
-            <div class="pill"><i class="bi bi-cash-coin"></i> Pledges</div>
-            <div class="pill"><i class="bi bi-printer-fill"></i> Reports</div>
+        <div class="authorized-badge">
+            <i class="bi bi-shield-lock"></i> Authorized Personnel Only
         </div>
-    </div>
-
-    <div class="hero-footer">
-        &copy; {% now "Y" %} Parish Registry System &nbsp;&bull;&nbsp; All rights reserved
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function togglePw() {
+    const input = document.getElementById('passwordInput');
+    const icon  = document.getElementById('pwIcon');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'bi bi-eye-slash';
+    } else {
+        input.type = 'password';
+        icon.className = 'bi bi-eye';
+    }
+}
+</script>
 </body>
 </html>
