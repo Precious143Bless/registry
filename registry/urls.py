@@ -2,6 +2,9 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    # Landing
+    path('landing/', views.landing_view, name='landing'),
+
     # Auth
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
@@ -12,11 +15,13 @@ urlpatterns = [
     # Members
     path('members/', views.member_list, name='member_list'),
     path('members/new/', views.member_create, name='member_create'),
+    path('members/print/all/', views.member_list_print, name='member_list_print'),
     path('members/<int:pk>/', views.member_detail, name='member_detail'),
     path('members/<int:pk>/edit/', views.member_edit, name='member_edit'),
     path('members/<int:pk>/deactivate/', views.member_deactivate, name='member_deactivate'),
+    path('members/<int:pk>/print/', views.member_print, name='member_print'),
 
-    # Sacraments overview
+    # Sacraments
     path('sacraments/', views.sacrament_list, name='sacrament_list'),
 
     # Baptism
@@ -47,15 +52,11 @@ urlpatterns = [
     # Pledges
     path('pledges/', views.pledge_list, name='pledge_list'),
     path('pledges/new/', views.pledge_create, name='pledge_create'),
+    path('pledges/print/all/', views.pledge_list_print, name='pledge_list_print'),
     path('pledges/<int:pk>/', views.pledge_detail, name='pledge_detail'),
     path('pledges/<int:pk>/edit/', views.pledge_edit, name='pledge_edit'),
     path('pledges/<int:pk>/delete/', views.pledge_delete, name='pledge_delete'),
+    path('pledges/<int:pk>/print/', views.pledge_print, name='pledge_print'),
     path('pledges/<int:pledge_pk>/payment/add/', views.payment_add, name='payment_add'),
     path('payment/<int:pk>/delete/', views.payment_delete, name='payment_delete'),
-
-    # Print
-    path('members/<int:pk>/print/', views.member_print, name='member_print'),
-    path('members/print/all/', views.member_list_print, name='member_list_print'),
-    path('pledges/<int:pk>/print/', views.pledge_print, name='pledge_print'),
-    path('pledges/print/all/', views.pledge_list_print, name='pledge_list_print'),
 ]

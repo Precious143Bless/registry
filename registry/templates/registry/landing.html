@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parish Registry System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── Hero ── */
+        .hero {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #1a0a00;
+        }
+
+        .hero-bg {
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(to bottom,
+                    rgba(10,4,0,0.55) 0%,
+                    rgba(20,8,0,0.45) 40%,
+                    rgba(10,4,0,0.75) 100%),
+                url('https://images.unsplash.com/photo-1548625149-720754874e8e?w=1600&q=80') center/cover no-repeat;
+            z-index: 0;
+        }
+
+        /* animated shimmer overlay */
+        .hero-bg::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg,
+                transparent 30%,
+                rgba(201,168,76,0.06) 50%,
+                transparent 70%);
+            animation: shimmer 6s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { opacity: 0; }
+            50%       { opacity: 1; }
+        }
+
+        /* ── Navbar ── */
+        .top-nav {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.4rem 3rem;
+            border-bottom: 1px solid rgba(201,168,76,0.15);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            color: #fff;
+            font-family: 'Cinzel', serif;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-decoration: none;
+        }
+
+        .brand-icon {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, #c9a84c, #e8c96a);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem;
+            color: #1a0a00;
+            flex-shrink: 0;
+        }
+
+        .btn-login-nav {
+            background: linear-gradient(135deg, #c9a84c, #e8c96a);
+            color: #1a0a00;
+            border: none;
+            border-radius: 50px;
+            padding: 0.5rem 1.6rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+            letter-spacing: 0.03em;
+        }
+
+        .btn-login-nav:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(201,168,76,0.45);
+            color: #1a0a00;
+        }
+
+        /* ── Hero Content ── */
+        .hero-content {
+            position: relative;
+            z-index: 5;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 4rem 1.5rem 3rem;
+        }
+
+        .eyebrow {
+            font-size: 0.72rem;
+            letter-spacing: 0.25em;
+            color: rgba(255,255,255,0.6);
+            text-transform: uppercase;
+            margin-bottom: 1.4rem;
+        }
+
+        .eyebrow span {
+            display: inline-block;
+            width: 30px; height: 1px;
+            background: rgba(255,255,255,0.35);
+            vertical-align: middle;
+            margin: 0 0.6rem;
+        }
+
+        .hero-title {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(2.2rem, 5.5vw, 4rem);
+            font-weight: 900;
+            color: #fff;
+            line-height: 1.15;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            margin-bottom: 0.4rem;
+            text-shadow: 0 4px 30px rgba(0,0,0,0.6);
+        }
+
+        .hero-title .accent {
+            color: #c9a84c;
+            display: block;
+        }
+
+        .hero-desc {
+            color: rgba(255,255,255,0.72);
+            font-size: 0.95rem;
+            max-width: 560px;
+            line-height: 1.7;
+            margin: 1.2rem auto 2.5rem;
+        }
+
+        /* ── CTA Button ── */
+        .btn-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            background: linear-gradient(135deg, #c9a84c, #e8c96a);
+            color: #1a0a00;
+            border: none;
+            border-radius: 50px;
+            padding: 0.85rem 2.4rem;
+            font-size: 1rem;
+            font-weight: 700;
+            text-decoration: none;
+            letter-spacing: 0.04em;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 20px rgba(201,168,76,0.35);
+        }
+
+        .btn-cta:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(201,168,76,0.5);
+            color: #1a0a00;
+        }
+
+        /* ── Feature Pills ── */
+        .feature-pills {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-top: 3.5rem;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            backdrop-filter: blur(8px);
+            color: rgba(255,255,255,0.85);
+            border-radius: 50px;
+            padding: 0.45rem 1.1rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .pill i { color: #c9a84c; font-size: 0.85rem; }
+
+        /* ── Divider line ── */
+        .gold-line {
+            width: 60px; height: 3px;
+            background: linear-gradient(90deg, #c9a84c, #e8c96a);
+            border-radius: 2px;
+            margin: 1.5rem auto 0;
+        }
+
+        /* ── Footer strip ── */
+        .hero-footer {
+            position: relative;
+            z-index: 5;
+            text-align: center;
+            padding: 1rem;
+            color: rgba(255,255,255,0.3);
+            font-size: 0.72rem;
+            letter-spacing: 0.08em;
+        }
+    </style>
+</head>
+<body>
+<div class="hero">
+    <div class="hero-bg"></div>
+
+    <!-- Navbar -->
+    <nav class="top-nav">
+        <a class="brand" href="#">
+            <div class="brand-icon">&#x271D;</div>
+            Parish Registry
+        </a>
+        <a href="{% url 'login' %}" class="btn-login-nav">
+            <i class="bi bi-box-arrow-in-right me-1"></i> Log In
+        </a>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="hero-content">
+        <p class="eyebrow"><span></span> Church Management System <span></span></p>
+
+        <h1 class="hero-title">
+            Parish Registry
+            <span class="accent">Management System</span>
+        </h1>
+
+        <div class="gold-line"></div>
+
+        <p class="hero-desc">
+            A secure, organized, and data-driven system to manage parish members,
+            sacramental records, pledges, and community reports.
+        </p>
+
+        <div class="feature-pills">
+            <div class="pill"><i class="bi bi-shield-check"></i> Secure Access</div>
+            <div class="pill"><i class="bi bi-people-fill"></i> Member Registry</div>
+            <div class="pill"><i class="bi bi-journal-bookmark-fill"></i> Sacraments</div>
+            <div class="pill"><i class="bi bi-cash-coin"></i> Pledges</div>
+            <div class="pill"><i class="bi bi-printer-fill"></i> Reports</div>
+        </div>
+    </div>
+
+    <div class="hero-footer">
+        &copy; {% now "Y" %} Parish Registry System &nbsp;&bull;&nbsp; All rights reserved
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
