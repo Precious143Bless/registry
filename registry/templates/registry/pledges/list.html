@@ -1,0 +1,97 @@
+{% extends 'registry/base.html' %}
+{% block page_title %}Pledges{% endblock %}
+
+{% block content %}
+<div class="card table-card">
+    <div class="card-header bg-white border-0 pt-3 px-4 d-flex flex-wrap gap-2 align-items-center justify-content-between">
+        <h6 class="fw-bold mb-0" style="color:#4e2a1e;">
+            <i class="bi bi-cash-coin me-2" style="color:#c9a84c;"></i>Pledge Records
+        </h6>
+        <div class="d-flex gap-2">
+            <form class="d-flex" method="get">
+                <div class="input-group input-group-sm">
+                    <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search member or description...">
+                    <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-search"></i></button>
+                    {% if q %}<a href="{% url 'pledge_list' %}" class="btn btn-outline-danger"><i class="bi bi-x"></i></a>{% endif %}
+                </div>
+            </form>
+            <a href="{% url 'pledge_list_print' %}" class="btn btn-sm btn-outline-secondary" target="_blank">
+                <i class="bi bi-printer me-1"></i>Print List
+            </a>
+            <a href="{% url 'pledge_create' %}" class="btn btn-sm btn-primary-church">
+                <i class="bi bi-plus-lg me-1"></i>Add Pledge
+            </a>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Member</th>
+                        <th>Description</th>
+                        <th>Amount Pledged</th>
+                        <th>Total Paid</th>
+                        <th>Balance</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pledge in pledges %}
+                    <tr>
+                        <td class="text-muted small">{{ forloop.counter }}</td>
+                        <td>
+                            <a href="{% url 'member_detail' pledge.member.pk %}" class="text-decoration-none fw-semibold" style="color:#4e2a1e;">
+                                {{ pledge.member.full_name }}
+                            </a>
+                        </td>
+                        <td>{{ pledge.description }}</td>
+                        <td>₱{{ pledge.amount_pledged }}</td>
+                        <td>₱{{ pledge.total_paid }}</td>
+                        <td class="fw-semibold {% if pledge.balance > 0 %}text-danger{% else %}text-success{% endif %}">
+                            ₱{{ pledge.balance }}
+                        </td>
+                        <td>{{ pledge.due_date }}</td>
+                        <td>
+                            {% if pledge.status == 'paid' %}
+                                <span class="badge badge-paid px-2 py-1">Fully Paid</span>
+                            {% elif pledge.status == 'partial' %}
+                                <span class="badge badge-partial px-2 py-1">Partial</span>
+                            {% else %}
+                                <span class="badge badge-unpaid px-2 py-1">Unpaid</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a href="{% url 'pledge_detail' pledge.pk %}" class="btn btn-sm" style="background:#f5ede8;color:#6b3a2a;" title="View">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{% url 'pledge_edit' pledge.pk %}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'pledge_delete' pledge.pk %}" class="btn btn-sm btn-outline-danger" title="Delete">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center text-muted py-5">
+                            <i class="bi bi-cash-coin fs-2 d-block mb-2"></i>
+                            No pledges found{% if q %} for "{{ q }}"{% endif %}.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer bg-white border-0 px-4 py-2">
+        <small class="text-muted">{{ pledges|length }} pledge(s) found</small>
+    </div>
+</div>
+{% endblock %}

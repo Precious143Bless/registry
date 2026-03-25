@@ -1,0 +1,136 @@
+{% extends 'registry/base.html' %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm" style="border-radius:12px;">
+            <div class="card-header bg-white border-0 pt-4 px-4">
+                <h6 class="fw-bold mb-0" style="color:#4e2a1e;">
+                    <i class="bi bi-person-plus-fill me-2" style="color:#c9a84c;"></i>{{ title }}
+                </h6>
+            </div>
+            <div class="card-body px-4 pb-4">
+
+                {% if form.errors %}
+                <div class="alert alert-danger py-2 px-3 mb-3" style="border-radius:8px;">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <strong>Please fix the errors below before saving.</strong>
+                </div>
+                {% endif %}
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <div class="row g-3">
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">First Name *</label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.first_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Middle Name <span class="text-muted">(optional)</span></label>
+                            {{ form.middle_name }}
+                            {% if form.middle_name.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.middle_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Last Name *</label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.last_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Birthday *</label>
+                            {{ form.birthday }}
+                            {% if form.birthday.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.birthday.errors.0 }}</div>
+                            {% else %}
+                                <div class="text-muted small mt-1">Cannot be a future date.</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Gender *</label>
+                            {{ form.gender }}
+                            {% if form.gender.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.gender.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Civil Status *</label>
+                            {{ form.civil_status }}
+                            {% if form.civil_status.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.civil_status.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Address *</label>
+                            {{ form.address }}
+                            {% if form.address.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.address.errors.0 }}</div>
+                            {% else %}
+                                <div class="text-muted small mt-1">Include house no., street, barangay, and city.</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Contact Number <span class="text-muted">(optional)</span></label>
+                            {{ form.contact_number }}
+                            {% if form.contact_number.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.contact_number.errors.0 }}</div>
+                            {% else %}
+                                <div class="text-muted small mt-1">11 digits, must start with 09 (e.g. 09171234567).</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Email <span class="text-muted">(optional)</span></label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.email.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                    </div>
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary-church px-4">
+                            <i class="bi bi-check-lg me-1"></i>Save Member
+                        </button>
+                        <a href="{% if member %}{% url 'member_detail' member.pk %}{% else %}{% url 'member_list' %}{% endif %}"
+                           class="btn btn-outline-secondary px-4">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Set birthday max to today
+    document.addEventListener('DOMContentLoaded', function () {
+        const today = new Date().toISOString().split('T')[0];
+        const birthdayInput = document.querySelector('input[name="birthday"]');
+        if (birthdayInput) birthdayInput.setAttribute('max', today);
+
+        // Highlight fields with errors
+        document.querySelectorAll('.text-danger').forEach(function (el) {
+            const input = el.previousElementSibling;
+            if (input && (input.tagName === 'INPUT' || input.tagName === 'SELECT' || input.tagName === 'TEXTAREA')) {
+                input.classList.add('is-invalid');
+            }
+        });
+    });
+</script>
+{% endblock %}

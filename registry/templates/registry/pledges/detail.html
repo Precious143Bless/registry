@@ -1,0 +1,162 @@
+{% extends 'registry/base.html' %}
+{% block page_title %}Pledge Detail{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+    <!-- Pledge Info -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm" style="border-radius:12px;">
+            <div class="card-body p-4">
+                <div class="mb-3 text-center" style="font-size:3rem;color:#c9a84c;">
+                    <i class="bi bi-cash-coin"></i>
+                </div>
+                <h6 class="fw-bold text-center mb-1" style="color:#4e2a1e;">{{ pledge.description }}</h6>
+                <p class="text-center text-muted small mb-3">
+                    <a href="{% url 'member_detail' pledge.member.pk %}" class="text-decoration-none" style="color:#6b3a2a;">
+                        {{ pledge.member.full_name }}
+                    </a>
+                </p>
+                <div class="text-center mb-3">
+                    {% if pledge.status == 'paid' %}
+                        <span class="badge badge-paid px-3 py-2 fs-6">Fully Paid</span>
+                    {% elif pledge.status == 'partial' %}
+                        <span class="badge badge-partial px-3 py-2 fs-6">Partially Paid</span>
+                    {% else %}
+                        <span class="badge badge-unpaid px-3 py-2 fs-6">Unpaid</span>
+                    {% endif %}
+                </div>
+
+                <!-- Progress bar -->
+                {% if pledge.amount_pledged > 0 %}
+                {% with pct=pledge.total_paid|floatformat:0 %}
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between small text-muted mb-1">
+                        <span>₱{{ pledge.total_paid }} paid</span>
+                        <span>₱{{ pledge.amount_pledged }} total</span>
+                    </div>
+                    <div class="progress" style="height:8px;border-radius:4px;">
+                        {% widthratio pledge.total_paid pledge.amount_pledged 100 as pct_val %}
+                        <div class="progress-bar" role="progressbar"
+                             style="width:{{ pct_val }}%;background:#6b3a2a;"
+                             aria-valuenow="{{ pct_val }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+                {% endwith %}
+                {% endif %}
+
+                <table class="table table-sm mb-0">
+                    <tr><td class="text-muted small">Amount Pledged</td><td class="fw-semibold">₱{{ pledge.amount_pledged }}</td></tr>
+                    <tr><td class="text-muted small">Total Paid</td><td class="fw-semibold text-success">₱{{ pledge.total_paid }}</td></tr>
+                    <tr><td class="text-muted small">Balance</td><td class="fw-semibold text-danger">₱{{ pledge.balance }}</td></tr>
+                    <tr><td class="text-muted small">Due Date</td><td class="fw-semibold">{{ pledge.due_date }}</td></tr>
+                </table>
+
+                <div class="d-flex gap-2 mt-3">
+                    <a href="{% url 'pledge_edit' pledge.pk %}" class="btn btn-sm btn-primary-church flex-fill">
+                        <i class="bi bi-pencil me-1"></i>Edit
+                    </a>
+                    <a href="{% url 'pledge_print' pledge.pk %}" class="btn btn-sm btn-outline-secondary flex-fill" target="_blank">
+                        <i class="bi bi-printer me-1"></i>Print
+                    </a>
+                    <a href="{% url 'pledge_delete' pledge.pk %}" class="btn btn-sm btn-outline-danger flex-fill">
+                        <i class="bi bi-trash me-1"></i>Delete
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payments -->
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm" style="border-radius:12px;">
+            <div class="card-header bg-white border-0 pt-3 px-4 d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0" style="color:#4e2a1e;">
+                    <i class="bi bi-receipt me-2" style="color:#c9a84c;"></i>Payment History
+                </h6>
+                <button class="btn btn-sm btn-primary-church" data-bs-toggle="modal" data-bs-target="#addPaymentModal">
+                    <i class="bi bi-plus-lg me-1"></i>Add Payment
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Date Paid</th>
+                            <th>Amount</th>
+                            <th>Notes</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in pledge.payments.all %}
+                        <tr>
+                            <td class="text-muted small">{{ forloop.counter }}</td>
+                            <td>{{ payment.date_paid }}</td>
+                            <td class="fw-semibold text-success">₱{{ payment.amount }}</td>
+                            <td>{{ payment.notes|default:"—" }}</td>
+                            <td>
+                                <a href="{% url 'payment_delete' payment.pk %}" class="btn btn-sm btn-outline-danger py-0 px-2">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">No payments recorded yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Payment Modal -->
+<div class="modal fade" id="addPaymentModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0" style="border-radius:12px;">
+            <div class="modal-header border-0 pb-0">
+                <h6 class="modal-title fw-bold" style="color:#4e2a1e;">
+                    <i class="bi bi-plus-circle me-2" style="color:#c9a84c;"></i>Record Payment
+                </h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'payment_add' pledge.pk %}" novalidate>
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Amount (₱) *</label>
+                        {{ payment_form.amount }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Date Paid *</label>
+                        {{ payment_form.date_paid }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Notes</label>
+                        {{ payment_form.notes }}
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary-church px-4">
+                            <i class="bi bi-check-lg me-1"></i>Save Payment
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const today = new Date().toISOString().split('T')[0];
+        const datePaidInput = document.querySelector('#addPaymentModal input[name="date_paid"]');
+        if (datePaidInput) datePaidInput.setAttribute('max', today);
+    });
+</script>
+{% endblock %}

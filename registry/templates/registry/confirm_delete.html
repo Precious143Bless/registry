@@ -1,0 +1,25 @@
+{% extends 'registry/base.html' %}
+{% block page_title %}Confirm Action{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card border-0 shadow-sm" style="border-radius:12px;">
+            <div class="card-body text-center p-5">
+                <div class="mb-3" style="font-size:3rem;color:#dc3545;">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                </div>
+                <h5 class="fw-bold">Are you sure?</h5>
+                <p class="text-muted">You are about to remove this {{ type }} record:</p>
+                <p class="fw-semibold">{{ object }}</p>
+                <p class="text-muted small">This action cannot be undone.</p>
+                <form method="post" class="d-flex gap-2 justify-content-center mt-4">
+                    {% csrf_token %}
+                    <a href="javascript:history.back()" class="btn btn-outline-secondary px-4">Cancel</a>
+                    <button type="submit" class="btn btn-danger px-4">Yes, Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

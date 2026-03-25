@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pledge Record — {{ pledge.member.full_name }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { font-family: 'Georgia', serif; background: #fff; font-size: 13px; }
+        .doc { max-width: 700px; margin: 30px auto; padding: 35px; border: 2px solid #6b3a2a; }
+        .doc-header { text-align: center; border-bottom: 2px solid #c9a84c; padding-bottom: 16px; margin-bottom: 20px; }
+        .doc-header .cross { font-size: 2.5rem; color: #6b3a2a; line-height: 1; }
+        .doc-header h2 { color: #4e2a1e; font-size: 1.3rem; margin: 4px 0 2px; }
+        .doc-header p { color: #888; font-size: 0.78rem; margin: 0; }
+        .doc-title { text-align: center; margin-bottom: 18px; }
+        .doc-title h3 { color: #6b3a2a; font-size: 1rem; letter-spacing: 2px; text-transform: uppercase; margin: 0; }
+        .section-label { background: #f5ede8; color: #4e2a1e; font-weight: bold; font-size: 0.75rem;
+                         text-transform: uppercase; letter-spacing: 1px; padding: 4px 10px; margin: 14px 0 8px;
+                         border-left: 4px solid #c9a84c; }
+        .field-row { display: flex; margin-bottom: 6px; }
+        .field-label { width: 160px; color: #666; font-size: 0.82rem; flex-shrink: 0; }
+        .field-value { flex: 1; font-size: 0.88rem; color: #111; border-bottom: 1px dotted #ccc; padding-bottom: 2px; }
+        .summary-box { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 14px 0; }
+        .s-box { border: 1px solid #e0d0c8; border-radius: 6px; padding: 10px; text-align: center; background: #fdf8f6; }
+        .s-box .s-amount { font-size: 1.1rem; font-weight: bold; color: #4e2a1e; }
+        .s-box .s-label { font-size: 0.72rem; color: #888; text-transform: uppercase; }
+        .badge-paid    { background: #d1fae5; color: #065f46; padding: 3px 10px; border-radius: 10px; font-size: 0.78rem; }
+        .badge-partial { background: #fef3c7; color: #92400e; padding: 3px 10px; border-radius: 10px; font-size: 0.78rem; }
+        .badge-unpaid  { background: #fee2e2; color: #991b1b; padding: 3px 10px; border-radius: 10px; font-size: 0.78rem; }
+        table { width: 100%; border-collapse: collapse; }
+        thead th { background: #f5ede8; color: #4e2a1e; font-size: 0.75rem; padding: 5px 8px; border: 1px solid #e0d0c8; }
+        tbody td { padding: 5px 8px; border: 1px solid #eee; font-size: 0.82rem; }
+        tbody tr:nth-child(even) { background: #fdf8f6; }
+        .total-row td { font-weight: bold; background: #f5ede8; }
+        .doc-footer { margin-top: 30px; display: flex; justify-content: space-between; }
+        .sig { text-align: center; width: 180px; }
+        .sig hr { border-top: 1px solid #333; margin-bottom: 4px; }
+        .sig small { font-size: 0.72rem; color: #666; }
+        .issued { text-align: center; color: #aaa; font-size: 0.72rem; margin-top: 20px; }
+        @media print { .no-print { display: none !important; } body { margin: 0; } }
+    </style>
+</head>
+<body>
+<div class="doc">
+    <div class="doc-header">
+        <div class="cross">✝</div>
+        <h2>Parish of [Parish Name]</h2>
+        <p>[Parish Address] &bull; [Contact Number]</p>
+    </div>
+    <div class="doc-title"><h3>Pledge & Payment Record</h3></div>
+
+    <div class="section-label">Pledge Information</div>
+    <div class="field-row"><div class="field-label">Member:</div><div class="field-value">{{ pledge.member.full_name }}</div></div>
+    <div class="field-row"><div class="field-label">Description:</div><div class="field-value">{{ pledge.description }}</div></div>
+    <div class="field-row"><div class="field-label">Due Date:</div><div class="field-value">{{ pledge.due_date }}</div></div>
+    <div class="field-row"><div class="field-label">Status:</div>
+        <div class="field-value">
+            {% if pledge.status == 'paid' %}<span class="badge-paid">Fully Paid</span>
+            {% elif pledge.status == 'partial' %}<span class="badge-partial">Partially Paid</span>
+            {% else %}<span class="badge-unpaid">Unpaid</span>{% endif %}
+        </div>
+    </div>
+
+    <div class="summary-box">
+        <div class="s-box">
+            <div class="s-amount">₱{{ pledge.amount_pledged }}</div>
+            <div class="s-label">Total Pledged</div>
+        </div>
+        <div class="s-box">
+            <div class="s-amount" style="color:#15803d;">₱{{ pledge.total_paid }}</div>
+            <div class="s-label">Total Paid</div>
+        </div>
+        <div class="s-box">
+            <div class="s-amount" style="color:#dc2626;">₱{{ pledge.balance }}</div>
+            <div class="s-label">Balance</div>
+        </div>
+    </div>
+
+    <div class="section-label">Payment History</div>
+    <table>
+        <thead>
+            <tr><th>#</th><th>Date Paid</th><th>Amount</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+            {% for payment in pledge.payments.all %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ payment.date_paid }}</td>
+                <td>₱{{ payment.amount }}</td>
+                <td>{{ payment.notes|default:"—" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" style="text-align:center;color:#aaa;padding:12px;">No payments recorded.</td></tr>
+            {% endfor %}
+            {% if pledge.payments.all %}
+            <tr class="total-row">
+                <td colspan="2" style="text-align:right;">Total Paid:</td>
+                <td>₱{{ pledge.total_paid }}</td>
+                <td></td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <div class="doc-footer">
+        <div class="sig"><hr><small>Parish Priest</small></div>
+        <div class="sig"><hr><small>Parish Secretary</small></div>
+    </div>
+    <div class="issued">Issued on: {% now "F d, Y" %} &bull; Official Parish Record</div>
+</div>
+
+<div class="text-center mt-3 no-print">
+    <button onclick="window.print()" class="btn btn-sm" style="background:#6b3a2a;color:#fff;">
+        🖨 Print Record
+    </button>
+    <a href="javascript:history.back()" class="btn btn-sm btn-outline-secondary ms-2">Back</a>
+</div>
+</body>
+</html>

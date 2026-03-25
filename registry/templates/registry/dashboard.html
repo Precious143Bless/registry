@@ -1,0 +1,149 @@
+{% extends 'registry/base.html' %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Stats Row -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card stat-card h-100">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="icon-box" style="background:#f5ede8;">
+                    <i class="bi bi-people-fill" style="color:#6b3a2a;"></i>
+                </div>
+                <div>
+                    <div class="fs-3 fw-bold" style="color:#6b3a2a;">{{ total_members }}</div>
+                    <div class="text-muted small">Active Members</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card h-100">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="icon-box" style="background:#eff6ff;">
+                    <i class="bi bi-droplet-fill" style="color:#1d4ed8;"></i>
+                </div>
+                <div>
+                    <div class="fs-3 fw-bold" style="color:#1d4ed8;">{{ total_baptisms }}</div>
+                    <div class="text-muted small">Baptisms</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card h-100">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="icon-box" style="background:#f0fdf4;">
+                    <i class="bi bi-patch-check-fill" style="color:#15803d;"></i>
+                </div>
+                <div>
+                    <div class="fs-3 fw-bold" style="color:#15803d;">{{ total_confirmations }}</div>
+                    <div class="text-muted small">Confirmations</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card h-100">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="icon-box" style="background:#fefce8;">
+                    <i class="bi bi-cash-coin" style="color:#a16207;"></i>
+                </div>
+                <div>
+                    <div class="fs-3 fw-bold" style="color:#a16207;">{{ outstanding_pledges }}</div>
+                    <div class="text-muted small">Outstanding Pledges</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sacrament Summary + Recent Members -->
+<div class="row g-3">
+    <div class="col-md-5">
+        <div class="card table-card h-100">
+            <div class="card-header bg-white border-0 pt-3 pb-0 px-4">
+                <h6 class="fw-bold mb-0" style="color:#4e2a1e;">
+                    <i class="bi bi-journal-bookmark-fill me-2" style="color:#c9a84c;"></i>Sacrament Summary
+                </h6>
+            </div>
+            <div class="card-body px-4">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <span><i class="bi bi-droplet me-2 text-primary"></i>Baptisms</span>
+                        <span class="badge rounded-pill" style="background:#eff6ff;color:#1d4ed8;">{{ total_baptisms }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <span><i class="bi bi-patch-check me-2 text-success"></i>Confirmations</span>
+                        <span class="badge rounded-pill" style="background:#f0fdf4;color:#15803d;">{{ total_confirmations }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <span><i class="bi bi-cup-hot me-2 text-warning"></i>First Holy Communion</span>
+                        <span class="badge rounded-pill" style="background:#fefce8;color:#a16207;">{{ total_communions }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <span><i class="bi bi-heart me-2 text-danger"></i>Marriages</span>
+                        <span class="badge rounded-pill" style="background:#fef2f2;color:#991b1b;">{{ total_marriages }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <span><i class="bi bi-moon me-2 text-secondary"></i>Last Rites</span>
+                        <span class="badge rounded-pill bg-secondary text-white">{{ total_last_rites }}</span>
+                    </li>
+                </ul>
+                <a href="{% url 'sacrament_list' %}" class="btn btn-sm w-100 mt-3"
+                   style="background:#f5ede8;color:#6b3a2a;border-radius:8px;">
+                    View All Sacraments <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-7">
+        <div class="card table-card h-100">
+            <div class="card-header bg-white border-0 pt-3 pb-0 px-4 d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0" style="color:#4e2a1e;">
+                    <i class="bi bi-clock-history me-2" style="color:#c9a84c;"></i>Recently Registered Members
+                </h6>
+                <a href="{% url 'member_create' %}" class="btn btn-sm btn-primary-church">
+                    <i class="bi bi-plus-lg me-1"></i>Add Member
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Gender</th>
+                            <th>Registered</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for member in recent_members %}
+                        <tr>
+                            <td>
+                                <div class="fw-semibold">{{ member.full_name }}</div>
+                            </td>
+                            <td>{{ member.get_gender_display }}</td>
+                            <td><small class="text-muted">{{ member.date_registered }}</small></td>
+                            <td>
+                                <a href="{% url 'member_detail' member.pk %}" class="btn btn-sm"
+                                   style="background:#f5ede8;color:#6b3a2a;">View</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="text-center text-muted py-4">No members yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-footer bg-white border-0 px-4 pb-3">
+                <a href="{% url 'member_list' %}" class="btn btn-sm w-100"
+                   style="background:#f5ede8;color:#6b3a2a;border-radius:8px;">
+                    View All Members <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
