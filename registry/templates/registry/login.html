@@ -1,60 +1,277 @@
-{% extends 'registry/base.html' %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log In — Parish Registry</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
-{% block auth_content %}<div class="min-vh-100 d-flex align-items-center justify-content-center"
-     style="background: linear-gradient(135deg, #4e2a1e 0%, #6b3a2a 50%, #8b5e3c 100%);">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-5 col-lg-4">
-                <div class="text-center mb-4">
-                    <div style="font-size: 4rem; color: #c9a84c;">✝</div>
-                    <h3 class="text-white fw-bold mb-1">Parish Registry</h3>
-                    <p class="text-white-50 small">Church Management System</p>
+        body {
+            font-family: "Inter", sans-serif;
+            min-height: 100vh;
+            background: #3a1a08;
+        }
+
+        .page {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            overflow: hidden;
+        }
+
+        .page-video {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.75;
+            z-index: 0;
+        }
+
+        .page-overlay {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg,
+                rgba(78,42,30,0.6) 0%,
+                rgba(60,26,8,0.5) 50%,
+                rgba(78,42,30,0.65) 100%);
+            z-index: 1;
+        }
+
+        .btn-home {
+            position: fixed;
+            top: 1.4rem;
+            left: 1.8rem;
+            z-index: 30;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.25);
+            color: rgba(255,255,255,0.85);
+            border-radius: 50px;
+            padding: 0.45rem 1.1rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-decoration: none;
+            backdrop-filter: blur(8px);
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .btn-home:hover {
+            background: rgba(201,168,76,0.25);
+            color: #c9a84c;
+            border-color: rgba(201,168,76,0.5);
+        }
+
+        .login-card {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 400px;
+            background: rgba(255,255,255,0.12);
+            border-radius: 20px;
+            padding: 2.4rem 2.2rem;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.25);
+            border: 1px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(14px);
+        }
+
+        .card-icon {
+            width: 52px; height: 52px;
+            background: linear-gradient(135deg, #c9a84c, #e8c96a);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem;
+            color: #3a1a08;
+            margin-bottom: 1rem;
+        }
+
+        .card-eyebrow {
+            font-size: 0.65rem;
+            letter-spacing: 0.2em;
+            color: #c9a84c;
+            text-transform: uppercase;
+            margin-bottom: 0.25rem;
+        }
+
+        .card-title {
+            font-family: "Cinzel", serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 0.2rem;
+        }
+
+        .card-subtitle {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.45);
+            margin-bottom: 1.8rem;
+        }
+
+        .form-label {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.82rem;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+        }
+
+        .form-control {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            color: #fff;
+            padding: 0.65rem 1rem;
+            font-size: 0.9rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-control:focus {
+            background: rgba(255,255,255,0.16);
+            border-color: #c9a84c;
+            box-shadow: 0 0 0 3px rgba(201,168,76,0.2);
+            color: #fff;
+        }
+
+        .form-control::placeholder { color: rgba(255,255,255,0.25); }
+
+        .input-group-text {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-right: none;
+            color: rgba(255,255,255,0.4);
+        }
+
+        .input-group .form-control { border-left: none; }
+
+        .pw-toggle {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-left: none;
+            color: rgba(255,255,255,0.4);
+            cursor: pointer;
+            padding: 0 0.85rem;
+            border-radius: 0 8px 8px 0;
+            transition: color 0.2s;
+        }
+        .pw-toggle:hover { color: #c9a84c; }
+
+        .btn-signin {
+            width: 100%;
+            background: linear-gradient(135deg, #c9a84c, #e8c96a);
+            color: #3a1a08;
+            border: none;
+            border-radius: 8px;
+            padding: 0.72rem;
+            font-weight: 700;
+            font-size: 0.95rem;
+            letter-spacing: 0.04em;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 0.5rem;
+        }
+
+        .btn-signin:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(201,168,76,0.4);
+        }
+
+        .authorized-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            margin-top: 1.2rem;
+            color: rgba(255,255,255,0.25);
+            font-size: 0.72rem;
+            letter-spacing: 0.08em;
+        }
+
+        .authorized-badge::before,
+        .authorized-badge::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: rgba(255,255,255,0.12);
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+    <video class="page-video" autoplay muted loop playsinline>
+        <source src="{% static 'videos/bg1.mp4' %}" type="video/mp4">
+    </video>
+    <div class="page-overlay"></div>
+
+    <a href="{% url 'landing' %}" class="btn-home">
+        <i class="bi bi-house-fill"></i> Home
+    </a>
+
+    <div class="login-card">
+        <div class="card-icon">&#x271D;</div>
+        <p class="card-eyebrow">Parish Registry System</p>
+        <h1 class="card-title">Log In</h1>
+        <p class="card-subtitle">Church Management System</p>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert py-2 mb-3" style="background:rgba(220,53,69,0.15);border:1px solid rgba(220,53,69,0.3);color:#ff8a8a;font-size:0.82rem;border-radius:8px;">
+                    <i class="bi bi-exclamation-circle me-1"></i>{{ message }}
                 </div>
-                <div class="card border-0 shadow-lg" style="border-radius: 16px;">
-                    <div class="card-body p-4">
-                        <h5 class="fw-bold mb-1" style="color: #4e2a1e;">Welcome Back</h5>
-                        <p class="text-muted small mb-4">Sign in to access the registry</p>
+            {% endfor %}
+        {% endif %}
 
-                        {% if messages %}
-                            {% for message in messages %}
-                                <div class="alert alert-danger py-2 small">{{ message }}</div>
-                            {% endfor %}
-                        {% endif %}
-
-                        <form method="post">
-                            {% csrf_token %}
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold small">Username</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light border-end-0">
-                                        <i class="bi bi-person text-muted"></i>
-                                    </span>
-                                    <input type="text" name="username" class="form-control border-start-0 ps-0"
-                                           placeholder="Enter username" required autofocus>
-                                </div>
-                            </div>
-                            <div class="mb-4">
-                                <label class="form-label fw-semibold small">Password</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light border-end-0">
-                                        <i class="bi bi-lock text-muted"></i>
-                                    </span>
-                                    <input type="password" name="password" class="form-control border-start-0 ps-0"
-                                           placeholder="Enter password" required>
-                                </div>
-                            </div>
-                            <button type="submit" class="btn w-100 fw-semibold py-2"
-                                    style="background: #6b3a2a; color: #fff; border-radius: 8px;">
-                                <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
-                            </button>
-                        </form>
-                    </div>
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label">Username</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-person"></i></span>
+                    <input type="text" name="username" class="form-control"
+                           placeholder="Enter username" required autofocus>
                 </div>
-                <p class="text-center text-white-50 small mt-3">
-                    &copy; {% now "Y" %} Parish Registry System
-                </p>
             </div>
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                    <input type="password" name="password" id="passwordInput" class="form-control"
+                           placeholder="Enter password" required>
+                    <button type="button" class="pw-toggle" onclick="togglePw()">
+                        <i class="bi bi-eye" id="pwIcon"></i>
+                    </button>
+                </div>
+            </div>
+            <button type="submit" class="btn-signin">Sign In</button>
+        </form>
+
+        <div class="authorized-badge">
+            <i class="bi bi-shield-lock"></i> Authorized Personnel Only
         </div>
     </div>
 </div>
-{% endblock %}
+
+<script>
+function togglePw() {
+    const input = document.getElementById("passwordInput");
+    const icon  = document.getElementById("pwIcon");
+    if (input.type === "password") {
+        input.type = "text";
+        icon.className = "bi bi-eye-slash";
+    } else {
+        input.type = "password";
+        icon.className = "bi bi-eye";
+    }
+}
+</script>
+</body>
+</html>
