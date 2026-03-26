@@ -223,10 +223,14 @@
                     <div class="col-md-6">
                         <label class="form-label fw-semibold text-muted small text-uppercase">Contact Number</label>
                         <div class="view-field">
-                            <p class="mb-0 fw-semibold fs-6" style="color:#2d2d2d;">
-                                <i class="bi bi-telephone-fill me-1" style="color:#c9a84c;"></i>
+                            <p class="mb-0 fw-semibold fs-6 d-flex align-items-center gap-2" style="color:#2d2d2d;">
+                                <i class="bi bi-telephone-fill" style="color:#c9a84c;"></i>
                                 {% if info.contact_number %}
                                     <a href="tel:{{ info.contact_number }}" class="text-decoration-none" style="color:#2d2d2d;">{{ info.contact_number }}</a>
+                                    <button type="button" class="btn btn-sm p-0 border-0 bg-transparent copy-btn"
+                                            data-copy="{{ info.contact_number }}" title="Copy to clipboard">
+                                        <i class="bi bi-clipboard" style="color:#aaa;font-size:0.85rem;"></i>
+                                    </button>
                                 {% else %}—{% endif %}
                             </p>
                         </div>
@@ -238,10 +242,14 @@
                     <div class="col-md-6">
                         <label class="form-label fw-semibold text-muted small text-uppercase">Email Address</label>
                         <div class="view-field">
-                            <p class="mb-0 fw-semibold fs-6" style="color:#2d2d2d;">
-                                <i class="bi bi-envelope-fill me-1" style="color:#c9a84c;"></i>
+                            <p class="mb-0 fw-semibold fs-6 d-flex align-items-center gap-2" style="color:#2d2d2d;">
+                                <i class="bi bi-envelope-fill" style="color:#c9a84c;"></i>
                                 {% if info.email %}
                                     <a href="mailto:{{ info.email }}" class="text-decoration-none" style="color:#2d2d2d;">{{ info.email }}</a>
+                                    <button type="button" class="btn btn-sm p-0 border-0 bg-transparent copy-btn"
+                                            data-copy="{{ info.email }}" title="Copy to clipboard">
+                                        <i class="bi bi-clipboard" style="color:#aaa;font-size:0.85rem;"></i>
+                                    </button>
                                 {% else %}—{% endif %}
                             </p>
                         </div>
@@ -312,6 +320,22 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('saveParishBtn').addEventListener('click', function() {
         showConfirmModal('Are you sure you want to save the Parish Information changes?', function() {
             document.getElementById('parishForm').submit();
+        });
+    });
+
+    // Copy to clipboard
+    document.querySelectorAll('.copy-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const text = this.dataset.copy;
+            navigator.clipboard.writeText(text).then(() => {
+                const icon = this.querySelector('i');
+                icon.classList.replace('bi-clipboard', 'bi-clipboard-check');
+                icon.style.color = '#c9a84c';
+                setTimeout(() => {
+                    icon.classList.replace('bi-clipboard-check', 'bi-clipboard');
+                    icon.style.color = '#aaa';
+                }, 1500);
+            });
         });
     });
     {% if form.errors %}
