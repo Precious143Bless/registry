@@ -235,7 +235,7 @@
             </a>
         </li>
         <li class="nav-item">
-            <a href="{% url 'logout' %}" class="nav-link">
+            <a href="{% url 'parish_info' %}" class="nav-link {% if request.resolver_match.url_name == 'parish_info' %}active{% endif %}">
                 <i class="bi bi-building"></i> Parish Info
             </a>
         </li>

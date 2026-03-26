@@ -137,6 +137,27 @@ class Pledge(models.Model):
         self.save()
 
 
+class ParishInfo(models.Model):
+    # Basic Information
+    parish_name = models.CharField(max_length=200)
+    diocese = models.CharField(max_length=200, blank=True)
+    date_established = models.DateField(null=True, blank=True)
+    # Location & Address
+    street_address = models.CharField(max_length=255, blank=True)
+    barangay = models.CharField(max_length=100, blank=True)
+    municipality = models.CharField(max_length=100, blank=True)
+    province = models.CharField(max_length=100, blank=True)
+    zip_code = models.CharField(max_length=10, blank=True)
+    contact_number = models.CharField(max_length=20, blank=True)
+    email = models.EmailField(blank=True)
+
+    class Meta:
+        verbose_name = 'Parish Info'
+
+    def __str__(self):
+        return self.parish_name
+
+
 class PledgePayment(models.Model):
     pledge = models.ForeignKey(Pledge, on_delete=models.CASCADE, related_name='payments')
     amount = models.DecimalField(max_digits=10, decimal_places=2)

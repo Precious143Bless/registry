@@ -1,0 +1,194 @@
+{% extends 'registry/base.html' %}
+{% block page_title %}Parish Info{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h5 class="fw-bold mb-0" style="color:#4e2a1e;">
+            <i class="bi bi-building me-2" style="color:#c9a84c;"></i>Parish Information
+        </h5>
+        <small class="text-muted">Manage your parish's basic details and contact information.</small>
+    </div>
+    <button id="editBtn" class="btn btn-primary-church btn-sm" onclick="enableEdit()">
+        <i class="bi bi-pencil-fill me-1"></i> Edit
+    </button>
+</div>
+
+<form method="post" id="parishForm">
+    {% csrf_token %}
+
+    <!-- Basic Information -->
+    <div class="card table-card mb-4">
+        <div class="card-header bg-white border-0 pt-3 pb-0 px-4">
+            <h6 class="fw-bold mb-0" style="color:#4e2a1e;">
+                <i class="bi bi-info-circle-fill me-2" style="color:#c9a84c;"></i>Basic Information
+            </h6>
+        </div>
+        <div class="card-body px-4 pb-4">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold text-muted small text-uppercase">Parish Name</label>
+                    {% if info and not form.errors %}
+                        <div class="view-field" id="view_parish_name">
+                            <p class="mb-0 fw-semibold" style="color:#2d2d2d;">{{ info.parish_name|default:"—" }}</p>
+                        </div>
+                    {% endif %}
+                    <div class="edit-field {% if not form.errors %}d-none{% endif %}">
+                        {{ form.parish_name }}
+                        {% if form.parish_name.errors %}<div class="text-danger small mt-1">{{ form.parish_name.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold text-muted small text-uppercase">Diocese</label>
+                    {% if info and not form.errors %}
+                        <div class="view-field" id="view_diocese">
+                            <p class="mb-0 fw-semibold" style="color:#2d2d2d;">{{ info.diocese|default:"—" }}</p>
+                        </div>
+                    {% endif %}
+                    <div class="edit-field {% if not form.errors %}d-none{% endif %}">
+                        {{ form.diocese }}
+                        {% if form.diocese.errors %}<div class="text-danger small mt-1">{{ form.diocese.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold text-muted small text-uppercase">Date Established</label>
+                    {% if info and not form.errors %}
+                        <div class="view-field" id="view_date_established">
+                            <p class="mb-0 fw-semibold" style="color:#2d2d2d;">{{ info.date_established|default:"—" }}</p>
+                        </div>
+                    {% endif %}
+                    <div class="edit-field {% if not form.errors %}d-none{% endif %}">
+                        {{ form.date_established }}
+                        {% if form.date_established.errors %}<div class="text-danger small mt-1">{{ form.date_established.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Location & Address -->
+    <div class="card table-card mb-4">
+        <div class="card-header bg-white border-0 pt-3 pb-0 px-4">
+            <h6 class="fw-bold mb-0" style="color:#4e2a1e;">
+                <i class="bi bi-geo-alt-fill me-2" style="color:#c9a84c;"></i>Location &amp; Address
+            </h6>
+        </div>
+        <div class="card-body px-4 pb-4">
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <label class="form-label fw-semibold text-muted small text-uppercase">Street Address</label>
+                    {% if info and not form.errors %}
+                        <div class="view-field"><p class="mb-0 fw-semibold" style="color:#2d2d2d;">{{ info.street_address|default:"—" }}</p></div>
+                    {% endif %}
+                    <div class="edit-field {% if not form.errors %}d-none{% endif %}">
+                        {{ form.street_address }}
+                        {% if form.street_address.errors %}<div class="text-danger small mt-1">{{ form.street_address.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold text-muted small text-uppercase">Barangay</label>
+                    {% if info and not form.errors %}
+                        <div class="view-field"><p class="mb-0 fw-semibold" style="color:#2d2d2d;">{{ info.barangay|default:"—" }}</p></div>
+                    {% endif %}
+                    <div class="edit-field {% if not form.errors %}d-none{% endif %}">
+                        {{ form.barangay }}
+                        {% if form.barangay.errors %}<div class="text-danger small mt-1">{{ form.barangay.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold text-muted small text-uppercase">Municipality / City</label>
+                    {% if info and not form.errors %}
+                        <div class="view-field"><p class="mb-0 fw-semibold" style="color:#2d2d2d;">{{ info.municipality|default:"—" }}</p></div>
+                    {% endif %}
+                    <div class="edit-field {% if not form.errors %}d-none{% endif %}">
+                        {{ form.municipality }}
+                        {% if form.municipality.errors %}<div class="text-danger small mt-1">{{ form.municipality.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold text-muted small text-uppercase">Province</label>
+                    {% if info and not form.errors %}
+                        <div class="view-field"><p class="mb-0 fw-semibold" style="color:#2d2d2d;">{{ info.province|default:"—" }}</p></div>
+                    {% endif %}
+                    <div class="edit-field {% if not form.errors %}d-none{% endif %}">
+                        {{ form.province }}
+                        {% if form.province.errors %}<div class="text-danger small mt-1">{{ form.province.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold text-muted small text-uppercase">ZIP Code</label>
+                    {% if info and not form.errors %}
+                        <div class="view-field"><p class="mb-0 fw-semibold" style="color:#2d2d2d;">{{ info.zip_code|default:"—" }}</p></div>
+                    {% endif %}
+                    <div class="edit-field {% if not form.errors %}d-none{% endif %}">
+                        {{ form.zip_code }}
+                        {% if form.zip_code.errors %}<div class="text-danger small mt-1">{{ form.zip_code.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact -->
+    <div class="card table-card mb-4">
+        <div class="card-header bg-white border-0 pt-3 pb-0 px-4">
+            <h6 class="fw-bold mb-0" style="color:#4e2a1e;">
+                <i class="bi bi-telephone-fill me-2" style="color:#c9a84c;"></i>Contact Details
+            </h6>
+        </div>
+        <div class="card-body px-4 pb-4">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold text-muted small text-uppercase">Contact Number</label>
+                    {% if info and not form.errors %}
+                        <div class="view-field"><p class="mb-0 fw-semibold" style="color:#2d2d2d;">{{ info.contact_number|default:"—" }}</p></div>
+                    {% endif %}
+                    <div class="edit-field {% if not form.errors %}d-none{% endif %}">
+                        {{ form.contact_number }}
+                        {% if form.contact_number.errors %}<div class="text-danger small mt-1">{{ form.contact_number.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold text-muted small text-uppercase">Email Address</label>
+                    {% if info and not form.errors %}
+                        <div class="view-field"><p class="mb-0 fw-semibold" style="color:#2d2d2d;">{{ info.email|default:"—" }}</p></div>
+                    {% endif %}
+                    <div class="edit-field {% if not form.errors %}d-none{% endif %}">
+                        {{ form.email }}
+                        {% if form.email.errors %}<div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save / Cancel (hidden until edit mode) -->
+    <div id="formActions" class="d-flex gap-2 {% if not form.errors %}d-none{% endif %}" style="{% if form.errors %}display:flex!important{% endif %}">
+        <button type="submit" class="btn btn-primary-church">
+            <i class="bi bi-check-lg me-1"></i> Save Changes
+        </button>
+        <a href="{% url 'parish_info' %}" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+</form>
+
+{% if not info %}
+<div class="alert mt-3" style="background:#f5ede8;border-left:4px solid #c9a84c;color:#4e2a1e;" role="alert">
+    <i class="bi bi-info-circle me-2"></i>No parish information has been set yet. Click <strong>Edit</strong> to add your parish details.
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function enableEdit() {
+    document.querySelectorAll('.view-field').forEach(el => el.classList.add('d-none'));
+    document.querySelectorAll('.edit-field').forEach(el => el.classList.remove('d-none'));
+    document.getElementById('formActions').classList.remove('d-none');
+    document.getElementById('editBtn').classList.add('d-none');
+}
+{% if form.errors %}
+// Auto-open edit mode if there were validation errors
+document.addEventListener('DOMContentLoaded', enableEdit);
+{% endif %}
+</script>
+{% endblock %}

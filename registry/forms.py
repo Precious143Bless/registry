@@ -2,7 +2,7 @@ import re
 from datetime import date
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Member, Baptism, Confirmation, FirstHolyCommunion, Marriage, LastRites, Pledge, PledgePayment
+from .models import Member, Baptism, Confirmation, FirstHolyCommunion, Marriage, LastRites, Pledge, PledgePayment, ParishInfo
 
 
 # ─── REUSABLE VALIDATORS ─────────────────────────────────────────────────────
@@ -340,3 +340,30 @@ class PledgePaymentForm(forms.ModelForm):
         value = self.cleaned_data['date_paid']
         validate_not_future(value)
         return value
+
+
+# ─── PARISH INFO FORM ────────────────────────────────────────────────────────
+
+class ParishInfoForm(forms.ModelForm):
+    date_established = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+    )
+
+    class Meta:
+        model = ParishInfo
+        fields = '__all__'
+        widgets = {
+            'parish_name':    forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Saint Joseph Parish'}),
+            'diocese':        forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Diocese of Cubao'}),
+            'street_address': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'House No., Street Name'}),
+            'barangay':       forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Barangay'}),
+            'municipality':   forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Municipality / City'}),
+            'province':       forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Province'}),
+            'zip_code':       forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ZIP Code', 'maxlength': '10'}),
+            'contact_number': forms.TextInput(attrs={
+                'class': 'form-control', 'placeholder': '09XXXXXXXXX',
+                'maxlength': '11', 'inputmode': 'numeric',
+            }),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'parish@example.com'}),
+        }

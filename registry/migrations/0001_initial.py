@@ -13,6 +13,25 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
+            name='ParishInfo',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('parish_name', models.CharField(max_length=200)),
+                ('diocese', models.CharField(blank=True, max_length=200)),
+                ('date_established', models.DateField(blank=True, null=True)),
+                ('street_address', models.CharField(blank=True, max_length=255)),
+                ('barangay', models.CharField(blank=True, max_length=100)),
+                ('municipality', models.CharField(blank=True, max_length=100)),
+                ('province', models.CharField(blank=True, max_length=100)),
+                ('zip_code', models.CharField(blank=True, max_length=10)),
+                ('contact_number', models.CharField(blank=True, max_length=20)),
+                ('email', models.EmailField(blank=True)),
+            ],
+            options={
+                'verbose_name': 'Parish Info',
+            },
+        ),
+        migrations.CreateModel(
             name='Member',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),

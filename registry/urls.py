@@ -63,4 +63,7 @@ urlpatterns = [
     # Database Management
     path('database/backup/', views.backup_database, name='database_backup'),
     path('database/restore/', views.restore_database, name='database_restore'),
+
+    # Parish Info
+    path('parish-info/', views.parish_info, name='parish_info'),
 ]

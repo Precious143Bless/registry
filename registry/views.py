@@ -10,9 +10,9 @@ from django.core.files.storage import default_storage
 import os
 import subprocess
 from datetime import datetime
-from .models import Member, Baptism, Confirmation, FirstHolyCommunion, Marriage, LastRites, Pledge, PledgePayment
+from .models import Member, Baptism, Confirmation, FirstHolyCommunion, Marriage, LastRites, Pledge, PledgePayment, ParishInfo
 from .forms import (MemberForm, BaptismForm, ConfirmationForm, CommunionForm,
-                    MarriageForm, LastRitesForm, PledgeForm, PledgePaymentForm)
+                    MarriageForm, LastRitesForm, PledgeForm, PledgePaymentForm, ParishInfoForm)
 
 
 # ─── AUTH ────────────────────────────────────────────────────────────────────
@@ -512,3 +512,19 @@ def restore_database(request):
                 os.remove(temp_path)
     
     return render(request, 'registry/restore.html')
+
+
+# ─── PARISH INFO ─────────────────────────────────────────────────────────────
+
+@login_required
+def parish_info(request):
+    info = ParishInfo.objects.first()
+    if request.method == 'POST':
+        form = ParishInfoForm(request.POST, instance=info)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Parish information updated successfully.')
+            return redirect('parish_info')
+    else:
+        form = ParishInfoForm(instance=info)
+    return render(request, 'registry/parish_info.html', {'info': info, 'form': form})
