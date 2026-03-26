@@ -61,6 +61,7 @@ urlpatterns = [
     path('pledges/<int:pk>/print/', views.pledge_print, name='pledge_print'),
     path('pledges/<int:pledge_pk>/payment/add/', views.payment_add, name='payment_add'),
     path('payment/<int:pk>/delete/', views.payment_delete, name='payment_delete'),
+    path('payment/<int:pk>/edit/', views.payment_edit, name='payment_edit'),
 
     # Database Management
     path('database/backup/', views.backup_database, name='database_backup'),

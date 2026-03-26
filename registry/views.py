@@ -329,7 +329,11 @@ def pledge_list(request):
             Q(member__first_name__icontains=q) | Q(member__last_name__icontains=q) |
             Q(description__icontains=q)
         )
-    return render(request, 'registry/pledges/list.html', {'pledges': pledges, 'q': q})
+    return render(request, 'registry/pledges/list.html', {
+        'pledges': pledges,
+        'q': q,
+        'all_members': Member.objects.filter(is_active=True).order_by('last_name', 'first_name'),
+    })
 
 
 @login_required
@@ -344,8 +348,34 @@ def pledge_create(request):
 
 @login_required
 def pledge_detail(request, pk):
+    from django.core.paginator import Paginator
     pledge = get_object_or_404(Pledge, pk=pk)
-    return render(request, 'registry/pledges/detail.html', {'pledge': pledge, 'payment_form': PledgePaymentForm()})
+    payments = pledge.payments.all()
+
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+    amount_min = request.GET.get('amount_min', '')
+    amount_max = request.GET.get('amount_max', '')
+
+    if date_from:
+        payments = payments.filter(date_paid__gte=date_from)
+    if date_to:
+        payments = payments.filter(date_paid__lte=date_to)
+    if amount_min:
+        payments = payments.filter(amount__gte=amount_min)
+    if amount_max:
+        payments = payments.filter(amount__lte=amount_max)
+
+    paginator = Paginator(payments, 7)
+    page = paginator.get_page(request.GET.get('page'))
+    return render(request, 'registry/pledges/detail.html', {
+        'pledge': pledge,
+        'page_obj': page,
+        'date_from': date_from,
+        'date_to': date_to,
+        'amount_min': amount_min,
+        'amount_max': amount_max,
+    })
 
 
 @login_required
@@ -355,7 +385,7 @@ def pledge_edit(request, pk):
     if form.is_valid():
         form.save()
         messages.success(request, 'Pledge updated.')
-        return redirect('pledge_detail', pk=pk)
+        return redirect('pledge_list')
     return render(request, 'registry/pledges/form.html', {'form': form, 'title': 'Edit Pledge'})
 
 
@@ -392,6 +422,17 @@ def payment_delete(request, pk):
         messages.success(request, 'Payment removed.')
         return redirect('pledge_detail', pk=pledge_pk)
     return render(request, 'registry/confirm_delete.html', {'object': payment, 'type': 'Payment'})
+
+
+@login_required
+def payment_edit(request, pk):
+    payment = get_object_or_404(PledgePayment, pk=pk)
+    form = PledgePaymentForm(request.POST or None, instance=payment)
+    if form.is_valid():
+        form.save()
+        messages.success(request, 'Payment updated.')
+        return redirect('pledge_detail', pk=payment.pledge.pk)
+    return redirect('pledge_detail', pk=payment.pledge.pk)
 
 
 # ─── PARISH PRIESTS ────────────────────────────────────────────────────────────
