@@ -59,4 +59,8 @@ urlpatterns = [
     path('pledges/<int:pk>/print/', views.pledge_print, name='pledge_print'),
     path('pledges/<int:pledge_pk>/payment/add/', views.payment_add, name='payment_add'),
     path('payment/<int:pk>/delete/', views.payment_delete, name='payment_delete'),
+
+    # Database Management
+    path('database/backup/', views.backup_database, name='database_backup'),
+    path('database/restore/', views.restore_database, name='database_restore'),
 ]

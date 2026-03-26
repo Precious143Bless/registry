@@ -1,0 +1,93 @@
+{% extends 'registry/base.html' %}
+
+{% block page_title %}Database Restore{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h4 mb-0">
+                    <i class="bi bi-arrow-repeat me-2"></i>Database Restore
+                </h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card table-card">
+                <div class="card-body">
+                    <h5 class="card-title">Restore Database from Backup</h5>
+                    <p class="text-muted">Upload a previously created backup file to restore your church registry database.</p>
+                    
+                    <div class="alert alert-warning" role="alert">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <strong>Warning:</strong> This will replace all current data in the database. This action cannot be undone. Please create a backup before restoring.
+                    </div>
+
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="backup_file" class="form-label">Select Backup File (.sql)</label>
+                            <input type="file" class="form-control" id="backup_file" name="backup_file" 
+                                   accept=".sql" required>
+                            <div class="form-text">Please select a valid SQL backup file created from this system.</div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-arrow-repeat me-2"></i>Restore Database
+                        </button>
+                        
+                        <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle me-2"></i>Cancel
+                        </a>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Restore Information</h6>
+                    
+                    <div class="alert alert-danger" role="alert">
+                        <small>
+                            <i class="bi bi-shield-exclamation me-1"></i>
+                            <strong>Danger Zone:</strong> This will permanently delete all current data!
+                        </small>
+                    </div>
+                    
+                    <h6 class="mt-3">What will be restored:</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="bi bi-database text-primary me-2"></i>
+                            All member records
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-database text-primary me-2"></i>
+                            Sacramental records
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-database text-primary me-2"></i>
+                            Pledge information
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-database text-primary me-2"></i>
+                            Payment history
+                        </li>
+                    </ul>
+                    
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            <i class="bi bi-clock me-1"></i>
+                            Restore process may take a few minutes depending on file size
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -3,6 +3,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.db.models import Q
+from django.http import HttpResponse, JsonResponse
+from django.conf import settings
+from django.core.management import call_command
+from django.core.files.storage import default_storage
+import os
+import subprocess
+from datetime import datetime
 from .models import Member, Baptism, Confirmation, FirstHolyCommunion, Marriage, LastRites, Pledge, PledgePayment
 from .forms import (MemberForm, BaptismForm, ConfirmationForm, CommunionForm,
                     MarriageForm, LastRitesForm, PledgeForm, PledgePaymentForm)
@@ -388,3 +395,120 @@ def pledge_print(request, pk):
 def pledge_list_print(request):
     pledges = Pledge.objects.select_related('member').order_by('member__last_name')
     return render(request, 'registry/pledges/print_pledge_list.html', {'pledges': pledges})
+
+
+# ─── DATABASE MANAGEMENT ────────────────────────────────────────────────────────
+
+@login_required
+def backup_database(request):
+    if request.method == 'POST':
+        try:
+            # Create backup filename with timestamp
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            backup_filename = f'church_registry_backup_{timestamp}.sql'
+            backup_path = os.path.join(settings.BASE_DIR, 'backups', backup_filename)
+            
+            # Ensure backups directory exists
+            os.makedirs(os.path.dirname(backup_path), exist_ok=True)
+            
+            # Get database settings from settings.py
+            db_settings = settings.DATABASES['default']
+            db_name = db_settings['NAME']
+            db_user = db_settings['USER']
+            db_password = db_settings['PASSWORD']
+            db_host = db_settings['HOST']
+            db_port = db_settings['PORT']
+            
+            # XAMPP MySQL path for Windows
+            xampp_mysql_path = r'C:\xampp\mysql\bin'
+            mysqldump_cmd = [
+                os.path.join(xampp_mysql_path, 'mysqldump.exe'),
+                f'--user={db_user}',
+                f'--password={db_password}',
+                f'--host={db_host}',
+                f'--port={db_port}',
+                '--single-transaction',
+                '--routines',
+                '--triggers',
+                db_name
+            ]
+            
+            # Execute backup
+            with open(backup_path, 'w', encoding='utf-8') as backup_file:
+                subprocess.run(mysqldump_cmd, stdout=backup_file, check=True, text=True)
+            
+            messages.success(request, f'Database backup created successfully: {backup_filename}')
+            
+            # Return the backup file for download
+            with open(backup_path, 'rb') as backup_file:
+                response = HttpResponse(backup_file.read(), content_type='application/sql')
+                response['Content-Disposition'] = f'attachment; filename="{backup_filename}"'
+                return response
+                
+        except Exception as e:
+            messages.error(request, f'Backup failed: {str(e)}')
+    
+    return render(request, 'registry/backup.html')
+
+
+@login_required
+def restore_database(request):
+    if request.method == 'POST':
+        try:
+            backup_file = request.FILES.get('backup_file')
+            if not backup_file:
+                messages.error(request, 'Please select a backup file to restore.')
+                return render(request, 'registry/restore.html')
+            
+            # Validate file extension
+            if not backup_file.name.endswith('.sql'):
+                messages.error(request, 'Please upload a valid SQL backup file.')
+                return render(request, 'registry/restore.html')
+            
+            # Save uploaded file temporarily
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            temp_filename = f'temp_restore_{timestamp}.sql'
+            temp_path = os.path.join(settings.BASE_DIR, 'temp', temp_filename)
+            
+            os.makedirs(os.path.dirname(temp_path), exist_ok=True)
+            
+            with open(temp_path, 'wb') as temp_file:
+                for chunk in backup_file.chunks():
+                    temp_file.write(chunk)
+            
+            # Get database settings
+            db_settings = settings.DATABASES['default']
+            db_name = db_settings['NAME']
+            db_user = db_settings['USER']
+            db_password = db_settings['PASSWORD']
+            db_host = db_settings['HOST']
+            db_port = db_settings['PORT']
+            
+            # XAMPP MySQL path for Windows
+            xampp_mysql_path = r'C:\xampp\mysql\bin'
+            mysql_cmd = [
+                os.path.join(xampp_mysql_path, 'mysql.exe'),
+                f'--user={db_user}',
+                f'--password={db_password}',
+                f'--host={db_host}',
+                f'--port={db_port}',
+                db_name
+            ]
+            
+            # Execute restore
+            with open(temp_path, 'r') as restore_file:
+                subprocess.run(mysql_cmd, stdin=restore_file, check=True)
+            
+            # Clean up temp file
+            os.remove(temp_path)
+            
+            messages.success(request, 'Database restored successfully!')
+            return redirect('dashboard')
+            
+        except Exception as e:
+            messages.error(request, f'Restore failed: {str(e)}')
+            # Clean up temp file if it exists
+            if 'temp_path' in locals() and os.path.exists(temp_path):
+                os.remove(temp_path)
+    
+    return render(request, 'registry/restore.html')
