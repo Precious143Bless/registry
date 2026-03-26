@@ -89,6 +89,7 @@ urlpatterns = [
     path('officers/<int:pk>/', views.officer_detail, name='officer_detail'),
     path('officers/<int:pk>/edit/', views.officer_edit, name='officer_edit'),
     path('officers/<int:pk>/deactivate/', views.officer_deactivate, name='officer_deactivate'),
+    path('officers/chart/', views.officers_chart, name='officers_chart'),
 ]
 
 # Serve media files in development

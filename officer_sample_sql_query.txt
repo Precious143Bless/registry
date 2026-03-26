@@ -1,0 +1,120 @@
+-- Insert sample parish officers for all positions
+INSERT INTO `registry_parishofficer` 
+(`first_name`, `middle_name`, `last_name`, `position`, `contact_number`, `email`, `date_assigned`, `date_departed`, `status`, `biography`, `remarks`, `date_added`, `date_updated`) 
+VALUES
+
+-- Clergy
+('Fr. Juan', 'M', 'dela Cruz', 'parish_priest', '09171234567', 'fr.juan.delacruz@parish.org', '2022-06-15', NULL, 'active', 
+ 'Fr. Juan dela Cruz has been serving as Parish Priest since 2022. He is dedicated to pastoral care and community development.', 
+ 'Main celebrant for all major feasts', NOW(), NOW()),
+
+('Fr. Pedro', 'A', 'Reyes', 'parochial_vicar', '09172345678', 'fr.pedro.reyes@parish.org', '2023-01-10', NULL, 'active',
+ 'Fr. Pedro Reyes assists the Parish Priest in liturgical celebrations and pastoral ministries.',
+ 'Assists in daily masses and confessions', NOW(), NOW()),
+
+-- Parish Pastoral Council
+('Maria', 'C', 'Santos', 'ppc_president', '09173456789', 'maria.santos@parish.org', '2024-01-15', NULL, 'active',
+ 'Maria Santos is a dedicated lay leader with 10 years of experience in parish leadership.',
+ 'Leads the Parish Pastoral Council meetings', NOW(), NOW()),
+
+('Jose', 'R', 'Mendoza', 'ppc_vice_president', '09174567890', 'jose.mendoza@parish.org', '2024-01-15', NULL, 'active',
+ 'Jose Mendoza supports the PPC President and oversees various ministry coordinations.',
+ 'Coordinates with different ministry heads', NOW(), NOW()),
+
+('Teresita', 'L', 'Garcia', 'ppc_secretary', '09175678901', 'teresita.garcia@parish.org', '2024-01-15', NULL, 'active',
+ 'Teresita Garcia manages council documentation and meeting minutes.',
+ 'Records all council proceedings', NOW(), NOW()),
+
+('Ramon', 'V', 'Fernandez', 'ppc_treasurer', '09176789012', 'ramon.fernandez@parish.org', '2024-01-15', NULL, 'active',
+ 'Ramon Fernandez handles the financial matters of the Parish Pastoral Council.',
+ 'Manages council funds and expenses', NOW(), NOW()),
+
+('Luzviminda', 'M', 'Aquino', 'ppc_auditor', '09177890123', 'luz.aquino@parish.org', '2024-01-15', NULL, 'active',
+ 'Luzviminda Aquino ensures transparency in council financial transactions.',
+ 'Audits council financial records quarterly', NOW(), NOW()),
+
+-- Parish Finance Council
+('Ricardo', 'D', 'Villanueva', 'finance_council', '09178901234', 'ricardo.villanueva@parish.org', '2023-03-20', NULL, 'active',
+ 'Ricardo Villanueva leads the Parish Finance Council in managing parish resources.',
+ 'Oversees parish budget and financial planning', NOW(), NOW()),
+
+-- Administration
+('Carmelita', 'P', 'Ramos', 'parish_secretary', '09179012345', 'carmelita.ramos@parish.org', '2022-08-01', NULL, 'active',
+ 'Carmelita Ramos manages the parish office and administrative tasks.',
+ 'Handles parish correspondence and records', NOW(), NOW()),
+
+('Ferdinand', 'G', 'Cruz', 'parish_administrator', '09180123456', 'ferdinand.cruz@parish.org', '2023-06-15', NULL, 'active',
+ 'Ferdinand Cruz oversees the day-to-day operations of the parish.',
+ 'Coordinates with staff and maintenance', NOW(), NOW()),
+
+('Andrea', 'N', 'Lim', 'social_communications', '09181234567', 'andrea.lim@parish.org', '2024-02-10', NULL, 'active',
+ 'Andrea Lim manages parish communications and social media presence.',
+ 'Updates parish website and social media', NOW(), NOW()),
+
+-- Liturgical Ministries
+('Gregorio', 'B', 'Salazar', 'lector', '09182345678', 'greg.salazar@parish.org', '2023-01-20', NULL, 'active',
+ 'Gregorio Salazar coordinates the Lectors ministry for weekend masses.',
+ 'Schedules lectors for all masses', NOW(), NOW()),
+
+('Cecilia', 'F', 'Torres', 'commentator', '09183456789', 'cecilia.torres@parish.org', '2023-02-15', NULL, 'active',
+ 'Cecilia Torres leads the commentators who guide the congregation during mass.',
+ 'Trains new commentators', NOW(), NOW()),
+
+('Michael', 'R', 'Dizon', 'altar_servers', '09184567890', 'michael.dizon@parish.org', '2023-03-10', NULL, 'active',
+ 'Michael Dizon coordinates the altar servers for all liturgical celebrations.',
+ 'Trains and schedules altar servers', NOW(), NOW()),
+
+('Elena', 'M', 'Castillo', 'choir', '09185678901', 'elena.castillo@parish.org', '2022-10-05', NULL, 'active',
+ 'Elena Castillo leads the parish choir and music ministry.',
+ 'Directs choir rehearsals and selects liturgical music', NOW(), NOW()),
+
+('Rafael', 'C', 'Santiago', 'extraordinary_ministers', '09186789012', 'rafael.santiago@parish.org', '2023-04-12', NULL, 'active',
+ 'Rafael Santiago coordinates the Extraordinary Ministers of Holy Communion.',
+ 'Schedules ministers for masses and home visits', NOW(), NOW()),
+
+('Leonora', 'T', 'Reyes', 'ushers', '09187890123', 'leonora.reyes@parish.org', '2023-05-18', NULL, 'active',
+ 'Leonora Reyes leads the ushers and greeters ministry.',
+ 'Ensures smooth flow of congregation during masses', NOW(), NOW()),
+
+('Antonio', 'L', 'Gonzales', 'collectors', '09188901234', 'antonio.gonzales@parish.org', '2023-06-22', NULL, 'active',
+ 'Antonio Gonzales coordinates the collectors during offertory.',
+ 'Manages collection counting and reporting', NOW(), NOW()),
+
+('Roberto', 'M', 'Alvarez', 'sacristan', '09189012345', 'roberto.alvarez@parish.org', '2022-12-01', NULL, 'active',
+ 'Roberto Alvarez prepares the church for liturgical celebrations.',
+ 'Maintains sacred vessels and vestments', NOW(), NOW()),
+
+('Isabel', 'P', 'Marcos', 'church_decorators', '09190123456', 'isabel.marcos@parish.org', '2023-07-15', NULL, 'active',
+ 'Isabel Marcos coordinates church decorations for feasts and seasons.',
+ 'Designs floral arrangements for liturgical events', NOW(), NOW()),
+
+-- Faith Formation
+('Benedict', 'A', 'Roxas', 'catechists', '09191234567', 'benedict.roxas@parish.org', '2023-08-20', NULL, 'active',
+ 'Benedict Roxas leads the catechists for religious education.',
+ 'Coordinates catechetical programs for children', NOW(), NOW()),
+
+('Victoria', 'S', 'Laurel', 'religious_education', '09192345678', 'victoria.laurel@parish.org', '2023-09-10', NULL, 'active',
+ 'Victoria Laurel manages the Religious Education programs.',
+ 'Oversees RCIA and adult formation', NOW(), NOW()),
+
+-- Pastoral Ministries
+('Christopher', 'J', 'Navarro', 'youth_ministry', '09193456789', 'chris.navarro@parish.org', '2023-10-05', NULL, 'active',
+ 'Christopher Navarro leads the parish youth ministry activities.',
+ 'Organizes youth camps and retreats', NOW(), NOW()),
+
+('Imelda', 'R', 'Villafuerte', 'family_ministry', '09194567890', 'imelda.villafuerte@parish.org', '2023-11-12', NULL, 'active',
+ 'Imelda Villafuerte coordinates family life programs.',
+ 'Conducts marriage preparation seminars', NOW(), NOW()),
+
+('Lucia', 'M', 'Romualdez', 'womens_ministry', '09195678901', 'lucia.romualdez@parish.org', '2023-12-18', NULL, 'active',
+ 'Lucia Romualdez leads the Women\'s Ministry.',
+ 'Organizes women\'s prayer groups and outreach', NOW(), NOW()),
+
+('Ernesto', 'D', 'Macapagal', 'mens_ministry', '09196789012', 'ernesto.macapagal@parish.org', '2024-01-20', NULL, 'active',
+ 'Ernesto Macapagal coordinates the Men\'s Ministry.',
+ 'Leads men\'s fellowship and service projects', NOW(), NOW()),
+
+-- Coordinators
+('Patricia', 'C', 'Aguilar', 'ministry_coordinators', '09197890123', 'patricia.aguilar@parish.org', '2024-02-25', NULL, 'active',
+ 'Patricia Aguilar oversees all ministry coordinators in the parish.',
+ 'Ensures coordination between different ministries', NOW(), NOW());

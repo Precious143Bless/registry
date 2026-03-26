@@ -15,6 +15,9 @@
                     {% if q %}<a href="{% url 'officers_list' %}" class="btn btn-outline-danger"><i class="bi bi-x"></i></a>{% endif %}
                 </div>
             </form>
+            <a href="{% url 'officers_chart' %}" class="btn btn-sm btn-outline-primary" title="View Organization Chart">
+                <i class="bi bi-diagram-3 me-1"></i>View Chart
+            </a>
             <a href="{% url 'officers_list_print' %}" class="btn btn-sm btn-outline-secondary" target="_blank">
                 <i class="bi bi-printer me-1"></i>Print List
             </a>

@@ -1,0 +1,675 @@
+{% extends 'registry/base.html' %}
+{% block page_title %}Parish Organization Chart{% endblock %}
+
+{% block content %}
+<div class="org-chart-wrapper">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold" style="color:#4e2a1e;">
+            <i class="bi bi-diagram-3 me-2" style="color:#c9a84c;"></i>Parish Organization Chart
+        </h5>
+        <div>
+            <a href="{% url 'officers_list' %}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-list me-1"></i>Back to List
+            </a>
+           
+        </div>
+    </div>
+    
+    <div class="org-chart">
+        <!-- Level 1: Parish Priest -->
+        <div class="org-level level-1">
+            <div class="org-card top-card" data-fullname="{% if parish_priest %}{{ parish_priest.full_name }}{% else %}Parish Priest{% endif %}" 
+                 data-position="{% if parish_priest %}{{ parish_priest.get_position_display }}{% else %}Position Vacant{% endif %}"
+                 data-contact="{% if parish_priest %}{{ parish_priest.contact_number|default:'N/A' }}{% else %}N/A{% endif %}"
+                 data-email="{% if parish_priest %}{{ parish_priest.email|default:'N/A' }}{% else %}N/A{% endif %}">
+                {% if parish_priest %}
+                    {% if parish_priest.image %}
+                        <img src="{{ parish_priest.image.url }}" alt="{{ parish_priest.full_name }}" class="org-avatar-sm">
+                    {% else %}
+                        <div class="org-avatar-placeholder-sm">
+                            <i class="bi bi-person-circle fs-4"></i>
+                        </div>
+                    {% endif %}
+                    <div class="org-name">{{ parish_priest.full_name|truncatechars:20 }}</div>
+                    <div class="org-position">{{ parish_priest.get_position_display|truncatechars:25 }}</div>
+                {% else %}
+                    <div class="org-avatar-placeholder-sm">
+                        <i class="bi bi-church fs-4"></i>
+                    </div>
+                    <div class="org-name">Parish Priest</div>
+                    <div class="org-position">Position Vacant</div>
+                {% endif %}
+            </div>
+            
+            {% if parochial_vicar %}
+            <div class="org-card sub-card" data-fullname="{{ parochial_vicar.full_name }}"
+                 data-position="{{ parochial_vicar.get_position_display }}"
+                 data-contact="{{ parochial_vicar.contact_number|default:'N/A' }}"
+                 data-email="{{ parochial_vicar.email|default:'N/A' }}">
+                {% if parochial_vicar.image %}
+                    <img src="{{ parochial_vicar.image.url }}" alt="{{ parochial_vicar.full_name }}" class="org-avatar-sm">
+                {% else %}
+                    <div class="org-avatar-placeholder-sm">
+                        <i class="bi bi-person-circle fs-4"></i>
+                    </div>
+                {% endif %}
+                <div class="org-name">{{ parochial_vicar.full_name|truncatechars:20 }}</div>
+                <div class="org-position">{{ parochial_vicar.get_position_display|truncatechars:25 }}</div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Arrow Connector -->
+        <div class="arrow-down">
+            <div class="arrow-line"></div>
+            <div class="arrow-head">▼</div>
+            <div class="arrow-label">Pastoral Leadership</div>
+        </div>
+
+        <!-- Level 2: Parish Pastoral Council & Finance -->
+        <div class="org-level level-2">
+            {% if chart_data.parish_pastoral_council.count > 0 %}
+            <div class="org-group">
+                <div class="group-header">
+                    <i class="bi bi-building"></i>
+                    <span>Parish Pastoral Council</span>
+                </div>
+                <div class="group-cards">
+                    {% for position_name, officers in chart_data.parish_pastoral_council.groups.items %}
+                        {% for officer in officers %}
+                        <div class="org-card mini-card" data-fullname="{{ officer.full_name }}"
+                             data-position="{{ officer.get_position_display }}"
+                             data-contact="{{ officer.contact_number|default:'N/A' }}"
+                             data-email="{{ officer.email|default:'N/A' }}">
+                            {% if officer.image %}
+                                <img src="{{ officer.image.url }}" alt="{{ officer.full_name }}" class="org-avatar-xs">
+                            {% else %}
+                                <div class="org-avatar-placeholder-xs">
+                                    <i class="bi bi-person-fill"></i>
+                                </div>
+                            {% endif %}
+                            <div class="org-name-xs">{{ officer.full_name|truncatechars:15 }}</div>
+                            <div class="org-position-xs">{{ officer.get_position_display|truncatechars:20 }}</div>
+                        </div>
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if chart_data.parish_finance_council.count > 0 %}
+            <div class="org-group">
+                <div class="group-header">
+                    <i class="bi bi-calculator"></i>
+                    <span>Parish Finance Council</span>
+                </div>
+                <div class="group-cards">
+                    {% for position_name, officers in chart_data.parish_finance_council.groups.items %}
+                        {% for officer in officers %}
+                        <div class="org-card mini-card" data-fullname="{{ officer.full_name }}"
+                             data-position="{{ officer.get_position_display }}"
+                             data-contact="{{ officer.contact_number|default:'N/A' }}"
+                             data-email="{{ officer.email|default:'N/A' }}">
+                            {% if officer.image %}
+                                <img src="{{ officer.image.url }}" alt="{{ officer.full_name }}" class="org-avatar-xs">
+                            {% else %}
+                                <div class="org-avatar-placeholder-xs">
+                                    <i class="bi bi-person-fill"></i>
+                                </div>
+                            {% endif %}
+                            <div class="org-name-xs">{{ officer.full_name|truncatechars:15 }}</div>
+                            <div class="org-position-xs">{{ officer.get_position_display|truncatechars:20 }}</div>
+                        </div>
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if chart_data.administration.count > 0 %}
+            <div class="org-group">
+                <div class="group-header">
+                    <i class="bi bi-person-badge"></i>
+                    <span>Administration</span>
+                </div>
+                <div class="group-cards">
+                    {% for position_name, officers in chart_data.administration.groups.items %}
+                        {% for officer in officers %}
+                        <div class="org-card mini-card" data-fullname="{{ officer.full_name }}"
+                             data-position="{{ officer.get_position_display }}"
+                             data-contact="{{ officer.contact_number|default:'N/A' }}"
+                             data-email="{{ officer.email|default:'N/A' }}">
+                            {% if officer.image %}
+                                <img src="{{ officer.image.url }}" alt="{{ officer.full_name }}" class="org-avatar-xs">
+                            {% else %}
+                                <div class="org-avatar-placeholder-xs">
+                                    <i class="bi bi-person-fill"></i>
+                                </div>
+                            {% endif %}
+                            <div class="org-name-xs">{{ officer.full_name|truncatechars:15 }}</div>
+                            <div class="org-position-xs">{{ officer.get_position_display|truncatechars:20 }}</div>
+                        </div>
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Arrow Connector -->
+        <div class="arrow-down">
+            <div class="arrow-line"></div>
+            <div class="arrow-head">▼</div>
+            <div class="arrow-label">Ministries & Formation</div>
+        </div>
+
+        <!-- Level 3: Ministries -->
+        <div class="org-level level-3">
+            {% if chart_data.liturgical_ministries.count > 0 %}
+            <div class="org-group">
+                <div class="group-header">
+                    <i class="bi bi-book"></i>
+                    <span>Liturgical Ministries</span>
+                </div>
+                <div class="group-cards-horizontal">
+                    {% for position_name, officers in chart_data.liturgical_ministries.groups.items %}
+                        {% for officer in officers %}
+                        <div class="org-card ultra-mini-card" data-fullname="{{ officer.full_name }}"
+                             data-position="{{ officer.get_position_display }}"
+                             data-contact="{{ officer.contact_number|default:'N/A' }}"
+                             data-email="{{ officer.email|default:'N/A' }}">
+                            <div class="org-name-xxs">{{ officer.full_name|truncatechars:12 }}</div>
+                            <div class="org-position-xxs">{{ officer.get_position_display|truncatechars:15 }}</div>
+                        </div>
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if chart_data.faith_formation.count > 0 %}
+            <div class="org-group">
+                <div class="group-header">
+                    <i class="bi bi-mortarboard"></i>
+                    <span>Faith Formation</span>
+                </div>
+                <div class="group-cards-horizontal">
+                    {% for position_name, officers in chart_data.faith_formation.groups.items %}
+                        {% for officer in officers %}
+                        <div class="org-card ultra-mini-card" data-fullname="{{ officer.full_name }}"
+                             data-position="{{ officer.get_position_display }}"
+                             data-contact="{{ officer.contact_number|default:'N/A' }}"
+                             data-email="{{ officer.email|default:'N/A' }}">
+                            <div class="org-name-xxs">{{ officer.full_name|truncatechars:12 }}</div>
+                            <div class="org-position-xxs">{{ officer.get_position_display|truncatechars:15 }}</div>
+                        </div>
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if chart_data.pastoral_ministries.count > 0 %}
+            <div class="org-group">
+                <div class="group-header">
+                    <i class="bi bi-heart"></i>
+                    <span>Pastoral Ministries</span>
+                </div>
+                <div class="group-cards-horizontal">
+                    {% for position_name, officers in chart_data.pastoral_ministries.groups.items %}
+                        {% for officer in officers %}
+                        <div class="org-card ultra-mini-card" data-fullname="{{ officer.full_name }}"
+                             data-position="{{ officer.get_position_display }}"
+                             data-contact="{{ officer.contact_number|default:'N/A' }}"
+                             data-email="{{ officer.email|default:'N/A' }}">
+                            <div class="org-name-xxs">{{ officer.full_name|truncatechars:12 }}</div>
+                            <div class="org-position-xxs">{{ officer.get_position_display|truncatechars:15 }}</div>
+                        </div>
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if chart_data.coordinators.count > 0 %}
+            <div class="org-group">
+                <div class="group-header">
+                    <i class="bi bi-people"></i>
+                    <span>Coordinators</span>
+                </div>
+                <div class="group-cards-horizontal">
+                    {% for position_name, officers in chart_data.coordinators.groups.items %}
+                        {% for officer in officers %}
+                        <div class="org-card ultra-mini-card" data-fullname="{{ officer.full_name }}"
+                             data-position="{{ officer.get_position_display }}"
+                             data-contact="{{ officer.contact_number|default:'N/A' }}"
+                             data-email="{{ officer.email|default:'N/A' }}">
+                            <div class="org-name-xxs">{{ officer.full_name|truncatechars:12 }}</div>
+                            <div class="org-position-xxs">{{ officer.get_position_display|truncatechars:15 }}</div>
+                        </div>
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if total_officers == 0 %}
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-diagram-3 fs-1 d-block mb-3"></i>
+            <p>No active officers found. Add officers to see the organization chart.</p>
+            <a href="{% url 'officer_create' %}" class="btn btn-primary-church btn-sm">
+                <i class="bi bi-plus-lg me-1"></i>Add First Officer
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Hover Tooltip -->
+<div id="hover-tooltip" class="hover-tooltip">
+    <div class="tooltip-content">
+        <div class="tooltip-name"></div>
+        <div class="tooltip-position"></div>
+        <div class="tooltip-contact">
+            <i class="bi bi-telephone-fill"></i> <span></span>
+        </div>
+        <div class="tooltip-email">
+            <i class="bi bi-envelope-fill"></i> <span></span>
+        </div>
+    </div>
+</div>
+
+<style>
+    .org-chart-wrapper {
+        background: #fef9f5;
+        border-radius: 16px;
+        padding: 1rem;
+        height: calc(100vh - 120px);
+        overflow-y: auto;
+        overflow-x: auto;
+        position: relative;
+    }
+    
+    .org-chart {
+        min-width: 1000px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .org-level {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        flex-wrap: wrap;
+        margin: 0.5rem 0;
+    }
+    
+    .level-1 {
+        margin-bottom: 0.5rem;
+        gap: 2rem;
+    }
+    
+    .level-2 {
+        margin: 0.5rem 0;
+        gap: 1.5rem;
+    }
+    
+    .level-3 {
+        margin: 0.5rem 0;
+        gap: 1rem;
+    }
+    
+    .org-group {
+        background: white;
+        border-radius: 12px;
+        padding: 0.75rem;
+        border: 1px solid #f0e4dc;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        min-width: 180px;
+    }
+    
+    .group-header {
+        text-align: center;
+        font-size: 0.8rem;
+        font-weight: bold;
+        color: #4e2a1e;
+        padding-bottom: 0.5rem;
+        margin-bottom: 0.5rem;
+        border-bottom: 2px solid #c9a84c;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+    
+    .group-header i {
+        color: #c9a84c;
+        font-size: 0.9rem;
+    }
+    
+    .group-cards {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .group-cards-horizontal {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        justify-content: center;
+    }
+    
+    .org-card {
+        background: white;
+        border-radius: 12px;
+        padding: 0.75rem;
+        text-align: center;
+        transition: all 0.2s ease;
+        border: 1px solid #e8ddd5;
+        cursor: pointer;
+        position: relative;
+    }
+    
+    .org-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+        border-color: #c9a84c;
+        background: #fffef7;
+    }
+    
+    .top-card {
+        background: linear-gradient(135deg, #4e2a1e 0%, #6b3a2a 100%);
+        color: white;
+        border: none;
+        min-width: 200px;
+    }
+    
+    .top-card:hover {
+        background: linear-gradient(135deg, #5a3526 0%, #7b4634 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(78, 42, 30, 0.3);
+    }
+    
+    .sub-card {
+        border: 2px solid #c9a84c;
+        min-width: 180px;
+    }
+    
+    .mini-card {
+        padding: 0.5rem;
+        min-width: 140px;
+    }
+    
+    .ultra-mini-card {
+        padding: 0.4rem;
+        min-width: 100px;
+        background: #fef9f5;
+    }
+    
+    .org-avatar-sm {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #c9a84c;
+        margin-bottom: 0.5rem;
+    }
+    
+    .org-avatar-placeholder-sm {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.2);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0.5rem;
+        color: #c9a84c;
+    }
+    
+    .org-avatar-xs {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 1px solid #c9a84c;
+        margin-bottom: 0.25rem;
+    }
+    
+    .org-avatar-placeholder-xs {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        background: #f5ede8;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0.25rem;
+        color: #c9a84c;
+    }
+    
+    .org-name {
+        font-size: 0.9rem;
+        font-weight: bold;
+        margin-bottom: 0.25rem;
+    }
+    
+    .org-position {
+        font-size: 0.7rem;
+        opacity: 0.9;
+    }
+    
+    .org-name-xs {
+        font-size: 0.75rem;
+        font-weight: bold;
+        margin-bottom: 0.2rem;
+    }
+    
+    .org-position-xs {
+        font-size: 0.65rem;
+        color: #6c757d;
+    }
+    
+    .org-name-xxs {
+        font-size: 0.7rem;
+        font-weight: bold;
+        margin-bottom: 0.15rem;
+        line-height: 1.2;
+    }
+    
+    .org-position-xxs {
+        font-size: 0.6rem;
+        color: #6c757d;
+        line-height: 1.2;
+    }
+    
+    .arrow-down {
+        position: relative;
+        text-align: center;
+        margin: 0.25rem 0;
+    }
+    
+    .arrow-line {
+        width: 2px;
+        height: 20px;
+        background: linear-gradient(180deg, #c9a84c, #e8ddd5);
+        margin: 0 auto;
+    }
+    
+    .arrow-head {
+        color: #c9a84c;
+        font-size: 0.8rem;
+        margin: -5px 0;
+    }
+    
+    .arrow-label {
+        font-size: 0.65rem;
+        color: #c9a84c;
+        background: #fff;
+        display: inline-block;
+        padding: 0.1rem 0.5rem;
+        border-radius: 12px;
+        font-weight: 500;
+        margin-top: 0.2rem;
+    }
+    
+    /* Hover Tooltip Styles */
+    .hover-tooltip {
+        position: fixed;
+        background: white;
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        border: 2px solid #c9a84c;
+        z-index: 1000;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        max-width: 300px;
+        min-width: 220px;
+    }
+    
+    .hover-tooltip.show {
+        opacity: 1;
+    }
+    
+    .tooltip-content {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .tooltip-name {
+        font-size: 1rem;
+        font-weight: bold;
+        color: #4e2a1e;
+        border-bottom: 2px solid #c9a84c;
+        padding-bottom: 0.25rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .tooltip-position {
+        font-size: 0.85rem;
+        color: #c9a84c;
+        font-weight: 500;
+    }
+    
+    .tooltip-contact, .tooltip-email {
+        font-size: 0.8rem;
+        color: #6c757d;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .tooltip-contact i, .tooltip-email i {
+        color: #c9a84c;
+        font-size: 0.85rem;
+        min-width: 20px;
+    }
+    
+    .tooltip-contact span, .tooltip-email span {
+        word-break: break-all;
+    }
+    
+    
+    /* Custom scrollbar */
+    .org-chart-wrapper::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    
+    .org-chart-wrapper::-webkit-scrollbar-track {
+        background: #f5ede8;
+        border-radius: 10px;
+    }
+    
+    .org-chart-wrapper::-webkit-scrollbar-thumb {
+        background: #c9a84c;
+        border-radius: 10px;
+    }
+    
+    .org-chart-wrapper::-webkit-scrollbar-thumb:hover {
+        background: #b8923a;
+    }
+</style>
+
+<script>
+    // Hover tooltip functionality
+    const tooltip = document.getElementById('hover-tooltip');
+    const cards = document.querySelectorAll('.org-card');
+    
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function(e) {
+            // Get data from data attributes
+            const fullname = this.getAttribute('data-fullname') || 'N/A';
+            const position = this.getAttribute('data-position') || 'N/A';
+            const contact = this.getAttribute('data-contact') || 'N/A';
+            const email = this.getAttribute('data-email') || 'N/A';
+            
+            // Update tooltip content
+            tooltip.querySelector('.tooltip-name').textContent = fullname;
+            tooltip.querySelector('.tooltip-position').textContent = position;
+            tooltip.querySelector('.tooltip-contact span').textContent = contact;
+            tooltip.querySelector('.tooltip-email span').textContent = email;
+            
+            // Hide contact/email if N/A
+            const contactDiv = tooltip.querySelector('.tooltip-contact');
+            const emailDiv = tooltip.querySelector('.tooltip-email');
+            
+            if (contact === 'N/A' || contact === '—') {
+                contactDiv.style.display = 'none';
+            } else {
+                contactDiv.style.display = 'flex';
+            }
+            
+            if (email === 'N/A' || email === '—') {
+                emailDiv.style.display = 'none';
+            } else {
+                emailDiv.style.display = 'flex';
+            }
+            
+            // Position tooltip
+            tooltip.classList.add('show');
+            updateTooltipPosition(e);
+        });
+        
+        card.addEventListener('mousemove', function(e) {
+            updateTooltipPosition(e);
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            tooltip.classList.remove('show');
+        });
+    });
+    
+    function updateTooltipPosition(e) {
+        const x = e.clientX + 15;
+        const y = e.clientY + 15;
+        
+        // Get viewport dimensions
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        const tooltipRect = tooltip.getBoundingClientRect();
+        
+        // Adjust if tooltip would go off screen
+        let left = x;
+        let top = y;
+        
+        if (x + tooltipRect.width > viewportWidth) {
+            left = e.clientX - tooltipRect.width - 15;
+        }
+        
+        if (y + tooltipRect.height > viewportHeight) {
+            top = e.clientY - tooltipRect.height - 15;
+        }
+        
+        tooltip.style.left = left + 'px';
+        tooltip.style.top = top + 'px';
+    }
+</script>
+{% endblock %}

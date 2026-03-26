@@ -625,6 +625,87 @@ def officers_list_print(request):
     officers = ParishOfficer.objects.all().order_by('last_name', 'first_name')
     return render(request, 'registry/officers/print_officer_list.html', {'officers': officers})
 
+@login_required
+def officers_chart(request):
+    # Define hierarchy levels
+    hierarchy = {
+        'clergy': {
+            'title': 'Clergy',
+            'icon': 'bi-church',
+            'positions': ['parish_priest', 'parochial_vicar']
+        },
+        'parish_pastoral_council': {
+            'title': 'Parish Pastoral Council',
+            'icon': 'bi-building',
+            'positions': ['ppc_president', 'ppc_vice_president', 'ppc_secretary', 'ppc_treasurer', 'ppc_auditor']
+        },
+        'parish_finance_council': {
+            'title': 'Parish Finance Council',
+            'icon': 'bi-calculator',
+            'positions': ['finance_council']
+        },
+        'administration': {
+            'title': 'Administration',
+            'icon': 'bi-person-badge',
+            'positions': ['parish_secretary', 'parish_administrator', 'social_communications']
+        },
+        'liturgical_ministries': {
+            'title': 'Liturgical Ministries',
+            'icon': 'bi-book',
+            'positions': ['lector', 'commentator', 'altar_servers', 'choir', 'extraordinary_ministers', 'ushers', 'collectors', 'sacristan', 'church_decorators']
+        },
+        'faith_formation': {
+            'title': 'Faith Formation',
+            'icon': 'bi-mortarboard',
+            'positions': ['catechists', 'religious_education']
+        },
+        'pastoral_ministries': {
+            'title': 'Pastoral Ministries',
+            'icon': 'bi-heart',
+            'positions': ['youth_ministry', 'family_ministry', 'womens_ministry', 'mens_ministry']
+        },
+        'coordinators': {
+            'title': 'Coordinators',
+            'icon': 'bi-people',
+            'positions': ['ministry_coordinators']
+        }
+    }
+    
+    # Fetch officers for each category - using ParishOfficer model
+    chart_data = {}
+    for key, category in hierarchy.items():
+        officers_in_category = ParishOfficer.objects.filter(
+            position__in=category['positions'],
+            status='active'
+        ).order_by('position')
+        
+        # Group officers by specific position
+        grouped_officers = {}
+        for officer in officers_in_category:
+            pos_display = officer.get_position_display()
+            if pos_display not in grouped_officers:
+                grouped_officers[pos_display] = []
+            grouped_officers[pos_display].append(officer)
+        
+        chart_data[key] = {
+            'title': category['title'],
+            'icon': category['icon'],
+            'groups': grouped_officers,
+            'count': officers_in_category.count()
+        }
+    
+    # Get parish priest for top-level display - using ParishOfficer model
+    parish_priest = ParishOfficer.objects.filter(position='parish_priest', status='active').first()
+    parochial_vicar = ParishOfficer.objects.filter(position='parochial_vicar', status='active').first()
+    
+    context = {
+        'chart_data': chart_data,
+        'parish_priest': parish_priest,
+        'parochial_vicar': parochial_vicar,
+        'total_officers': ParishOfficer.objects.filter(status='active').count(),
+    }
+    
+    return render(request, 'registry/officers/officers_chart.html', context)
 
 # ─── PRINT VIEWS ─────────────────────────────────────────────────────────────
 
