@@ -90,6 +90,18 @@ urlpatterns = [
     path('officers/<int:pk>/edit/', views.officer_edit, name='officer_edit'),
     path('officers/<int:pk>/deactivate/', views.officer_deactivate, name='officer_deactivate'),
     path('officers/chart/', views.officers_chart, name='officers_chart'),
+
+    # Organizations
+    path('organizations/', views.organization_list, name='organization_list'),
+    path('organizations/new/', views.organization_create, name='organization_create'),
+    path('organizations/<int:pk>/', views.organization_detail, name='organization_detail'),
+    path('organizations/<int:pk>/edit/', views.organization_edit, name='organization_edit'),
+    path('organizations/<int:pk>/delete/', views.organization_delete, name='organization_delete'),
+
+    # Organization Memberships
+    path('organizations/<int:org_pk>/add-member/', views.organization_add_member, name='organization_add_member'),
+    path('memberships/<int:pk>/edit/', views.membership_edit, name='membership_edit'),
+    path('memberships/<int:pk>/delete/', views.membership_delete, name='membership_delete'),
 ]
 
 # Serve media files in development

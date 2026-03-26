@@ -1,0 +1,102 @@
+{% extends 'registry/base.html' %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm" style="border-radius:12px;">
+            <div class="card-header bg-white border-0 pt-4 px-4">
+                <h6 class="fw-bold mb-0" style="color:#4e2a1e;">
+                    <i class="bi bi-person-plus me-2" style="color:#c9a84c;"></i>{{ title }}
+                </h6>
+            </div>
+            <div class="card-body px-4 pb-4">
+
+                {% if form.errors %}
+                <div class="alert alert-danger py-2 px-3 mb-3" style="border-radius:8px;">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <strong>Please fix the errors below before saving.</strong>
+                </div>
+                {% endif %}
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <div class="row g-3">
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Member *</label>
+                            {{ form.member }}
+                            {% if form.member.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.member.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Role/Position *</label>
+                            {{ form.role }}
+                            {% if form.role.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.role.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Joined Date *</label>
+                            {{ form.joined_date }}
+                            {% if form.joined_date.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.joined_date.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12">
+                            <div class="form-check">
+                                {{ form.is_active }}
+                                <label class="form-check-label fw-semibold small" for="{{ form.is_active.id_for_label }}">
+                                    Active Member
+                                </label>
+                            </div>
+                            {% if form.is_active.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.is_active.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Remarks</label>
+                            {{ form.remarks }}
+                            {% if form.remarks.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.remarks.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                    </div>
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary-church px-4">
+                            <i class="bi bi-check-lg me-1"></i>Save Membership
+                        </button>
+                        <a href="{% url 'organization_detail' organization.pk %}" class="btn btn-outline-secondary px-4">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Set joined_date to today if not set
+        const joinedDateInput = document.querySelector('input[name="joined_date"]');
+        if (joinedDateInput && !joinedDateInput.value) {
+            joinedDateInput.value = new Date().toISOString().split('T')[0];
+        }
+        
+        // Highlight invalid fields
+        document.querySelectorAll('.text-danger').forEach(function (el) {
+            const input = el.previousElementSibling;
+            if (input && (input.tagName === 'INPUT' || input.tagName === 'SELECT' || input.tagName === 'TEXTAREA')) {
+                input.classList.add('is-invalid');
+            }
+        });
+    });
+</script>
+{% endblock %}

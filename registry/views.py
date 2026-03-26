@@ -11,9 +11,9 @@ from django.views.decorators.csrf import csrf_exempt
 import os
 import subprocess
 from datetime import datetime
-from .models import Member, Baptism, Confirmation, FirstHolyCommunion, Marriage, LastRites, Pledge, PledgePayment, ParishInfo, ParishPriest, ParishOfficer, Notification
+from .models import Member, Baptism, Confirmation, FirstHolyCommunion, Marriage, LastRites, Pledge, PledgePayment, ParishInfo, ParishPriest, ParishOfficer, Notification, Organization, OrganizationMembership
 from .forms import (MemberForm, BaptismForm, ConfirmationForm, CommunionForm,
-                    MarriageForm, LastRitesForm, PledgeForm, PledgePaymentForm, ParishInfoForm,ParishPriestForm, ParishOfficerForm)
+                    MarriageForm, LastRitesForm, PledgeForm, PledgePaymentForm, ParishInfoForm,ParishPriestForm, ParishOfficerForm, OrganizationForm,OrganizationMembershipForm)
 
 
 # ─── AUTH ────────────────────────────────────────────────────────────────────
@@ -874,3 +874,149 @@ def parish_info(request):
     else:
         form = ParishInfoForm(instance=info)
     return render(request, 'registry/parish_info.html', {'info': info, 'form': form})
+
+# ─── ORGANIZATIONS ─────────────────────────────────────────────────────────────
+
+@login_required
+def organization_list(request):
+    q = request.GET.get('q', '')
+    organizations = Organization.objects.all()
+    
+    if q:
+        organizations = organizations.filter(
+            Q(name__icontains=q) | 
+            Q(description__icontains=q) |
+            Q(contact_person__icontains=q)
+        )
+    
+    return render(request, 'registry/organizations/list.html', {
+        'organizations': organizations,
+        'q': q,
+        'all_members': Member.objects.filter(is_active=True).order_by('last_name', 'first_name'),
+    })
+
+
+@login_required
+def organization_create(request):
+    form = OrganizationForm(request.POST or None)
+    if form.is_valid():
+        form.save()
+        messages.success(request, 'Organization created successfully.')
+        return redirect('organization_list')
+    return render(request, 'registry/organizations/form.html', {
+        'form': form,
+        'title': 'Add New Organization'
+    })
+
+
+@login_required
+def organization_detail(request, pk):
+    organization = get_object_or_404(Organization, pk=pk)
+    memberships = organization.memberships.select_related('member').all()
+    
+    # Get filter parameters
+    role_filter = request.GET.get('role', '')
+    status_filter = request.GET.get('status', '')
+    
+    if role_filter:
+        memberships = memberships.filter(role=role_filter)
+    if status_filter:
+        memberships = memberships.filter(is_active=(status_filter == 'active'))
+    
+    return render(request, 'registry/organizations/detail.html', {
+        'organization': organization,
+        'memberships': memberships,
+        'role_filter': role_filter,
+        'status_filter': status_filter,
+    })
+
+
+@login_required
+def organization_edit(request, pk):
+    organization = get_object_or_404(Organization, pk=pk)
+    form = OrganizationForm(request.POST or None, instance=organization)
+    if form.is_valid():
+        form.save()
+        messages.success(request, 'Organization updated successfully.')
+        return redirect('organization_detail', pk=organization.pk)
+    return render(request, 'registry/organizations/form.html', {
+        'form': form,
+        'title': 'Edit Organization',
+        'organization': organization
+    })
+
+
+@login_required
+def organization_delete(request, pk):
+    organization = get_object_or_404(Organization, pk=pk)
+    if request.method == 'POST':
+        organization.delete()
+        messages.success(request, f'Organization "{organization.name}" has been deleted.')
+        return redirect('organization_list')
+    return render(request, 'registry/organizations/confirm_delete.html', {
+        'organization': organization
+    })
+
+
+# ─── ORGANIZATION MEMBERSHIPS ─────────────────────────────────────────────────
+
+@login_required
+def organization_add_member(request, org_pk):
+    organization = get_object_or_404(Organization, pk=org_pk)
+    form = OrganizationMembershipForm(request.POST or None)
+    
+    if form.is_valid():
+        membership = form.save(commit=False)
+        membership.organization = organization
+        
+        # Check for duplicate membership
+        if OrganizationMembership.objects.filter(
+            member=membership.member, 
+            organization=organization
+        ).exists():
+            messages.error(request, f'{membership.member.full_name} is already a member of this organization.')
+        else:
+            membership.save()
+            messages.success(request, f'{membership.member.full_name} has been added to {organization.name}.')
+            return redirect('organization_detail', pk=organization.pk)
+    
+    return render(request, 'registry/organizations/membership_form.html', {
+        'form': form,
+        'organization': organization,
+        'title': f'Add Member to {organization.name}'
+    })
+
+
+@login_required
+def membership_edit(request, pk):
+    membership = get_object_or_404(OrganizationMembership, pk=pk)
+    form = OrganizationMembershipForm(request.POST or None, instance=membership)
+    
+    if form.is_valid():
+        form.save()
+        messages.success(request, 'Membership updated successfully.')
+        return redirect('organization_detail', pk=membership.organization.pk)
+    
+    return render(request, 'registry/organizations/membership_form.html', {
+        'form': form,
+        'organization': membership.organization,
+        'membership': membership,
+        'title': 'Edit Membership'
+    })
+
+
+@login_required
+def membership_delete(request, pk):
+    membership = get_object_or_404(OrganizationMembership, pk=pk)
+    organization_pk = membership.organization.pk
+    member_name = membership.member.full_name
+    org_name = membership.organization.name
+    
+    if request.method == 'POST':
+        membership.delete()
+        messages.success(request, f'{member_name} has been removed from {org_name}.')
+        return redirect('organization_detail', pk=organization_pk)
+    
+    return render(request, 'registry/organizations/confirm_membership_delete.html', {
+        'membership': membership
+    })

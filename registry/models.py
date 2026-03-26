@@ -325,3 +325,56 @@ class Notification(models.Model):
     def __str__(self):
         return f"{self.title} - {self.user.username}"
 
+class Organization(models.Model):
+    name = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    meeting_schedule = models.CharField(max_length=200, blank=True)
+    meeting_venue = models.CharField(max_length=200, blank=True)
+    contact_person = models.CharField(max_length=200, blank=True)
+    is_active = models.BooleanField(default=True)
+    date_created = models.DateField(auto_now_add=True)
+    date_updated = models.DateField(auto_now=True)
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = 'Organization'
+        verbose_name_plural = 'Organizations'
+
+    def __str__(self):
+        return self.name
+    
+    @property
+    def member_count(self):
+        return self.memberships.filter(is_active=True).count()
+
+
+class OrganizationMembership(models.Model):
+    ROLE_CHOICES = [
+        ('member', 'Member'),
+        ('officer', 'Officer'),
+        ('president', 'President'),
+        ('vice_president', 'Vice President'),
+        ('secretary', 'Secretary'),
+        ('treasurer', 'Treasurer'),
+        ('auditor', 'Auditor'),
+        ('coordinator', 'Coordinator'),
+        ('advisor', 'Advisor'),
+    ]
+
+    member = models.ForeignKey(Member, on_delete=models.CASCADE, related_name='organization_memberships')
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='memberships')
+    role = models.CharField(max_length=50, choices=ROLE_CHOICES, default='member')
+    joined_date = models.DateField()
+    is_active = models.BooleanField(default=True)
+    remarks = models.TextField(blank=True)
+    date_created = models.DateField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['member', 'organization']
+        ordering = ['-joined_date']
+        verbose_name = 'Organization Membership'
+        verbose_name_plural = 'Organization Memberships'
+
+    def __str__(self):
+        return f"{self.member.full_name} - {self.organization.name} ({self.get_role_display()})"
+

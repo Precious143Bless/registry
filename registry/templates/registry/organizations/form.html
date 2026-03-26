@@ -1,0 +1,93 @@
+{% extends 'registry/base.html' %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm" style="border-radius:12px;">
+            <div class="card-header bg-white border-0 pt-4 px-4">
+                <h6 class="fw-bold mb-0" style="color:#4e2a1e;">
+                    <i class="bi bi-building me-2" style="color:#c9a84c;"></i>{{ title }}
+                </h6>
+            </div>
+            <div class="card-body px-4 pb-4">
+
+                {% if form.errors %}
+                <div class="alert alert-danger py-2 px-3 mb-3" style="border-radius:8px;">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <strong>Please fix the errors below before saving.</strong>
+                </div>
+                {% endif %}
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <div class="row g-3">
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Organization Name *</label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Description</label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.description.errors.0 }}</div>
+                            {% endif %}
+                            <div class="text-muted small mt-1">Brief description of the organization's mission and activities.</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Meeting Schedule</label>
+                            {{ form.meeting_schedule }}
+                            {% if form.meeting_schedule.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.meeting_schedule.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Meeting Venue</label>
+                            {{ form.meeting_venue }}
+                            {% if form.meeting_venue.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.meeting_venue.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Contact Person</label>
+                            {{ form.contact_person }}
+                            {% if form.contact_person.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.contact_person.errors.0 }}</div>
+                            {% endif %}
+                            <div class="text-muted small mt-1">Name and position of the organization contact person.</div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="form-check">
+                                {{ form.is_active }}
+                                <label class="form-check-label fw-semibold small" for="{{ form.is_active.id_for_label }}">
+                                    Active Organization
+                                </label>
+                            </div>
+                            {% if form.is_active.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.is_active.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                    </div>
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary-church px-4">
+                            <i class="bi bi-check-lg me-1"></i>Save Organization
+                        </button>
+                        <a href="{% if organization %}{% url 'organization_detail' organization.pk %}{% else %}{% url 'organization_list' %}{% endif %}" 
+                           class="btn btn-outline-secondary px-4">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
