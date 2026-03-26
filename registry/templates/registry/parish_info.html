@@ -14,6 +14,61 @@
     </button>
 </div>
 
+{% if info %}
+<!-- At a Glance Banner -->
+<div class="card table-card mb-4" id="glanceBanner">
+    <div class="card-body px-4 py-3">
+        <div class="row align-items-center g-3">
+            <div class="col-auto d-flex align-items-center justify-content-center rounded-circle"
+                 style="width:52px;height:52px;background:#f5ede8;">
+                <i class="bi bi-building fs-4" style="color:#c9a84c;"></i>
+            </div>
+            <div class="col">
+                <div class="fw-bold fs-5 mb-0" style="color:#4e2a1e;">{{ info.parish_name }}</div>
+                {% if info.diocese %}<div class="text-muted small">{{ info.diocese }}</div>{% endif %}
+            </div>
+            <div class="col-md-auto border-start ps-4">
+                <div class="text-muted small text-uppercase fw-semibold mb-1">
+                    <i class="bi bi-geo-alt-fill me-1" style="color:#c9a84c;"></i>Address
+                </div>
+                <div class="small" style="color:#2d2d2d;">
+                    {% if info.street_address %}{{ info.street_address }},{% endif %}
+                    {% if info.barangay %}Brgy. {{ info.barangay }},{% endif %}
+                    {% if info.municipality %}{{ info.municipality }},{% endif %}
+                    {% if info.province %}{{ info.province }}{% endif %}
+                    {% if info.zip_code %} {{ info.zip_code }}{% endif %}
+                    {% if not info.street_address and not info.barangay and not info.municipality %}
+                        <span class="text-muted fst-italic">No address set</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-auto border-start ps-4">
+                <div class="text-muted small text-uppercase fw-semibold mb-1">
+                    <i class="bi bi-telephone-fill me-1" style="color:#c9a84c;"></i>Contact
+                </div>
+                {% if info.contact_number %}
+                <div class="small mb-1" style="color:#2d2d2d;">
+                    <a href="tel:{{ info.contact_number }}" class="text-decoration-none" style="color:#2d2d2d;">
+                        {{ info.contact_number }}
+                    </a>
+                </div>
+                {% endif %}
+                {% if info.email %}
+                <div class="small" style="color:#2d2d2d;">
+                    <a href="mailto:{{ info.email }}" class="text-decoration-none" style="color:#2d2d2d;">
+                        {{ info.email }}
+                    </a>
+                </div>
+                {% endif %}
+                {% if not info.contact_number and not info.email %}
+                    <span class="text-muted small fst-italic">No contact set</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <form method="post" id="parishForm">
     {% csrf_token %}
 
@@ -223,6 +278,8 @@ function enableEdit() {
     actions.classList.remove('d-none');
     actions.classList.add('d-flex');
     document.getElementById('editBtn').classList.add('d-none');
+    const banner = document.getElementById('glanceBanner');
+    if (banner) banner.classList.add('d-none');
 }
 
 document.addEventListener('DOMContentLoaded', function() {
