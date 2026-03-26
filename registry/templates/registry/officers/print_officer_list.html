@@ -54,8 +54,8 @@
             {% for officer in officers %}
             <tr>
                 <td>{{ forloop.counter }}</td>
-                <td>{{ officer.full_name }}<br><small class="text-muted">{{ officer.position|default:'—' }}</small></td>
-                <td>{{ officer.position|default:'—' }}</td>
+                <td>{{ officer.full_name }}<br><small class="text-muted">{{ officer.get_position_display|default:'—' }}</small></td>
+                <td>{{ officer.get_position_display|default:'—' }}</td>
                 <td>{{ officer.contact_number|default:'—' }}</td>
                 <td>{{ officer.email|default:'—' }}</td>
                 <td>

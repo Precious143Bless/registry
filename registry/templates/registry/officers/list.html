@@ -58,9 +58,9 @@
                                 {{ officer.full_name }}
                             </a>
                             <br>
-                            <small class="text-muted">{{ officer.position|default:"—" }}</small>
+                            <small class="text-muted">{{ officer.get_position_display|default:"—" }}</small>
                         </td>
-                        <td>{{ officer.position|default:"—" }}</td>
+                        <td>{{ officer.get_position_display|default:"—" }}</td>
                         <td>{{ officer.contact_number|default:"—" }}</td>
                         <td>{{ officer.email|default:"—" }}</td>
                         <td>

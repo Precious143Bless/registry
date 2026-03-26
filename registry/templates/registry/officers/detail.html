@@ -5,7 +5,7 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h5 class="fw-bold mb-0" style="color:#4e2a1e;">{{ officer.full_name }}</h5>
-        <small class="text-muted">{{ officer.position|default:'Parish Officer' }}</small>
+        <small class="text-muted">{{ officer.get_position_display|default:'Parish Officer' }}</small>
     </div>
     <div class="d-flex gap-2">
         <a href="{% url 'officer_edit' officer.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
@@ -28,7 +28,7 @@
     </div>
     <div class="col-lg-8">
         <div class="card table-card p-3" style="border-radius:12px;">
-            <div class="mb-3"><strong>Position:</strong> {{ officer.position|default:'—' }}</div>
+            <div class="mb-3"><strong>Position:</strong> {{ officer.get_position_display|default:'—' }}</div>
             <div class="mb-3"><strong>Contact:</strong> {{ officer.contact_number|default:'—' }}</div>
             <div class="mb-3"><strong>Email:</strong> {{ officer.email|default:'—' }}</div>
             <div class="mb-3"><strong>Biography:</strong><br>{{ officer.biography|linebreaksbr|default:'—' }}</div>

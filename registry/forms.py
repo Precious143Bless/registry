@@ -487,7 +487,7 @@ class ParishOfficerForm(forms.ModelForm):
             'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Juan'}),
             'middle_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Optional'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Dela Cruz'}),
-            'position': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Finance Officer'}),
+            'position': forms.Select(attrs={'class': 'form-select'}),
             'contact_number': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': '09XXXXXXXXX',

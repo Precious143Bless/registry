@@ -237,6 +237,40 @@ class ParishOfficer(models.Model):
         ('inactive', 'Inactive'),
     ]
 
+    POSITION_CHOICES = [
+        # Main Parish Officers
+        ('parish_priest', 'Parish Priest (Pastor)'),
+        ('parochial_vicar', 'Parochial Vicar / Assistant Priest'),
+        ('ppc_president', 'PPC President / Chairperson'),
+        ('ppc_vice_president', 'PPC Vice President'),
+        ('ppc_secretary', 'PPC Secretary'),
+        ('ppc_treasurer', 'PPC Treasurer'),
+        ('ppc_auditor', 'PPC Auditor'),
+        # Parish Finance Council
+        ('finance_council', 'Parish Finance Council'),
+        # Ministry Leaders
+        ('lector', 'Lector (Readers)'),
+        ('commentator', 'Commentator'),
+        ('altar_servers', 'Altar Servers'),
+        ('choir', 'Choir / Music Ministry'),
+        ('extraordinary_ministers', 'Extraordinary Ministers of Holy Communion'),
+        ('ushers', 'Ushers / Greeters'),
+        ('collectors', 'Collectors'),
+        ('sacristan', 'Sacristan'),
+        ('church_decorators', 'Church Decorators'),
+        ('youth_ministry', 'Youth Ministry'),
+        ('family_ministry', 'Family Ministry'),
+        ('womens_ministry', "Women's Ministry"),
+        ('mens_ministry', "Men's Ministry"),
+        ('catechists', 'Catechists (Religious Teachers)'),
+        # Other Parish Officers
+        ('parish_secretary', 'Parish Secretary'),
+        ('parish_administrator', 'Parish Administrator'),
+        ('social_communications', 'Social Communications Officer'),
+        ('ministry_coordinators', 'Ministry Coordinators'),
+        ('religious_education', 'Religious Education Coordinator'),
+    ]
+
     image = models.ImageField(
         upload_to='officers/',
         blank=True,
@@ -246,7 +280,7 @@ class ParishOfficer(models.Model):
     first_name = models.CharField(max_length=100)
     middle_name = models.CharField(max_length=100, blank=True)
     last_name = models.CharField(max_length=100)
-    position = models.CharField(max_length=150, blank=True)
+    position = models.CharField(max_length=150, choices=POSITION_CHOICES, blank=True)
     contact_number = models.CharField(max_length=20, blank=True)
     email = models.EmailField(blank=True)
     date_assigned = models.DateField(null=True, blank=True)
