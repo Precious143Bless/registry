@@ -217,9 +217,9 @@
 
     <!-- Body -->
     <div class="hero-body">
-        <p class="eyebrow">Church Management System</p>
-        <h1 class="hero-title-top">PARISH REGISTRY</h1>
-        <h1 class="hero-title-bottom">MANAGEMENT SYSTEM</h1>
+        <p class="eyebrow">Parish Registry Management System</p>
+        <h1 class="hero-title-top">{{ parish.parish_name|default:"PARISH REGISTRY"|upper }}</h1>
+        <h1 class="hero-title-bottom">{% if parish.municipality %}{{ parish.municipality|upper }}{% if parish.province %}, {{ parish.province|upper }}{% endif %}{% else %}MANAGEMENT SYSTEM{% endif %}</h1>
         <div class="divider"></div>
         <p class="hero-desc">
             A secure, organized, and data-driven system to manage parish members,
