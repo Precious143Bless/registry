@@ -35,6 +35,29 @@ def validate_positive_amount(value):
         raise ValidationError('Amount must be greater than zero.')
 
 
+def validate_email_format(value):
+    """Enhanced email validation"""
+    email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    if not re.match(email_pattern, value):
+        raise ValidationError('Enter a valid email address.')
+
+
+def validate_name_length(value, field_name='Name'):
+    """Validate name length"""
+    if len(value.strip()) < 2:
+        raise ValidationError(f'{field_name} must be at least 2 characters long.')
+    if len(value.strip()) > 100:
+        raise ValidationError(f'{field_name} cannot exceed 100 characters.')
+
+
+def validate_address_length(value):
+    """Validate address length"""
+    if len(value.strip()) < 10:
+        raise ValidationError('Please enter a complete address (at least 10 characters).')
+    if len(value.strip()) > 500:
+        raise ValidationError('Address cannot exceed 500 characters.')
+
+
 # ─── MEMBER FORM ─────────────────────────────────────────────────────────────
 
 class MemberForm(forms.ModelForm):
@@ -71,12 +94,14 @@ class MemberForm(forms.ModelForm):
         value = self.cleaned_data['first_name'].strip()
         if not value:
             raise ValidationError('First name is required.')
+        validate_name_length(value, 'First name')
         validate_letters_only(value, 'First name')
         return value.title()
 
     def clean_middle_name(self):
         value = self.cleaned_data.get('middle_name', '').strip()
         if value:
+            validate_name_length(value, 'Middle name')
             validate_letters_only(value, 'Middle name')
             return value.title()
         return value
@@ -85,6 +110,7 @@ class MemberForm(forms.ModelForm):
         value = self.cleaned_data['last_name'].strip()
         if not value:
             raise ValidationError('Last name is required.')
+        validate_name_length(value, 'Last name')
         validate_letters_only(value, 'Last name')
         return value.title()
 
@@ -93,6 +119,10 @@ class MemberForm(forms.ModelForm):
         if value > date.today():
             raise ValidationError('Birthday cannot be in the future.')
         if value.year < 1900:
+            raise ValidationError('Please enter a valid birthday.')
+        # Check if person is not too old (more than 120 years)
+        age = date.today().year - value.year
+        if age > 120:
             raise ValidationError('Please enter a valid birthday.')
         return value
 
@@ -106,13 +136,13 @@ class MemberForm(forms.ModelForm):
         value = self.cleaned_data['address'].strip()
         if not value:
             raise ValidationError('Address is required.')
-        if len(value) < 10:
-            raise ValidationError('Please enter a complete address.')
+        validate_address_length(value)
         return value
 
     def clean_email(self):
         value = self.cleaned_data.get('email', '').strip()
         if value:
+            validate_email_format(value)
             # basic duplicate check
             qs = Member.objects.filter(email=value)
             if self.instance.pk:
