@@ -873,7 +873,7 @@ def parish_info(request):
             return redirect('parish_info')
     else:
         form = ParishInfoForm(instance=info)
-    return render(request, 'registry/parish_info.html', {'info': info, 'form': form})
+    return render(request, 'registry/info/detail.html', {'info': info, 'form': form})
 
 # ─── ORGANIZATIONS ─────────────────────────────────────────────────────────────
 

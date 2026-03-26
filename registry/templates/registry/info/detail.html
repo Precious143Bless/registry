@@ -149,7 +149,6 @@
 
             <!-- Location & Address Pane -->
             <div class="tab-pane fade" id="pane-location" role="tabpanel">
-                <!-- Row 1: Street Address + Barangay + Municipality -->
                 <div class="row g-4 mb-2">
                     <div class="col-md-4">
                         <label class="form-label fw-semibold text-muted small text-uppercase">Street Address</label>
@@ -188,7 +187,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- Row 2: Province + ZIP -->
                 <div class="row g-4">
                     <div class="col-md-4">
                         <label class="form-label fw-semibold text-muted small text-uppercase">Province</label>
@@ -338,6 +336,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     });
+
     {% if form.errors %}
     enableEdit();
     {% if form.parish_name.errors or form.diocese.errors or form.date_established.errors %}
