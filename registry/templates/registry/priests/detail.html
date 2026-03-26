@@ -32,14 +32,17 @@
                     </a>
                    
                     {% if priest.status == 'active' %}
-                        <a href="{% url 'priest_deactivate' priest.pk %}" class="btn btn-sm btn-outline-secondary">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="confirmPriestStatus()">
                             <i class="bi bi-person-dash me-1"></i>Deactivate
-                        </a>
+                        </button>
                     {% else %}
-                        <a href="{% url 'priest_deactivate' priest.pk %}" class="btn btn-sm btn-outline-success">
+                        <button type="button" class="btn btn-sm btn-outline-success" onclick="confirmPriestStatus()">
                             <i class="bi bi-person-check me-1"></i>Reactivate
-                        </a>
+                        </button>
                     {% endif %}
+                    <form id="priestStatusForm" method="post" action="{% url 'priest_deactivate' priest.pk %}" class="d-none">
+                        {% csrf_token %}
+                    </form>
                 </div>
             </div>
             <div class="card-footer bg-light border-0 px-4 pb-4">
@@ -123,4 +126,19 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmPriestStatus() {
+    const isActive = '{{ priest.status }}' === 'active';
+    const name = 'Fr. {{ priest.last_name }}';
+    const msg = isActive
+        ? `Are you sure you want to deactivate "${name}"? This action can be reversed later.`
+        : `Are you sure you want to reactivate "${name}"?`;
+    showConfirmModal(msg, function() {
+        document.getElementById('priestStatusForm').submit();
+    });
+}
+</script>
 {% endblock %}
