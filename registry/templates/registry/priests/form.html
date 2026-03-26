@@ -1,0 +1,169 @@
+{% extends 'registry/base.html' %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm" style="border-radius:12px;">
+            <div class="card-header bg-white border-0 pt-4 px-4">
+                <h6 class="fw-bold mb-0" style="color:#4e2a1e;">
+                    <i class="bi bi-person-badge me-2" style="color:#c9a84c;"></i>{{ title }}
+                </h6>
+            </div>
+            <div class="card-body px-4 pb-4">
+
+                {% if form.errors %}
+                <div class="alert alert-danger py-2 px-3 mb-3" style="border-radius:8px;">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <strong>Please fix the errors below before saving.</strong>
+                </div>
+                {% endif %}
+
+                <form method="post" novalidate enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <!-- Personal Information -->
+                    <h6 class="fw-bold mb-3 mt-2" style="color:#4e2a1e; border-bottom: 2px solid #c9a84c; padding-bottom: 5px;">
+                        <i class="bi bi-person-fill me-2"></i>Personal Information
+                    </h6>
+                    
+                    <!-- Profile Image Upload -->
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Profile Image</label>
+                            {% if priest and priest.image %}
+                            <div class="mb-2">
+                                <img src="{{ priest.image.url }}" alt="{{ priest.full_name_with_title }}" style="max-width: 150px; max-height: 150px; border-radius: 8px;" class="mb-2">
+                                
+                            </div>
+                            {% endif %}
+                            {{ form.image }}
+                            {% if form.image.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.image.errors.0 }}</div>
+                            {% else %}
+                                <div class="text-muted small mt-1">Upload a profile picture (JPG, PNG, GIF). Max size: 5MB.</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">First Name *</label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.first_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Middle Name</label>
+                            {{ form.middle_name }}
+                            {% if form.middle_name.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.middle_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Last Name *</label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.last_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Contact Information -->
+                    <h6 class="fw-bold mb-3 mt-4" style="color:#4e2a1e; border-bottom: 2px solid #c9a84c; padding-bottom: 5px;">
+                        <i class="bi bi-envelope-fill me-2"></i>Contact Information
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Contact Number</label>
+                            {{ form.contact_number }}
+                            {% if form.contact_number.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.contact_number.errors.0 }}</div>
+                            {% else %}
+                                <div class="text-muted small mt-1">11 digits, must start with 09 (e.g. 09171234567).</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Email</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.email.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Priest Details -->
+                    <h6 class="fw-bold mb-3 mt-4" style="color:#4e2a1e; border-bottom: 2px solid #c9a84c; padding-bottom: 5px;">
+                        <i class="bi bi-church-fill me-2"></i>Priest Details
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Ordination Date</label>
+                            {{ form.ordination_date }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Priest Since</label>
+                            {{ form.priest_since }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Status</label>
+                            {{ form.status }}
+                        </div>
+                    </div>
+
+                    <!-- Assignment -->
+                    <h6 class="fw-bold mb-3 mt-4" style="color:#4e2a1e; border-bottom: 2px solid #c9a84c; padding-bottom: 5px;">
+                        <i class="bi bi-calendar-event-fill me-2"></i>Assignment
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Date Assigned</label>
+                            {{ form.date_assigned }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Date Departed</label>
+                            {{ form.date_departed }}
+                        </div>
+                    </div>
+
+                    <!-- Additional Information -->
+                    <h6 class="fw-bold mb-3 mt-4" style="color:#4e2a1e; border-bottom: 2px solid #c9a84c; padding-bottom: 5px;">
+                        <i class="bi bi-file-text-fill me-2"></i>Additional Information
+                    </h6>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Biography</label>
+                        {{ form.biography }}
+                        <div class="text-muted small mt-1">Brief biography or background information.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Remarks</label>
+                        {{ form.remarks }}
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary-church px-4">
+                            <i class="bi bi-check-lg me-1"></i>Save Priest
+                        </button>
+                        <a href="{% url 'priests_list' %}" class="btn btn-outline-secondary px-4">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Highlight fields with errors
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.text-danger').forEach(function (el) {
+            const input = el.previousElementSibling;
+            if (input && (input.tagName === 'INPUT' || input.tagName === 'SELECT' || input.tagName === 'TEXTAREA')) {
+                input.classList.add('is-invalid');
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -394,6 +394,92 @@ def payment_delete(request, pk):
     return render(request, 'registry/confirm_delete.html', {'object': payment, 'type': 'Payment'})
 
 
+# ─── PARISH PRIESTS ────────────────────────────────────────────────────────────
+
+@login_required
+def priests_list(request):
+    q = request.GET.get('q', '')
+    status_filter = request.GET.get('status', '')
+    
+    priests = ParishPriest.objects.all()
+    
+    if q:
+        priests = priests.filter(
+            Q(first_name__icontains=q) | 
+            Q(last_name__icontains=q) |
+            Q(middle_name__icontains=q) |
+            Q(email__icontains=q) |
+            Q(contact_number__icontains=q)
+        )
+    
+    if status_filter:
+        priests = priests.filter(status=status_filter)
+    
+    return render(request, 'registry/priests/list.html', {
+        'priests': priests, 
+        'q': q, 
+        'status_filter': status_filter
+    })
+
+
+@login_required
+def priest_create(request):
+    form = ParishPriestForm(request.POST or None, request.FILES or None) 
+    if form.is_valid():
+        form.save()
+        messages.success(request, 'Parish priest added successfully.')
+        return redirect('priests_list')
+    return render(request, 'registry/priests/form.html', {
+        'form': form, 
+        'title': 'Add Parish Priest'
+    })
+
+
+@login_required
+def priest_detail(request, pk):
+    priest = get_object_or_404(ParishPriest, pk=pk)
+    return render(request, 'registry/priests/detail.html', {'priest': priest})
+
+
+@login_required
+def priest_edit(request, pk):
+    priest = get_object_or_404(ParishPriest, pk=pk)
+    form = ParishPriestForm(request.POST or None, request.FILES or None, instance=priest) 
+    if form.is_valid():
+        if request.POST.get('clear_image') == 'on':
+            if priest.image:
+                priest.image.delete(save=False)
+            form.instance.image = None
+        form.save()
+        messages.success(request, 'Parish priest updated successfully.')
+        return redirect('priest_detail', pk=priest.pk)
+    return render(request, 'registry/priests/form.html', {
+        'form': form, 
+        'title': 'Edit Parish Priest', 
+        'priest': priest
+    })
+
+
+@login_required
+def priest_deactivate(request, pk):
+    priest = get_object_or_404(ParishPriest, pk=pk)
+    if request.method == 'POST':
+        if priest.status == 'active':
+            priest.status = 'inactive'
+            messages.success(request, f'Fr. {priest.last_name} has been deactivated.')
+        else:
+            priest.status = 'active'
+            messages.success(request, f'Fr. {priest.last_name} has been reactivated.')
+        priest.save()
+        return redirect('priests_list')
+    return render(request, 'registry/priests/confirm_status.html', {'priest': priest})
+
+@login_required
+def priests_list_print(request):
+    priests = ParishPriest.objects.all().order_by('last_name', 'first_name')
+    return render(request, 'registry/priests/print_priest_list.html', {'priests': priests})
+
+
 # ─── PRINT VIEWS ─────────────────────────────────────────────────────────────
 
 @login_required

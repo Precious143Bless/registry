@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Member, Baptism, Confirmation, FirstHolyCommunion, Marriage, LastRites, Pledge, PledgePayment
+from .models import Member, Baptism, Confirmation, FirstHolyCommunion, Marriage, LastRites, Pledge, PledgePayment,ParishPriest
 
 admin.site.register(Member)
 admin.site.register(Baptism)
@@ -9,3 +9,4 @@ admin.site.register(Marriage)
 admin.site.register(LastRites)
 admin.site.register(Pledge)
 admin.site.register(PledgePayment)
+admin.site.register(ParishPriest)

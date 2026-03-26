@@ -2,7 +2,7 @@ import re
 from datetime import date
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Member, Baptism, Confirmation, FirstHolyCommunion, Marriage, LastRites, Pledge, PledgePayment, ParishInfo
+from .models import Member, Baptism, Confirmation, FirstHolyCommunion, Marriage, LastRites, Pledge, PledgePayment, ParishInfo, ParishPriest
 
 
 # ─── REUSABLE VALIDATORS ─────────────────────────────────────────────────────
@@ -367,3 +367,74 @@ class ParishInfoForm(forms.ModelForm):
             }),
             'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'parish@example.com'}),
         }
+        
+# ─── PARISH PRIEST FORM ─────────────────────────────────────────────────────
+
+class ParishPriestForm(forms.ModelForm):
+    ordination_date = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+    )
+    priest_since = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+    )
+    date_assigned = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+    )
+    date_departed = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+    )
+
+    class Meta:
+        model = ParishPriest
+        fields = '__all__'
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Juan'}),
+            'middle_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Optional'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Dela Cruz'}),
+            'contact_number': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '09XXXXXXXXX',
+                'maxlength': '11',
+                'minlength': '11',
+                'pattern': '09[0-9]{9}',
+                'title': '11-digit PH mobile number starting with 09',
+                'inputmode': 'numeric',
+                'oninput': "this.value=this.value.replace(/[^0-9]/g,'').slice(0,11)",
+            }),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'example@email.com'}),
+            'biography': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Brief biography of the priest...'}),
+            'remarks': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Additional remarks...'}),
+            'status': forms.Select(attrs={'class': 'form-select'}),
+            'image': forms.FileInput(attrs={'class': 'form-control'}),
+        }
+
+    def clean_first_name(self):
+        value = self.cleaned_data['first_name'].strip()
+        if not value:
+            raise ValidationError('First name is required.')
+        validate_letters_only(value, 'First name')
+        return value.title()
+
+    def clean_middle_name(self):
+        value = self.cleaned_data.get('middle_name', '').strip()
+        if value:
+            validate_letters_only(value, 'Middle name')
+            return value.title()
+        return value
+
+    def clean_last_name(self):
+        value = self.cleaned_data['last_name'].strip()
+        if not value:
+            raise ValidationError('Last name is required.')
+        validate_letters_only(value, 'Last name')
+        return value.title()
+
+    def clean_contact_number(self):
+        value = self.cleaned_data.get('contact_number', '').strip()
+        if value:
+            validate_ph_contact(value)
+        return value

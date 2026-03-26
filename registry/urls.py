@@ -1,5 +1,7 @@
 from django.urls import path
 from . import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     # Landing
@@ -66,4 +68,16 @@ urlpatterns = [
 
     # Parish Info
     path('parish-info/', views.parish_info, name='parish_info'),
+
+    # Parish Priests
+    path('priests/', views.priests_list, name='priests_list'),
+    path('priests/new/', views.priest_create, name='priest_create'),
+    path('priests/print/all/', views.priests_list_print, name='priests_list_print'),
+    path('priests/<int:pk>/', views.priest_detail, name='priest_detail'),
+    path('priests/<int:pk>/edit/', views.priest_edit, name='priest_edit'),
+    path('priests/<int:pk>/deactivate/', views.priest_deactivate, name='priest_deactivate'),
 ]
+
+# Serve media files in development
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

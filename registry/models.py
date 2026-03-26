@@ -173,3 +173,60 @@ class PledgePayment(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         self.pledge.update_status()
+
+class ParishPriest(models.Model):
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('inactive', 'Inactive'),
+    ]
+
+    image = models.ImageField(
+        upload_to='priests/', 
+        blank=True, 
+        null=True,
+        verbose_name='Profile Image'
+    )
+    
+    first_name = models.CharField(max_length=100)
+    middle_name = models.CharField(max_length=100, blank=True)
+    last_name = models.CharField(max_length=100)
+    
+    # Contact Information
+    contact_number = models.CharField(max_length=20, blank=True)
+    email = models.EmailField(blank=True)
+    
+    # Priest Details
+    ordination_date = models.DateField(null=True, blank=True)
+    priest_since = models.DateField(null=True, blank=True)
+    
+    # Assignment
+    date_assigned = models.DateField(null=True, blank=True)
+    date_departed = models.DateField(null=True, blank=True)
+    
+    # Status
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active')
+    
+    # Biography
+    biography = models.TextField(blank=True)
+    remarks = models.TextField(blank=True)
+    
+    # Metadata
+    date_added = models.DateField(auto_now_add=True)
+    date_updated = models.DateField(auto_now=True)
+    
+    class Meta:
+        ordering = ['last_name', 'first_name']
+        verbose_name_plural = "Parish Priests"
+    
+    def __str__(self):
+        return f"Fr. {self.first_name} {self.last_name}"
+    
+    @property
+    def full_name(self):
+        parts = [self.first_name, self.middle_name, self.last_name]
+        return ' '.join(p for p in parts if p)
+    
+    @property
+    def full_name_with_title(self):
+        return f"Rev. Fr. {self.first_name} {self.last_name}"
+
