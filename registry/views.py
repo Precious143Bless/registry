@@ -112,6 +112,11 @@ def member_deactivate(request, pk):
 
 # ─── SACRAMENTS ──────────────────────────────────────────────────────────────
 
+def _parish_ctx():
+    """Helper to inject ParishInfo into print views."""
+    return ParishInfo.objects.first()
+
+
 @login_required
 def sacrament_list(request):
     q = request.GET.get('q', '')
@@ -165,7 +170,10 @@ def baptism_edit(request, pk):
 
 @login_required
 def baptism_print(request, pk):
-    return render(request, 'registry/sacraments/print_baptism.html', {'baptism': get_object_or_404(Baptism, pk=pk)})
+    return render(request, 'registry/sacraments/print_baptism.html', {
+        'baptism': get_object_or_404(Baptism, pk=pk),
+        'parish': _parish_ctx(),
+    })
 
 
 @login_required
@@ -198,7 +206,10 @@ def confirmation_edit(request, pk):
 @login_required
 def confirmation_print(request, pk):
     conf = get_object_or_404(Confirmation, pk=pk)
-    return render(request, 'registry/sacraments/print_confirmation.html', {'conf': conf})
+    return render(request, 'registry/sacraments/print_confirmation.html', {
+        'conf': conf,
+        'parish': _parish_ctx(),
+    })
 
 
 @login_required
@@ -231,7 +242,10 @@ def communion_edit(request, pk):
 @login_required
 def communion_print(request, pk):
     communion = get_object_or_404(FirstHolyCommunion, pk=pk)
-    return render(request, 'registry/sacraments/print_communion.html', {'communion': communion})
+    return render(request, 'registry/sacraments/print_communion.html', {
+        'communion': communion,
+        'parish': _parish_ctx(),
+    })
 
 
 @login_required
@@ -261,7 +275,10 @@ def marriage_edit(request, pk):
 @login_required
 def marriage_print(request, pk):
     marriage = get_object_or_404(Marriage, pk=pk)
-    return render(request, 'registry/sacraments/print_marriage.html', {'marriage': marriage})
+    return render(request, 'registry/sacraments/print_marriage.html', {
+        'marriage': marriage,
+        'parish': _parish_ctx(),
+    })
 
 
 @login_required
@@ -294,7 +311,10 @@ def last_rites_edit(request, pk):
 @login_required
 def last_rites_print(request, pk):
     lr = get_object_or_404(LastRites, pk=pk)
-    return render(request, 'registry/sacraments/print_last_rites.html', {'lr': lr})
+    return render(request, 'registry/sacraments/print_last_rites.html', {
+        'lr': lr,
+        'parish': _parish_ctx(),
+    })
 
 
 # ─── PLEDGES ─────────────────────────────────────────────────────────────────
@@ -377,24 +397,36 @@ def payment_delete(request, pk):
 
 @login_required
 def member_print(request, pk):
-    return render(request, 'registry/members/print_member.html', {'member': get_object_or_404(Member, pk=pk)})
+    return render(request, 'registry/members/print_member.html', {
+        'member': get_object_or_404(Member, pk=pk),
+        'parish': _parish_ctx(),
+    })
 
 
 @login_required
 def member_list_print(request):
     members = Member.objects.filter(is_active=True).order_by('last_name', 'first_name')
-    return render(request, 'registry/members/print_member_list.html', {'members': members})
+    return render(request, 'registry/members/print_member_list.html', {
+        'members': members,
+        'parish': _parish_ctx(),
+    })
 
 
 @login_required
 def pledge_print(request, pk):
-    return render(request, 'registry/pledges/print_pledge.html', {'pledge': get_object_or_404(Pledge, pk=pk)})
+    return render(request, 'registry/pledges/print_pledge.html', {
+        'pledge': get_object_or_404(Pledge, pk=pk),
+        'parish': _parish_ctx(),
+    })
 
 
 @login_required
 def pledge_list_print(request):
     pledges = Pledge.objects.select_related('member').order_by('member__last_name')
-    return render(request, 'registry/pledges/print_pledge_list.html', {'pledges': pledges})
+    return render(request, 'registry/pledges/print_pledge_list.html', {
+        'pledges': pledges,
+        'parish': _parish_ctx(),
+    })
 
 
 # ─── DATABASE MANAGEMENT ────────────────────────────────────────────────────────

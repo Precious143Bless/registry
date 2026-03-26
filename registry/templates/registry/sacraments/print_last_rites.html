@@ -27,8 +27,8 @@
 <div class="certificate">
     <div class="cert-header">
         <div class="cross">✝</div>
-        <h2>Parish of [Parish Name]</h2>
-        <p>[Parish Address] &bull; [Contact Number]</p>
+        <h2>Parish of {{ parish.parish_name|default:"[Parish Name]" }}</h2>
+        <p>{{ parish.street_address|default:"" }}{% if parish.barangay %}, {{ parish.barangay }}{% endif %}{% if parish.municipality %}, {{ parish.municipality }}{% endif %}{% if parish.province %}, {{ parish.province }}{% endif %} &bull; {{ parish.contact_number|default:"[Contact Number]" }}</p>
     </div>
     <div class="cert-title">
         <h3>Record of Last Rites</h3>
