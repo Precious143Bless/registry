@@ -19,18 +19,55 @@
 </div>
 
 <!-- Tabs -->
-<ul class="nav nav-tabs mb-3" id="sacramentTabs">
-    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#baptisms"><i class="bi bi-droplet-fill me-1 text-primary"></i>Baptisms ({{ baptisms|length }})</a></li>
-    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#confirmations"><i class="bi bi-patch-check-fill me-1 text-success"></i>Confirmations ({{ confirmations|length }})</a></li>
-    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#communions"><i class="bi bi-cup-hot-fill me-1 text-warning"></i>Communions ({{ communions|length }})</a></li>
-    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#marriages"><i class="bi bi-heart-fill me-1 text-danger"></i>Marriages ({{ marriages|length }})</a></li>
-    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#lastrites"><i class="bi bi-moon-fill me-1 text-secondary"></i>Last Rites ({{ last_rites|length }})</a></li>
-</ul>
+<div class="card table-card mb-0">
+    <div class="card-header bg-white border-0 px-4 pt-3 pb-0">
+        <ul class="nav nav-tabs border-0" id="sacramentTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active d-flex align-items-center gap-2 px-4 py-2"
+                        data-bs-toggle="tab" data-bs-target="#baptisms" type="button" role="tab">
+                    <i class="bi bi-droplet-fill" style="color:#c9a84c;"></i>
+                    <span>Baptisms</span>
+                    <span class="badge rounded-pill ms-1" style="background:#f5ede8;color:#6b3a2a;font-size:0.72rem;">{{ baptisms|length }}</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link d-flex align-items-center gap-2 px-4 py-2"
+                        data-bs-toggle="tab" data-bs-target="#confirmations" type="button" role="tab">
+                    <i class="bi bi-patch-check-fill" style="color:#c9a84c;"></i>
+                    <span>Confirmations</span>
+                    <span class="badge rounded-pill ms-1" style="background:#f5ede8;color:#6b3a2a;font-size:0.72rem;">{{ confirmations|length }}</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link d-flex align-items-center gap-2 px-4 py-2"
+                        data-bs-toggle="tab" data-bs-target="#communions" type="button" role="tab">
+                    <i class="bi bi-cup-hot-fill" style="color:#c9a84c;"></i>
+                    <span>Communions</span>
+                    <span class="badge rounded-pill ms-1" style="background:#f5ede8;color:#6b3a2a;font-size:0.72rem;">{{ communions|length }}</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link d-flex align-items-center gap-2 px-4 py-2"
+                        data-bs-toggle="tab" data-bs-target="#marriages" type="button" role="tab">
+                    <i class="bi bi-heart-fill" style="color:#c9a84c;"></i>
+                    <span>Marriages</span>
+                    <span class="badge rounded-pill ms-1" style="background:#f5ede8;color:#6b3a2a;font-size:0.72rem;">{{ marriages|length }}</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link d-flex align-items-center gap-2 px-4 py-2"
+                        data-bs-toggle="tab" data-bs-target="#lastrites" type="button" role="tab">
+                    <i class="bi bi-moon-fill" style="color:#c9a84c;"></i>
+                    <span>Last Rites</span>
+                    <span class="badge rounded-pill ms-1" style="background:#f5ede8;color:#6b3a2a;font-size:0.72rem;">{{ last_rites|length }}</span>
+                </button>
+            </li>
+        </ul>
+    </div>
 
-<div class="tab-content">
-    <!-- Baptisms -->
-    <div class="tab-pane fade show active" id="baptisms">
-        <div class="card table-card">
+    <div class="tab-content">
+        <!-- Baptisms -->
+        <div class="tab-pane fade show active" id="baptisms" role="tabpanel">
             <div class="card-body p-0">
                 <table class="table mb-0">
                     <thead><tr><th>Member</th><th>Date Baptized</th><th>Priest</th><th>Godfathers</th><th>Godmothers</th><th>Actions</th></tr></thead>
@@ -44,7 +81,7 @@
                             <td>{{ b.get_godmothers|join:", "|default:"—" }}</td>
                             <td>
                                 <a href="{% url 'baptism_edit' b.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
-                                <a href="{% url 'baptism_print' b.pk %}" class="btn btn-sm btn-outline-primary" target="_blank"><i class="bi bi-printer"></i></a>
+                                <a href="{% url 'baptism_print' b.pk %}" class="btn btn-sm" style="background:#f5ede8;color:#6b3a2a;" target="_blank"><i class="bi bi-printer"></i></a>
                             </td>
                         </tr>
                         {% empty %}<tr><td colspan="6" class="text-center text-muted py-4">No baptism records found.</td></tr>{% endfor %}
@@ -52,11 +89,9 @@
                 </table>
             </div>
         </div>
-    </div>
 
-    <!-- Confirmations -->
-    <div class="tab-pane fade" id="confirmations">
-        <div class="card table-card">
+        <!-- Confirmations -->
+        <div class="tab-pane fade" id="confirmations" role="tabpanel">
             <div class="card-body p-0">
                 <table class="table mb-0">
                     <thead><tr><th>Member</th><th>Date Confirmed</th><th>Bishop</th><th>Confirmation Name</th><th>Sponsor</th><th>Actions</th></tr></thead>
@@ -70,7 +105,7 @@
                             <td>{{ c.sponsor|default:"—" }}</td>
                             <td>
                                 <a href="{% url 'confirmation_edit' c.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
-                                <a href="{% url 'confirmation_print' c.pk %}" class="btn btn-sm btn-outline-success" target="_blank"><i class="bi bi-printer"></i></a>
+                                <a href="{% url 'confirmation_print' c.pk %}" class="btn btn-sm" style="background:#f5ede8;color:#6b3a2a;" target="_blank"><i class="bi bi-printer"></i></a>
                             </td>
                         </tr>
                         {% empty %}<tr><td colspan="6" class="text-center text-muted py-4">No confirmation records found.</td></tr>{% endfor %}
@@ -78,11 +113,9 @@
                 </table>
             </div>
         </div>
-    </div>
 
-    <!-- Communions -->
-    <div class="tab-pane fade" id="communions">
-        <div class="card table-card">
+        <!-- Communions -->
+        <div class="tab-pane fade" id="communions" role="tabpanel">
             <div class="card-body p-0">
                 <table class="table mb-0">
                     <thead><tr><th>Member</th><th>Date Received</th><th>Priest</th><th>Remarks</th><th>Actions</th></tr></thead>
@@ -95,7 +128,7 @@
                             <td>{{ c.remarks|default:"—" }}</td>
                             <td>
                                 <a href="{% url 'communion_edit' c.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
-                                <a href="{% url 'communion_print' c.pk %}" class="btn btn-sm btn-outline-warning" target="_blank"><i class="bi bi-printer"></i></a>
+                                <a href="{% url 'communion_print' c.pk %}" class="btn btn-sm" style="background:#f5ede8;color:#6b3a2a;" target="_blank"><i class="bi bi-printer"></i></a>
                             </td>
                         </tr>
                         {% empty %}<tr><td colspan="5" class="text-center text-muted py-4">No communion records found.</td></tr>{% endfor %}
@@ -103,11 +136,9 @@
                 </table>
             </div>
         </div>
-    </div>
 
-    <!-- Marriages -->
-    <div class="tab-pane fade" id="marriages">
-        <div class="card table-card">
+        <!-- Marriages -->
+        <div class="tab-pane fade" id="marriages" role="tabpanel">
             <div class="card-body p-0">
                 <table class="table mb-0">
                     <thead><tr><th>Member</th><th>Spouse</th><th>Date Married</th><th>Priest</th><th>Principal Sponsor</th><th>Actions</th></tr></thead>
@@ -121,7 +152,7 @@
                             <td>{{ m.principal_sponsor|default:"—" }}</td>
                             <td>
                                 <a href="{% url 'marriage_edit' m.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
-                                <a href="{% url 'marriage_print' m.pk %}" class="btn btn-sm btn-outline-danger" target="_blank"><i class="bi bi-printer"></i></a>
+                                <a href="{% url 'marriage_print' m.pk %}" class="btn btn-sm" style="background:#f5ede8;color:#6b3a2a;" target="_blank"><i class="bi bi-printer"></i></a>
                             </td>
                         </tr>
                         {% empty %}<tr><td colspan="6" class="text-center text-muted py-4">No marriage records found.</td></tr>{% endfor %}
@@ -129,11 +160,9 @@
                 </table>
             </div>
         </div>
-    </div>
 
-    <!-- Last Rites -->
-    <div class="tab-pane fade" id="lastrites">
-        <div class="card table-card">
+        <!-- Last Rites -->
+        <div class="tab-pane fade" id="lastrites" role="tabpanel">
             <div class="card-body p-0">
                 <table class="table mb-0">
                     <thead><tr><th>Member</th><th>Date Administered</th><th>Priest</th><th>Remarks</th><th>Actions</th></tr></thead>
@@ -146,7 +175,7 @@
                             <td>{{ lr.remarks|default:"—" }}</td>
                             <td>
                                 <a href="{% url 'last_rites_edit' lr.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
-                                <a href="{% url 'last_rites_print' lr.pk %}" class="btn btn-sm btn-outline-secondary" target="_blank"><i class="bi bi-printer"></i></a>
+                                <a href="{% url 'last_rites_print' lr.pk %}" class="btn btn-sm" style="background:#f5ede8;color:#6b3a2a;" target="_blank"><i class="bi bi-printer"></i></a>
                             </td>
                         </tr>
                         {% empty %}<tr><td colspan="5" class="text-center text-muted py-4">No last rites records found.</td></tr>{% endfor %}
@@ -156,6 +185,29 @@
         </div>
     </div>
 </div>
+
+<style>
+    #sacramentTabs .nav-link {
+        color: #6c757d;
+        border: none;
+        border-bottom: 3px solid transparent;
+        border-radius: 0;
+        font-size: 0.88rem;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+    #sacramentTabs .nav-link:hover {
+        color: #6b3a2a;
+        border-bottom-color: #e8c99a;
+    }
+    #sacramentTabs .nav-link.active {
+        color: #6b3a2a;
+        font-weight: 700;
+        border-bottom: 3px solid #6b3a2a;
+        background: transparent;
+    }
+    #sacramentTabs .nav-link i { font-size: 0.9rem; }
+</style>
 
 <!-- ── Add Sacrament Modal ─────────────────────────────────── -->
 <div class="modal fade" id="addSacramentModal" tabindex="-1">
