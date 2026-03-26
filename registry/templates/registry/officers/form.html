@@ -26,6 +26,20 @@
                         <i class="bi bi-person-fill me-2"></i>Personal Information
                     </h6>
                     <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Profile Image</label>
+                            {% if priest and priest.image %}
+                            <div class="mb-2">
+                                <img src="{{ priest.image.url }}" alt="{{ priest.full_name_with_title }}" style="max-width: 150px; max-height: 150px; border-radius: 8px;" class="mb-2">  
+                            </div>
+                            {% endif %}
+                            {{ form.image }}
+                            {% if form.image.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.image.errors.0 }}</div>
+                            {% else %}
+                                <div class="text-muted small mt-1">Upload a profile picture (JPG, PNG, GIF). Max size: 5MB.</div>
+                            {% endif %}
+                        </div>
                         <div class="col-md-4">
                             <label class="form-label fw-semibold small">First Name *</label>
                             {{ form.first_name }}
