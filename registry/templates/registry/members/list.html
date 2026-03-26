@@ -60,9 +60,10 @@
                                 <a href="{% url 'member_edit' member.pk %}" class="btn btn-sm btn-outline-secondary" title="Edit">
                                     <i class="bi bi-pencil"></i>
                                 </a>
-                                <a href="{% url 'member_deactivate' member.pk %}" class="btn btn-sm btn-outline-danger" title="Deactivate">
+                                <button class="btn btn-sm btn-outline-danger" title="Deactivate" 
+                                        onclick="confirmDeactivate({{ member.pk }}, '{{ member.full_name|escapejs }}')">
                                     <i class="bi bi-person-x"></i>
-                                </a>
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -82,4 +83,17 @@
         <small class="text-muted">{{ members|length }} member(s) found</small>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDeactivate(memberId, memberName) {
+    showConfirmModal(
+        'Are you sure you want to deactivate "' + memberName + '"? This action can be reversed later.',
+        function() {
+            window.location.href = '/members/' + memberId + '/deactivate/';
+        }
+    );
+}
+</script>
 {% endblock %}

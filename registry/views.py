@@ -10,9 +10,9 @@ from django.core.files.storage import default_storage
 import os
 import subprocess
 from datetime import datetime
-from .models import Member, Baptism, Confirmation, FirstHolyCommunion, Marriage, LastRites, Pledge, PledgePayment, ParishInfo, ParishPriest, ParishOfficer
+from .models import Member, Baptism, Confirmation, FirstHolyCommunion, Marriage, LastRites, Pledge, PledgePayment, ParishInfo
 from .forms import (MemberForm, BaptismForm, ConfirmationForm, CommunionForm,
-                    MarriageForm, LastRitesForm, PledgeForm, PledgePaymentForm, ParishInfoForm, ParishPriestForm, ParishOfficerForm)
+                    MarriageForm, LastRitesForm, PledgeForm, PledgePaymentForm, ParishInfoForm)
 
 
 # ─── AUTH ────────────────────────────────────────────────────────────────────

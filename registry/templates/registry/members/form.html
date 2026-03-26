@@ -103,7 +103,7 @@
 
                     </div>
                     <div class="d-flex gap-2 mt-4">
-                        <button type="submit" class="btn btn-primary-church px-4">
+                        <button type="submit" class="btn btn-primary-church px-4" id="saveButton">
                             <i class="bi bi-check-lg me-1"></i>Save Member
                         </button>
                         <a href="{% if member %}{% url 'member_detail' member.pk %}{% else %}{% url 'member_list' %}{% endif %}"
@@ -118,19 +118,123 @@
 
 {% block extra_js %}
 <script>
-    // Set birthday max to today
-    document.addEventListener('DOMContentLoaded', function () {
-        const today = new Date().toISOString().split('T')[0];
-        const birthdayInput = document.querySelector('input[name="birthday"]');
-        if (birthdayInput) birthdayInput.setAttribute('max', today);
+document.addEventListener('DOMContentLoaded', function () {
+    const today = new Date().toISOString().split('T')[0];
+    const birthdayInput = document.querySelector('input[name="birthday"]');
+    if (birthdayInput) birthdayInput.setAttribute('max', today);
 
-        // Highlight fields with errors
-        document.querySelectorAll('.text-danger').forEach(function (el) {
-            const input = el.previousElementSibling;
-            if (input && (input.tagName === 'INPUT' || input.tagName === 'SELECT' || input.tagName === 'TEXTAREA')) {
-                input.classList.add('is-invalid');
+    // Highlight fields with errors
+    document.querySelectorAll('.text-danger').forEach(function (el) {
+        const input = el.previousElementSibling;
+        if (input && (input.tagName === 'INPUT' || input.tagName === 'SELECT' || input.tagName === 'TEXTAREA')) {
+            input.classList.add('is-invalid');
+        }
+    });
+
+    // Form submission confirmation
+    const form = document.querySelector('form');
+    const saveButton = document.getElementById('saveButton');
+    
+    if (form && saveButton) {
+        form.addEventListener('submit', function(e) {
+            // Check if there are any validation errors
+            const hasErrors = document.querySelectorAll('.is-invalid, .text-danger').length > 0;
+            if (!hasErrors) {
+                e.preventDefault();
+                const memberName = document.querySelector('input[name="first_name"]').value + ' ' + 
+                                 document.querySelector('input[name="last_name"]').value;
+                const action = '{{ member.pk|yesno:"Update,Add" }}';
+                
+                showConfirmModal(
+                    `Are you sure you want to ${action.toLowerCase()} this member: "${memberName}"?`,
+                    function() {
+                        form.submit();
+                    }
+                );
             }
         });
-    });
+    }
+
+    // Real-time validation
+    const firstNameInput = document.querySelector('input[name="first_name"]');
+    const lastNameInput = document.querySelector('input[name="last_name"]');
+    const contactInput = document.querySelector('input[name="contact_number"]');
+    const emailInput = document.querySelector('input[name="email"]');
+
+    function validateName(input) {
+        const value = input.value.trim();
+        const lettersOnly = /^[A-Za-zÀ-ÖØ-öø-ÿ\s\-'.]+$/;
+        
+        if (value && !lettersOnly.test(value)) {
+            input.setCustomValidity('Name must contain letters only.');
+            input.classList.add('is-invalid');
+        } else {
+            input.setCustomValidity('');
+            input.classList.remove('is-invalid');
+        }
+    }
+
+    function validateContact(input) {
+        const value = input.value.trim();
+        const phonePattern = /^09\d{9}$/;
+        
+        if (value && !phonePattern.test(value)) {
+            input.setCustomValidity('Enter a valid 11-digit Philippine mobile number starting with 09.');
+            input.classList.add('is-invalid');
+        } else {
+            input.setCustomValidity('');
+            input.classList.remove('is-invalid');
+        }
+    }
+
+    function validateEmail(input) {
+        const value = input.value.trim();
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        
+        if (value && !emailPattern.test(value)) {
+            input.setCustomValidity('Enter a valid email address.');
+            input.classList.add('is-invalid');
+        } else {
+            input.setCustomValidity('');
+            input.classList.remove('is-invalid');
+        }
+    }
+
+    if (firstNameInput) {
+        firstNameInput.addEventListener('blur', () => validateName(firstNameInput));
+        firstNameInput.addEventListener('input', () => {
+            if (firstNameInput.classList.contains('is-invalid')) {
+                validateName(firstNameInput);
+            }
+        });
+    }
+
+    if (lastNameInput) {
+        lastNameInput.addEventListener('blur', () => validateName(lastNameInput));
+        lastNameInput.addEventListener('input', () => {
+            if (lastNameInput.classList.contains('is-invalid')) {
+                validateName(lastNameInput);
+            }
+        });
+    }
+
+    if (contactInput) {
+        contactInput.addEventListener('blur', () => validateContact(contactInput));
+        contactInput.addEventListener('input', () => {
+            if (contactInput.classList.contains('is-invalid')) {
+                validateContact(contactInput);
+            }
+        });
+    }
+
+    if (emailInput) {
+        emailInput.addEventListener('blur', () => validateEmail(emailInput));
+        emailInput.addEventListener('input', () => {
+            if (emailInput.classList.contains('is-invalid')) {
+                validateEmail(emailInput);
+            }
+        });
+    }
+});
 </script>
 {% endblock %}
