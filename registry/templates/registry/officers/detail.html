@@ -1,0 +1,39 @@
+{% extends 'registry/base.html' %}
+{% block page_title %}Officer Detail{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h5 class="fw-bold mb-0" style="color:#4e2a1e;">{{ officer.full_name }}</h5>
+        <small class="text-muted">{{ officer.position|default:'Parish Officer' }}</small>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'officer_edit' officer.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+        <a href="{% url 'officers_list' %}" class="btn btn-sm btn-primary-church">Back to List</a>
+    </div>
+</div>
+
+<div class="row gy-3">
+    <div class="col-lg-4">
+        <div class="card table-card p-3 text-center" style="border-radius:12px;">
+            {% if officer.image %}
+                <img src="{{ officer.image.url }}" alt="{{ officer.full_name }}" class="img-fluid rounded mb-3" style="max-height: 250px; object-fit: cover;">
+            {% else %}
+                <div class="mb-3 p-5" style="background: #f5ede8; border-radius: 12px;"><i class="bi bi-person-circle fs-1" style="color:#c9a84c;"></i></div>
+            {% endif %}
+            <p class="mb-1"><strong>Status:</strong> {% if officer.status == 'active' %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}</p>
+            <p class="mb-1"><strong>Assigned:</strong> {{ officer.date_assigned|date:'M d, Y'|default:'—' }}</p>
+            <p class="mb-0"><strong>Departed:</strong> {{ officer.date_departed|date:'M d, Y'|default:'—' }}</p>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="card table-card p-3" style="border-radius:12px;">
+            <div class="mb-3"><strong>Position:</strong> {{ officer.position|default:'—' }}</div>
+            <div class="mb-3"><strong>Contact:</strong> {{ officer.contact_number|default:'—' }}</div>
+            <div class="mb-3"><strong>Email:</strong> {{ officer.email|default:'—' }}</div>
+            <div class="mb-3"><strong>Biography:</strong><br>{{ officer.biography|linebreaksbr|default:'—' }}</div>
+            <div><strong>Remarks:</strong><br>{{ officer.remarks|linebreaksbr|default:'—' }}</div>
+        </div>
+    </div>
+</div>
+{% endblock %}

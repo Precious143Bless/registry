@@ -10,9 +10,9 @@ from django.core.files.storage import default_storage
 import os
 import subprocess
 from datetime import datetime
-from .models import Member, Baptism, Confirmation, FirstHolyCommunion, Marriage, LastRites, Pledge, PledgePayment, ParishInfo
+from .models import Member, Baptism, Confirmation, FirstHolyCommunion, Marriage, LastRites, Pledge, PledgePayment, ParishInfo, ParishPriest, ParishOfficer
 from .forms import (MemberForm, BaptismForm, ConfirmationForm, CommunionForm,
-                    MarriageForm, LastRitesForm, PledgeForm, PledgePaymentForm, ParishInfoForm)
+                    MarriageForm, LastRitesForm, PledgeForm, PledgePaymentForm, ParishInfoForm, ParishPriestForm, ParishOfficerForm)
 
 
 # ─── AUTH ────────────────────────────────────────────────────────────────────
@@ -478,6 +478,86 @@ def priest_deactivate(request, pk):
 def priests_list_print(request):
     priests = ParishPriest.objects.all().order_by('last_name', 'first_name')
     return render(request, 'registry/priests/print_priest_list.html', {'priests': priests})
+
+
+# ─── PARISH OFFICERS ─────────────────────────────────────────────────────────
+
+@login_required
+def officers_list(request):
+    q = request.GET.get('q', '')
+    status_filter = request.GET.get('status', '')
+    officers = ParishOfficer.objects.all()
+
+    if q:
+        officers = officers.filter(
+            Q(first_name__icontains=q) |
+            Q(last_name__icontains=q) |
+            Q(middle_name__icontains=q) |
+            Q(position__icontains=q) |
+            Q(email__icontains=q) |
+            Q(contact_number__icontains=q)
+        )
+
+    if status_filter:
+        officers = officers.filter(status=status_filter)
+
+    return render(request, 'registry/officers/list.html', {
+        'officers': officers,
+        'q': q,
+        'status_filter': status_filter
+    })
+
+
+@login_required
+def officer_create(request):
+    form = ParishOfficerForm(request.POST or None, request.FILES or None)
+    if form.is_valid():
+        form.save()
+        messages.success(request, 'Parish officer added successfully.')
+        return redirect('officers_list')
+    return render(request, 'registry/officers/form.html', {'form': form, 'title': 'Add Parish Officer'})
+
+
+@login_required
+def officer_detail(request, pk):
+    officer = get_object_or_404(ParishOfficer, pk=pk)
+    return render(request, 'registry/officers/detail.html', {'officer': officer})
+
+
+@login_required
+def officer_edit(request, pk):
+    officer = get_object_or_404(ParishOfficer, pk=pk)
+    form = ParishOfficerForm(request.POST or None, request.FILES or None, instance=officer)
+    if form.is_valid():
+        if request.POST.get('clear_image') == 'on':
+            if officer.image:
+                officer.image.delete(save=False)
+            form.instance.image = None
+        form.save()
+        messages.success(request, 'Parish officer updated successfully.')
+        return redirect('officer_detail', pk=officer.pk)
+    return render(request, 'registry/officers/form.html', {'form': form, 'title': 'Edit Parish Officer', 'officer': officer})
+
+
+@login_required
+def officer_deactivate(request, pk):
+    officer = get_object_or_404(ParishOfficer, pk=pk)
+    if request.method == 'POST':
+        if officer.status == 'active':
+            officer.status = 'inactive'
+            messages.success(request, f'{officer.full_name} has been deactivated.')
+        else:
+            officer.status = 'active'
+            messages.success(request, f'{officer.full_name} has been reactivated.')
+        officer.save()
+        return redirect('officers_list')
+    return render(request, 'registry/officers/confirm_status.html', {'officer': officer})
+
+
+@login_required
+def officers_list_print(request):
+    officers = ParishOfficer.objects.all().order_by('last_name', 'first_name')
+    return render(request, 'registry/officers/print_officer_list.html', {'officers': officers})
 
 
 # ─── PRINT VIEWS ─────────────────────────────────────────────────────────────

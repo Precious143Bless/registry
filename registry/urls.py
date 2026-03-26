@@ -76,6 +76,14 @@ urlpatterns = [
     path('priests/<int:pk>/', views.priest_detail, name='priest_detail'),
     path('priests/<int:pk>/edit/', views.priest_edit, name='priest_edit'),
     path('priests/<int:pk>/deactivate/', views.priest_deactivate, name='priest_deactivate'),
+
+    # Parish Officers
+    path('officers/', views.officers_list, name='officers_list'),
+    path('officers/new/', views.officer_create, name='officer_create'),
+    path('officers/print/all/', views.officers_list_print, name='officers_list_print'),
+    path('officers/<int:pk>/', views.officer_detail, name='officer_detail'),
+    path('officers/<int:pk>/edit/', views.officer_edit, name='officer_edit'),
+    path('officers/<int:pk>/deactivate/', views.officer_deactivate, name='officer_deactivate'),
 ]
 
 # Serve media files in development

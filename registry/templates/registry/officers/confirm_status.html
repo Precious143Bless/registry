@@ -1,0 +1,20 @@
+{% extends 'registry/base.html' %}
+{% block page_title %}Confirm Status Change{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card table-card p-4">
+            <h5 class="fw-bold">Confirm {% if officer.status == 'active' %}Deactivation{% else %}Reactivation{% endif %}</h5>
+            <p>Are you sure you want to {% if officer.status == 'active' %}deactivate{% else %}reactivate{% endif %} {{ officer.full_name }}?</p>
+            <form method="post">
+                {% csrf_token %}
+                <div class="d-flex gap-2">
+                    <button class="btn btn-danger" type="submit">Yes, proceed</button>
+                    <a href="{% url 'officers_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends 'registry/base.html' %}
+{% block page_title %}Parish Officers{% endblock %}
+
+{% block content %}
+<div class="card table-card">
+    <div class="card-header bg-white border-0 pt-3 px-4 d-flex flex-wrap gap-2 align-items-center justify-content-between">
+        <h6 class="fw-bold mb-0" style="color:#4e2a1e;">
+            <i class="bi bi-people-fill me-2" style="color:#c9a84c;"></i>Parish Officers
+        </h6>
+        <div class="d-flex gap-2">
+            <form class="d-flex" method="get">
+                <div class="input-group input-group-sm">
+                    <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search by name or position...">
+                    <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-search"></i></button>
+                    {% if q %}<a href="{% url 'officers_list' %}" class="btn btn-outline-danger"><i class="bi bi-x"></i></a>{% endif %}
+                </div>
+            </form>
+            <a href="{% url 'officers_list_print' %}" class="btn btn-sm btn-outline-secondary" target="_blank">
+                <i class="bi bi-printer me-1"></i>Print List
+            </a>
+            <a href="{% url 'officer_create' %}" class="btn btn-sm btn-primary-church">
+                <i class="bi bi-plus-lg me-1"></i>Add Officer
+            </a>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table mb-0 align-middle">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">#</th>
+                        <th style="width: 80px;">Image</th>
+                        <th>Full Name</th>
+                        <th>Position</th>
+                        <th>Contact</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th style="width: 120px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for officer in officers %}
+                    <tr>
+                        <td class="text-muted small">{{ forloop.counter }}</td>
+                        <td class="text-center">
+                            {% if officer.image %}
+                                <img src="{{ officer.image.url }}" 
+                                     alt="{{ officer.full_name }}"
+                                     style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%; border: 2px solid #c9a84c;">
+                            {% else %}
+                                <div style="width: 40px; height: 40px; background: #f5ede8; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; border: 2px solid #c9a84c;">
+                                    <i class="bi bi-person-fill" style="font-size: 1.2rem; color: #c9a84c;"></i>
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'officer_detail' officer.pk %}" class="fw-semibold text-decoration-none" style="color:#4e2a1e;">
+                                {{ officer.full_name }}
+                            </a>
+                            <br>
+                            <small class="text-muted">{{ officer.position|default:"—" }}</small>
+                        </td>
+                        <td>{{ officer.position|default:"—" }}</td>
+                        <td>{{ officer.contact_number|default:"—" }}</td>
+                        <td>{{ officer.email|default:"—" }}</td>
+                        <td>
+                            {% if officer.status == 'active' %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a href="{% url 'officer_detail' officer.pk %}" class="btn btn-sm" style="background:#f5ede8;color:#6b3a2a;" title="View">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{% url 'officer_edit' officer.pk %}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                {% if officer.status == 'active' %}
+                                    <a href="{% url 'officer_deactivate' officer.pk %}" class="btn btn-sm btn-outline-secondary" title="Deactivate">
+                                        <i class="bi bi-person-dash"></i>
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'officer_deactivate' officer.pk %}" class="btn btn-sm btn-outline-success" title="Reactivate">
+                                        <i class="bi bi-person-check"></i>
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-5">
+                            <i class="bi bi-people-fill fs-2 d-block mb-2"></i>
+                            No parish officers found{% if q %} for "{{ q }}"{% endif %}.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer bg-white border-0 px-4 py-2">
+        <small class="text-muted">{{ officers|length }} officer(s) found</small>
+    </div>
+</div>
+
+<style>
+    .table > :not(caption) > * > * {
+        vertical-align: middle;
+        padding: 0.75rem 0.5rem;
+    }
+    .table tbody tr:hover img {
+        transform: scale(1.05);
+        transition: transform 0.2s ease;
+    }
+</style>
+{% endblock %}

@@ -162,4 +162,28 @@ class Migration(migrations.Migration):
                 'ordering': ['last_name', 'first_name'],
             },
         ),
+        migrations.CreateModel(
+            name='ParishOfficer',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('first_name', models.CharField(max_length=100)),
+                ('middle_name', models.CharField(blank=True, max_length=100)),
+                ('last_name', models.CharField(max_length=100)),
+                ('position', models.CharField(blank=True, max_length=150)),
+                ('contact_number', models.CharField(blank=True, max_length=20)),
+                ('email', models.EmailField(blank=True, max_length=254)),
+                ('date_assigned', models.DateField(blank=True, null=True)),
+                ('date_departed', models.DateField(blank=True, null=True)),
+                ('status', models.CharField(choices=[('active', 'Active'), ('inactive', 'Inactive')], default='active', max_length=10)),
+                ('biography', models.TextField(blank=True)),
+                ('remarks', models.TextField(blank=True)),
+                ('date_added', models.DateField(auto_now_add=True)),
+                ('date_updated', models.DateField(auto_now=True)),
+                ('image', models.ImageField(blank=True, null=True, upload_to='officers/', verbose_name='Profile Image')),
+            ],
+            options={
+                'verbose_name_plural': 'Parish Officers',
+                'ordering': ['last_name', 'first_name'],
+            },
+        ),
     ]

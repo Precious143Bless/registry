@@ -230,3 +230,43 @@ class ParishPriest(models.Model):
     def full_name_with_title(self):
         return f"Rev. Fr. {self.first_name} {self.last_name}"
 
+
+class ParishOfficer(models.Model):
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('inactive', 'Inactive'),
+    ]
+
+    image = models.ImageField(
+        upload_to='officers/',
+        blank=True,
+        null=True,
+        verbose_name='Profile Image'
+    )
+    first_name = models.CharField(max_length=100)
+    middle_name = models.CharField(max_length=100, blank=True)
+    last_name = models.CharField(max_length=100)
+    position = models.CharField(max_length=150, blank=True)
+    contact_number = models.CharField(max_length=20, blank=True)
+    email = models.EmailField(blank=True)
+    date_assigned = models.DateField(null=True, blank=True)
+    date_departed = models.DateField(null=True, blank=True)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active')
+    biography = models.TextField(blank=True)
+    remarks = models.TextField(blank=True)
+    date_added = models.DateField(auto_now_add=True)
+    date_updated = models.DateField(auto_now=True)
+
+    class Meta:
+        ordering = ['last_name', 'first_name']
+        verbose_name_plural = 'Parish Officers'
+
+    def __str__(self):
+        title = 'Officer'
+        return f"{title} {self.first_name} {self.last_name}"
+
+    @property
+    def full_name(self):
+        parts = [self.first_name, self.middle_name, self.last_name]
+        return ' '.join(p for p in parts if p)
+
