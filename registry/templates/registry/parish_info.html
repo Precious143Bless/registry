@@ -17,165 +17,201 @@
 <form method="post" id="parishForm">
     {% csrf_token %}
 
-    <!-- Basic Information -->
-    <div class="card table-card mb-4">
-        <div class="card-header bg-white border-0 pt-3 pb-0 px-4">
-            <h6 class="fw-bold mb-0" style="color:#4e2a1e;">
-                <i class="bi bi-info-circle-fill me-2" style="color:#c9a84c;"></i>Basic Information
-            </h6>
+    <!-- Tabs -->
+    <div class="card table-card">
+        <div class="card-header bg-white border-0 px-4 pt-3 pb-0">
+            <ul class="nav nav-tabs border-0" id="parishTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active d-flex align-items-center gap-2 px-4 py-2"
+                            id="tab-basic" data-bs-toggle="tab" data-bs-target="#pane-basic"
+                            type="button" role="tab">
+                        <i class="bi bi-info-circle-fill" style="color:#c9a84c;"></i>
+                        <span>Basic Info</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link d-flex align-items-center gap-2 px-4 py-2"
+                            id="tab-location" data-bs-toggle="tab" data-bs-target="#pane-location"
+                            type="button" role="tab">
+                        <i class="bi bi-geo-alt-fill" style="color:#c9a84c;"></i>
+                        <span>Location &amp; Address</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link d-flex align-items-center gap-2 px-4 py-2"
+                            id="tab-contact" data-bs-toggle="tab" data-bs-target="#pane-contact"
+                            type="button" role="tab">
+                        <i class="bi bi-telephone-fill" style="color:#c9a84c;"></i>
+                        <span>Contact</span>
+                    </button>
+                </li>
+            </ul>
         </div>
-        <div class="card-body px-4 pb-4">
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold text-muted small text-uppercase">Parish Name</label>
-                    {% if info and not form.errors %}
-                        <div class="view-field" id="view_parish_name">
-                            <p class="mb-0 fw-semibold" style="color:#2d2d2d;">{{ info.parish_name|default:"—" }}</p>
+
+        <div class="tab-content card-body px-4 pb-4 pt-4">
+
+            <!-- Basic Info Pane -->
+            <div class="tab-pane fade show active" id="pane-basic" role="tabpanel">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Parish Name</label>
+                        <div class="view-field">
+                            <p class="mb-0 fw-semibold fs-6" style="color:#2d2d2d;">{{ info.parish_name|default:"—" }}</p>
                         </div>
-                    {% endif %}
-                    <div class="edit-field {% if not form.errors %}d-none{% endif %}">
-                        {{ form.parish_name }}
-                        {% if form.parish_name.errors %}<div class="text-danger small mt-1">{{ form.parish_name.errors.0 }}</div>{% endif %}
+                        <div class="edit-field d-none">
+                            {{ form.parish_name }}
+                            {% if form.parish_name.errors %}<div class="text-danger small mt-1">{{ form.parish_name.errors.0 }}</div>{% endif %}
+                        </div>
                     </div>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold text-muted small text-uppercase">Diocese</label>
-                    {% if info and not form.errors %}
-                        <div class="view-field" id="view_diocese">
-                            <p class="mb-0 fw-semibold" style="color:#2d2d2d;">{{ info.diocese|default:"—" }}</p>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Diocese</label>
+                        <div class="view-field">
+                            <p class="mb-0 fw-semibold fs-6" style="color:#2d2d2d;">{{ info.diocese|default:"—" }}</p>
                         </div>
-                    {% endif %}
-                    <div class="edit-field {% if not form.errors %}d-none{% endif %}">
-                        {{ form.diocese }}
-                        {% if form.diocese.errors %}<div class="text-danger small mt-1">{{ form.diocese.errors.0 }}</div>{% endif %}
+                        <div class="edit-field d-none">
+                            {{ form.diocese }}
+                            {% if form.diocese.errors %}<div class="text-danger small mt-1">{{ form.diocese.errors.0 }}</div>{% endif %}
+                        </div>
                     </div>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold text-muted small text-uppercase">Date Established</label>
-                    {% if info and not form.errors %}
-                        <div class="view-field" id="view_date_established">
-                            <p class="mb-0 fw-semibold" style="color:#2d2d2d;">{{ info.date_established|default:"—" }}</p>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Date Established</label>
+                        <div class="view-field">
+                            <p class="mb-0 fw-semibold fs-6" style="color:#2d2d2d;">{{ info.date_established|default:"—" }}</p>
                         </div>
-                    {% endif %}
-                    <div class="edit-field {% if not form.errors %}d-none{% endif %}">
-                        {{ form.date_established }}
-                        {% if form.date_established.errors %}<div class="text-danger small mt-1">{{ form.date_established.errors.0 }}</div>{% endif %}
+                        <div class="edit-field d-none">
+                            {{ form.date_established }}
+                            {% if form.date_established.errors %}<div class="text-danger small mt-1">{{ form.date_established.errors.0 }}</div>{% endif %}
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Location & Address -->
-    <div class="card table-card mb-4">
-        <div class="card-header bg-white border-0 pt-3 pb-0 px-4">
-            <h6 class="fw-bold mb-0" style="color:#4e2a1e;">
-                <i class="bi bi-geo-alt-fill me-2" style="color:#c9a84c;"></i>Location &amp; Address
-            </h6>
-        </div>
-        <div class="card-body px-4 pb-4">
-            <div class="row g-3">
-                <div class="col-md-8">
-                    <label class="form-label fw-semibold text-muted small text-uppercase">Street Address</label>
-                    {% if info and not form.errors %}
-                        <div class="view-field"><p class="mb-0 fw-semibold" style="color:#2d2d2d;">{{ info.street_address|default:"—" }}</p></div>
-                    {% endif %}
-                    <div class="edit-field {% if not form.errors %}d-none{% endif %}">
-                        {{ form.street_address }}
-                        {% if form.street_address.errors %}<div class="text-danger small mt-1">{{ form.street_address.errors.0 }}</div>{% endif %}
+            <!-- Location & Address Pane -->
+            <div class="tab-pane fade" id="pane-location" role="tabpanel">
+                <!-- Row 1: Street Address + Barangay + Municipality -->
+                <div class="row g-4 mb-2">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Street Address</label>
+                        <div class="view-field">
+                            <p class="mb-0 fw-semibold fs-6" style="color:#2d2d2d;">{{ info.street_address|default:"—" }}</p>
+                        </div>
+                        <div class="edit-field d-none">
+                            {{ form.street_address }}
+                            {% if form.street_address.errors %}<div class="text-danger small mt-1">{{ form.street_address.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Barangay</label>
+                        <div class="view-field">
+                            <p class="mb-0 fw-semibold fs-6" style="color:#2d2d2d;">{{ info.barangay|default:"—" }}</p>
+                        </div>
+                        <div class="edit-field d-none">
+                            {{ form.barangay }}
+                            {% if form.barangay.errors %}<div class="text-danger small mt-1">{{ form.barangay.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Municipality / City</label>
+                        <div class="view-field">
+                            <p class="mb-0 fw-semibold fs-6" style="color:#2d2d2d;">{{ info.municipality|default:"—" }}</p>
+                        </div>
+                        <div class="edit-field d-none">
+                            {{ form.municipality }}
+                            {% if form.municipality.errors %}<div class="text-danger small mt-1">{{ form.municipality.errors.0 }}</div>{% endif %}
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label fw-semibold text-muted small text-uppercase">Barangay</label>
-                    {% if info and not form.errors %}
-                        <div class="view-field"><p class="mb-0 fw-semibold" style="color:#2d2d2d;">{{ info.barangay|default:"—" }}</p></div>
-                    {% endif %}
-                    <div class="edit-field {% if not form.errors %}d-none{% endif %}">
-                        {{ form.barangay }}
-                        {% if form.barangay.errors %}<div class="text-danger small mt-1">{{ form.barangay.errors.0 }}</div>{% endif %}
+                <!-- Row 2: Province + ZIP -->
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Province</label>
+                        <div class="view-field">
+                            <p class="mb-0 fw-semibold fs-6" style="color:#2d2d2d;">{{ info.province|default:"—" }}</p>
+                        </div>
+                        <div class="edit-field d-none">
+                            {{ form.province }}
+                            {% if form.province.errors %}<div class="text-danger small mt-1">{{ form.province.errors.0 }}</div>{% endif %}
+                        </div>
                     </div>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label fw-semibold text-muted small text-uppercase">Municipality / City</label>
-                    {% if info and not form.errors %}
-                        <div class="view-field"><p class="mb-0 fw-semibold" style="color:#2d2d2d;">{{ info.municipality|default:"—" }}</p></div>
-                    {% endif %}
-                    <div class="edit-field {% if not form.errors %}d-none{% endif %}">
-                        {{ form.municipality }}
-                        {% if form.municipality.errors %}<div class="text-danger small mt-1">{{ form.municipality.errors.0 }}</div>{% endif %}
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label fw-semibold text-muted small text-uppercase">Province</label>
-                    {% if info and not form.errors %}
-                        <div class="view-field"><p class="mb-0 fw-semibold" style="color:#2d2d2d;">{{ info.province|default:"—" }}</p></div>
-                    {% endif %}
-                    <div class="edit-field {% if not form.errors %}d-none{% endif %}">
-                        {{ form.province }}
-                        {% if form.province.errors %}<div class="text-danger small mt-1">{{ form.province.errors.0 }}</div>{% endif %}
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label fw-semibold text-muted small text-uppercase">ZIP Code</label>
-                    {% if info and not form.errors %}
-                        <div class="view-field"><p class="mb-0 fw-semibold" style="color:#2d2d2d;">{{ info.zip_code|default:"—" }}</p></div>
-                    {% endif %}
-                    <div class="edit-field {% if not form.errors %}d-none{% endif %}">
-                        {{ form.zip_code }}
-                        {% if form.zip_code.errors %}<div class="text-danger small mt-1">{{ form.zip_code.errors.0 }}</div>{% endif %}
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">ZIP Code</label>
+                        <div class="view-field">
+                            <p class="mb-0 fw-semibold fs-6" style="color:#2d2d2d;">{{ info.zip_code|default:"—" }}</p>
+                        </div>
+                        <div class="edit-field d-none">
+                            {{ form.zip_code }}
+                            {% if form.zip_code.errors %}<div class="text-danger small mt-1">{{ form.zip_code.errors.0 }}</div>{% endif %}
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Contact -->
-    <div class="card table-card mb-4">
-        <div class="card-header bg-white border-0 pt-3 pb-0 px-4">
-            <h6 class="fw-bold mb-0" style="color:#4e2a1e;">
-                <i class="bi bi-telephone-fill me-2" style="color:#c9a84c;"></i>Contact Details
-            </h6>
-        </div>
-        <div class="card-body px-4 pb-4">
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold text-muted small text-uppercase">Contact Number</label>
-                    {% if info and not form.errors %}
-                        <div class="view-field"><p class="mb-0 fw-semibold" style="color:#2d2d2d;">{{ info.contact_number|default:"—" }}</p></div>
-                    {% endif %}
-                    <div class="edit-field {% if not form.errors %}d-none{% endif %}">
-                        {{ form.contact_number }}
-                        {% if form.contact_number.errors %}<div class="text-danger small mt-1">{{ form.contact_number.errors.0 }}</div>{% endif %}
+            <!-- Contact Pane -->
+            <div class="tab-pane fade" id="pane-contact" role="tabpanel">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Contact Number</label>
+                        <div class="view-field">
+                            <p class="mb-0 fw-semibold fs-6" style="color:#2d2d2d;">{{ info.contact_number|default:"—" }}</p>
+                        </div>
+                        <div class="edit-field d-none">
+                            {{ form.contact_number }}
+                            {% if form.contact_number.errors %}<div class="text-danger small mt-1">{{ form.contact_number.errors.0 }}</div>{% endif %}
+                        </div>
                     </div>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold text-muted small text-uppercase">Email Address</label>
-                    {% if info and not form.errors %}
-                        <div class="view-field"><p class="mb-0 fw-semibold" style="color:#2d2d2d;">{{ info.email|default:"—" }}</p></div>
-                    {% endif %}
-                    <div class="edit-field {% if not form.errors %}d-none{% endif %}">
-                        {{ form.email }}
-                        {% if form.email.errors %}<div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>{% endif %}
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Email Address</label>
+                        <div class="view-field">
+                            <p class="mb-0 fw-semibold fs-6" style="color:#2d2d2d;">{{ info.email|default:"—" }}</p>
+                        </div>
+                        <div class="edit-field d-none">
+                            {{ form.email }}
+                            {% if form.email.errors %}<div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>{% endif %}
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Save / Cancel (hidden until edit mode) -->
-    <div id="formActions" class="d-flex gap-2 {% if not form.errors %}d-none{% endif %}" style="{% if form.errors %}display:flex!important{% endif %}">
-        <button type="submit" class="btn btn-primary-church">
-            <i class="bi bi-check-lg me-1"></i> Save Changes
-        </button>
-        <a href="{% url 'parish_info' %}" class="btn btn-outline-secondary">Cancel</a>
-    </div>
+        </div><!-- end tab-content -->
+
+        <!-- Save / Cancel -->
+        <div id="formActions" class="d-none px-4 pb-4 d-flex gap-2">
+            <button type="submit" class="btn btn-primary-church">
+                <i class="bi bi-check-lg me-1"></i> Save Changes
+            </button>
+            <a href="{% url 'parish_info' %}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+    </div><!-- end card -->
 </form>
 
 {% if not info %}
 <div class="alert mt-3" style="background:#f5ede8;border-left:4px solid #c9a84c;color:#4e2a1e;" role="alert">
-    <i class="bi bi-info-circle me-2"></i>No parish information has been set yet. Click <strong>Edit</strong> to add your parish details.
+    <i class="bi bi-info-circle me-2"></i>No parish information set yet. Click <strong>Edit</strong> to get started.
 </div>
 {% endif %}
+
+<style>
+    #parishTabs .nav-link {
+        color: #6c757d;
+        border: none;
+        border-bottom: 3px solid transparent;
+        border-radius: 0;
+        font-size: 0.88rem;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+    #parishTabs .nav-link:hover {
+        color: #6b3a2a;
+        border-bottom-color: #e8c99a;
+    }
+    #parishTabs .nav-link.active {
+        color: #6b3a2a;
+        font-weight: 700;
+        border-bottom: 3px solid #6b3a2a;
+        background: transparent;
+    }
+    #parishTabs .nav-link i { font-size: 0.9rem; }
+</style>
 {% endblock %}
 
 {% block extra_js %}
@@ -183,12 +219,23 @@
 function enableEdit() {
     document.querySelectorAll('.view-field').forEach(el => el.classList.add('d-none'));
     document.querySelectorAll('.edit-field').forEach(el => el.classList.remove('d-none'));
-    document.getElementById('formActions').classList.remove('d-none');
+    const actions = document.getElementById('formActions');
+    actions.classList.remove('d-none');
+    actions.classList.add('d-flex');
     document.getElementById('editBtn').classList.add('d-none');
 }
 {% if form.errors %}
-// Auto-open edit mode if there were validation errors
-document.addEventListener('DOMContentLoaded', enableEdit);
+document.addEventListener('DOMContentLoaded', function() {
+    enableEdit();
+    // Switch to the tab that has errors
+    {% if form.parish_name.errors or form.diocese.errors or form.date_established.errors %}
+        document.getElementById('tab-basic').click();
+    {% elif form.street_address.errors or form.barangay.errors or form.municipality.errors or form.province.errors or form.zip_code.errors %}
+        document.getElementById('tab-location').click();
+    {% elif form.contact_number.errors or form.email.errors %}
+        document.getElementById('tab-contact').click();
+    {% endif %}
+});
 {% endif %}
 </script>
 {% endblock %}
