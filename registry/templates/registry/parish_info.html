@@ -176,7 +176,7 @@
 
         <!-- Save / Cancel -->
         <div id="formActions" class="d-none px-4 pb-4 d-flex gap-2">
-            <button type="submit" class="btn btn-primary-church">
+            <button type="button" class="btn btn-primary-church" id="saveParishBtn">
                 <i class="bi bi-check-lg me-1"></i> Save Changes
             </button>
             <a href="{% url 'parish_info' %}" class="btn btn-outline-secondary">Cancel</a>
@@ -224,10 +224,15 @@ function enableEdit() {
     actions.classList.add('d-flex');
     document.getElementById('editBtn').classList.add('d-none');
 }
-{% if form.errors %}
+
 document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('saveParishBtn').addEventListener('click', function() {
+        showConfirmModal('Are you sure you want to save the Parish Information changes?', function() {
+            document.getElementById('parishForm').submit();
+        });
+    });
+    {% if form.errors %}
     enableEdit();
-    // Switch to the tab that has errors
     {% if form.parish_name.errors or form.diocese.errors or form.date_established.errors %}
         document.getElementById('tab-basic').click();
     {% elif form.street_address.errors or form.barangay.errors or form.municipality.errors or form.province.errors or form.zip_code.errors %}
@@ -235,7 +240,7 @@ document.addEventListener('DOMContentLoaded', function() {
     {% elif form.contact_number.errors or form.email.errors %}
         document.getElementById('tab-contact').click();
     {% endif %}
+    {% endif %}
 });
-{% endif %}
 </script>
 {% endblock %}

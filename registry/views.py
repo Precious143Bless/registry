@@ -538,7 +538,7 @@ def priest_deactivate(request, pk):
             messages.success(request, f'Fr. {priest.last_name} has been reactivated.')
         priest.save()
         return redirect('priests_list')
-    return render(request, 'registry/priests/confirm_status.html', {'priest': priest})
+    return redirect('priest_detail', pk=pk)
 
 @login_required
 def priests_list_print(request):

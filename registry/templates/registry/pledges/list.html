@@ -201,7 +201,7 @@
                 </div>
                 <div class="modal-footer border-0 pt-0">
                     <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-sm btn-primary-church">
+                    <button type="button" class="btn btn-sm btn-primary-church" id="confirmEditPledgeBtn">
                         <i class="bi bi-check-lg me-1"></i>Save Changes
                     </button>
                 </div>
@@ -232,7 +232,7 @@
                 {% csrf_token %}
                 <div class="modal-footer border-0 pt-0">
                     <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-sm btn-danger">
+                    <button type="button" class="btn btn-sm btn-danger" id="confirmDeletePledgeBtn">
                         <i class="bi bi-trash me-1"></i>Delete
                     </button>
                 </div>
@@ -275,6 +275,26 @@ document.getElementById('deletePledgeModal').addEventListener('show.bs.modal', f
     document.getElementById('deletePledgeForm').action = `/pledges/${btn.dataset.pledgeId}/delete/`;
     document.getElementById('deletePledgeDesc').textContent = btn.dataset.pledgeDesc;
     document.getElementById('deletePledgeMember').textContent = btn.dataset.pledgeMember;
+});
+
+// Edit confirm button
+document.getElementById('confirmEditPledgeBtn').addEventListener('click', function() {
+    const desc = document.getElementById('editPledgeForm').querySelector('[name="description"]').value.trim() || 'this pledge';
+    const editModal = bootstrap.Modal.getInstance(document.getElementById('editPledgeModal'));
+    editModal.hide();
+    showConfirmModal(`Are you sure you want to edit "${desc}"?`, function() {
+        document.getElementById('editPledgeForm').submit();
+    });
+});
+
+// Delete confirm button
+document.getElementById('confirmDeletePledgeBtn').addEventListener('click', function() {
+    const desc = document.getElementById('deletePledgeDesc').textContent;
+    const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deletePledgeModal'));
+    deleteModal.hide();
+    showConfirmModal(`Are you sure you want to delete "${desc}"? This will also remove all payment records.`, function() {
+        document.getElementById('deletePledgeForm').submit();
+    });
 });
 </script>
 {% endblock %}
