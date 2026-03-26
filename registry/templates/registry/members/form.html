@@ -134,23 +134,20 @@ document.addEventListener('DOMContentLoaded', function () {
     // Form submission confirmation
     const form = document.querySelector('form');
     const saveButton = document.getElementById('saveButton');
-    
+    const isEdit = {% if member.pk %}true{% else %}false{% endif %};
+
     if (form && saveButton) {
         form.addEventListener('submit', function(e) {
-            // Check if there are any validation errors
-            const hasErrors = document.querySelectorAll('.is-invalid, .text-danger').length > 0;
+            const hasErrors = document.querySelectorAll('.is-invalid').length > 0;
             if (!hasErrors) {
                 e.preventDefault();
-                const memberName = document.querySelector('input[name="first_name"]').value + ' ' + 
-                                 document.querySelector('input[name="last_name"]').value;
-                const action = '{{ member.pk|yesno:"Update,Add" }}';
-                
-                showConfirmModal(
-                    `Are you sure you want to ${action.toLowerCase()} this member: "${memberName}"?`,
-                    function() {
-                        form.submit();
-                    }
-                );
+                const firstName = document.querySelector('input[name="first_name"]').value.trim();
+                const lastName = document.querySelector('input[name="last_name"]').value.trim();
+                const fullName = (firstName + ' ' + lastName).trim();
+                const msg = isEdit
+                    ? `Are you sure you want to edit "${fullName}"?`
+                    : `Are you sure you want to register "${fullName}" as a member?`;
+                showConfirmModal(msg, function() { form.submit(); });
             }
         });
     }

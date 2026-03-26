@@ -19,9 +19,12 @@
                     <a href="{% url 'member_print' member.pk %}" class="btn btn-sm btn-outline-secondary" target="_blank">
                         <i class="bi bi-printer me-1"></i>Print
                     </a>
-                    <a href="{% url 'member_deactivate' member.pk %}" class="btn btn-sm btn-outline-danger">
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmDeactivate()">
                         <i class="bi bi-person-x me-1"></i>Deactivate
-                    </a>
+                    </button>
+                    <form id="deactivateForm" method="post" action="{% url 'member_deactivate' member.pk %}" class="d-none">
+                        {% csrf_token %}
+                    </form>
                 </div>
             </div>
             <div class="card-footer bg-light border-0 px-4 pb-4">
@@ -229,4 +232,15 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDeactivate() {
+    showConfirmModal(
+        'Are you sure you want to deactivate "{{ member.full_name }}"? This action can be reversed later.',
+        function() { document.getElementById('deactivateForm').submit(); }
+    );
+}
+</script>
 {% endblock %}

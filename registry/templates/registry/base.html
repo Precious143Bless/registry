@@ -595,16 +595,8 @@ function updateNotificationCount() {
     }
 }
 
-// Auto-show success messages from Django messages
-{% if messages %}
-    {% for message in messages %}
-        {% if message.tags == 'success' %}
-            setTimeout(function() { 
-                showSuccessModal('{{ message|escapejs }}'); 
-            }, 500);
-        {% endif %}
-    {% endfor %}
-{% endif %}
+// Auto-show success messages from Django messages — disabled, using alert banner instead
+
 </script>
 
 {% block extra_js %}{% endblock %}
