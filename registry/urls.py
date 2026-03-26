@@ -14,6 +14,10 @@ urlpatterns = [
     # Dashboard
     path('dashboard/', views.dashboard, name='dashboard'),
 
+    # Notifications
+    path('notifications/<int:notification_id>/read/', views.mark_notification_read, name='mark_notification_read'),
+    path('notifications/mark-all-read/', views.mark_all_notifications_read, name='mark_all_notifications_read'),
+
     # Members
     path('members/', views.member_list, name='member_list'),
     path('members/new/', views.member_create, name='member_create'),

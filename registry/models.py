@@ -304,3 +304,24 @@ class ParishOfficer(models.Model):
         parts = [self.first_name, self.middle_name, self.last_name]
         return ' '.join(p for p in parts if p)
 
+
+class Notification(models.Model):
+    NOTIFICATION_TYPES = [
+        ('pledge_due', 'Pledge Payment Due'),
+        ('pledge_overdue', 'Pledge Payment Overdue'),
+    ]
+
+    user = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='notifications')
+    notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES)
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    related_pledge = models.ForeignKey(Pledge, on_delete=models.CASCADE, null=True, blank=True)
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.title} - {self.user.username}"
+

@@ -7,10 +7,11 @@ from django.http import HttpResponse, JsonResponse
 from django.conf import settings
 from django.core.management import call_command
 from django.core.files.storage import default_storage
+from django.views.decorators.csrf import csrf_exempt
 import os
 import subprocess
 from datetime import datetime
-from .models import Member, Baptism, Confirmation, FirstHolyCommunion, Marriage, LastRites, Pledge, PledgePayment, ParishInfo, ParishPriest, ParishOfficer
+from .models import Member, Baptism, Confirmation, FirstHolyCommunion, Marriage, LastRites, Pledge, PledgePayment, ParishInfo, ParishPriest, ParishOfficer, Notification
 from .forms import (MemberForm, BaptismForm, ConfirmationForm, CommunionForm,
                     MarriageForm, LastRitesForm, PledgeForm, PledgePaymentForm, ParishInfoForm,ParishPriestForm, ParishOfficerForm)
 
@@ -57,6 +58,30 @@ def dashboard(request):
         'recent_members':      Member.objects.filter(is_active=True).order_by('-date_registered')[:5],
     }
     return render(request, 'registry/dashboard.html', context)
+
+
+# ─── NOTIFICATIONS ───────────────────────────────────────────────────────────
+
+@login_required
+@csrf_exempt
+def mark_notification_read(request, notification_id):
+    """Mark a single notification as read"""
+    if request.method == 'POST':
+        notification = get_object_or_404(Notification, id=notification_id, user=request.user)
+        notification.is_read = True
+        notification.save()
+        return JsonResponse({'success': True})
+    return JsonResponse({'success': False}, status=400)
+
+
+@login_required
+@csrf_exempt
+def mark_all_notifications_read(request):
+    """Mark all notifications as read"""
+    if request.method == 'POST':
+        Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+        return JsonResponse({'success': True})
+    return JsonResponse({'success': False}, status=400)
 
 
 # ─── MEMBERS ─────────────────────────────────────────────────────────────────
