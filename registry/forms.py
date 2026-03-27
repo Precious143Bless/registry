@@ -501,6 +501,43 @@ class ParishPriestForm(forms.ModelForm):
             validate_ph_contact(value)
         return value
 
+    def clean(self):
+        cleaned_data = super().clean()
+        ordination_date = cleaned_data.get('ordination_date')
+        priest_since = cleaned_data.get('priest_since')
+        date_assigned = cleaned_data.get('date_assigned')
+        date_departed = cleaned_data.get('date_departed')
+
+        # Validation: priest_since should be on or after ordination_date
+        if ordination_date and priest_since:
+            if priest_since < ordination_date:
+                raise ValidationError({
+                    'priest_since': 'Priest since date cannot be before ordination date.'
+                })
+
+        # Validation: date_assigned should be on or after ordination_date
+        if ordination_date and date_assigned:
+            if date_assigned < ordination_date:
+                raise ValidationError({
+                    'date_assigned': 'Date assigned cannot be before ordination date.'
+                })
+
+        # Validation: date_departed should be after date_assigned
+        if date_assigned and date_departed:
+            if date_departed <= date_assigned:
+                raise ValidationError({
+                    'date_departed': 'Date departed must be after date assigned.'
+                })
+
+        # Validation: date_departed should be after ordination_date
+        if ordination_date and date_departed:
+            if date_departed <= ordination_date:
+                raise ValidationError({
+                    'date_departed': 'Date departed cannot be before or on ordination date.'
+                })
+
+        return cleaned_data
+
 
 class ParishOfficerForm(forms.ModelForm):
     date_assigned = forms.DateField(

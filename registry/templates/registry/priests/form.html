@@ -19,6 +19,15 @@
                 </div>
                 {% endif %}
 
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger py-2 px-3 mb-3" style="border-radius:8px;">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    {% for error in form.non_field_errors %}
+                        <div>{{ error }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
                 <form method="post" novalidate enctype="multipart/form-data">
                     {% csrf_token %}
                     
@@ -101,14 +110,23 @@
                         <div class="col-md-4">
                             <label class="form-label fw-semibold small">Ordination Date</label>
                             {{ form.ordination_date }}
+                            {% if form.ordination_date.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.ordination_date.errors.0 }}</div>
+                            {% endif %}
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-semibold small">Priest Since</label>
                             {{ form.priest_since }}
+                            {% if form.priest_since.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.priest_since.errors.0 }}</div>
+                            {% endif %}
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-semibold small">Status</label>
                             {{ form.status }}
+                            {% if form.status.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.status.errors.0 }}</div>
+                            {% endif %}
                         </div>
                     </div>
 
@@ -120,10 +138,16 @@
                         <div class="col-md-6">
                             <label class="form-label fw-semibold small">Date Assigned</label>
                             {{ form.date_assigned }}
+                            {% if form.date_assigned.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.date_assigned.errors.0 }}</div>
+                            {% endif %}
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold small">Date Departed</label>
                             {{ form.date_departed }}
+                            {% if form.date_departed.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.date_departed.errors.0 }}</div>
+                            {% endif %}
                         </div>
                     </div>
 
