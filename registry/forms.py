@@ -158,12 +158,20 @@ class BaptismForm(forms.ModelForm):
     date_baptized = forms.DateField(
         widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
     )
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['priest'] = forms.ModelChoiceField(
+            queryset=ParishPriest.objects.filter(status='active').order_by('last_name', 'first_name'),
+            empty_label="Select Officiating Priest",
+            widget=forms.Select(attrs={'class': 'form-select'}),
+            to_field_name='id'
+        )
 
     class Meta:
         model = Baptism
         exclude = ['member']
         widgets = {
-            'priest':               forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Fr. Full Name'}),
             'godfathers':           forms.HiddenInput(),
             'godmothers':           forms.HiddenInput(),
             'birth_certificate_no': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Optional'}),
@@ -176,9 +184,9 @@ class BaptismForm(forms.ModelForm):
         return value
 
     def clean_priest(self):
-        value = self.cleaned_data['priest'].strip()
+        value = self.cleaned_data['priest']
         if not value:
-            raise ValidationError('Officiating priest name is required.')
+            raise ValidationError('Officiating priest is required.')
         return value
 
 
@@ -224,12 +232,20 @@ class CommunionForm(forms.ModelForm):
     date_received = forms.DateField(
         widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
     )
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['priest'] = forms.ModelChoiceField(
+            queryset=ParishPriest.objects.filter(status='active').order_by('last_name', 'first_name'),
+            empty_label="Select Officiating Priest",
+            widget=forms.Select(attrs={'class': 'form-select'}),
+            to_field_name='id'
+        )
 
     class Meta:
         model = FirstHolyCommunion
         exclude = ['member']
         widgets = {
-            'priest':  forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Fr. Full Name'}),
             'remarks': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
 
@@ -239,9 +255,9 @@ class CommunionForm(forms.ModelForm):
         return value
 
     def clean_priest(self):
-        value = self.cleaned_data['priest'].strip()
+        value = self.cleaned_data['priest']
         if not value:
-            raise ValidationError('Officiating priest name is required.')
+            raise ValidationError('Officiating priest is required.')
         return value
 
 
@@ -251,13 +267,21 @@ class MarriageForm(forms.ModelForm):
     date_married = forms.DateField(
         widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
     )
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['priest'] = forms.ModelChoiceField(
+            queryset=ParishPriest.objects.filter(status='active').order_by('last_name', 'first_name'),
+            empty_label="Select Officiating Priest",
+            widget=forms.Select(attrs={'class': 'form-select'}),
+            to_field_name='id'
+        )
 
     class Meta:
         model = Marriage
         exclude = ['member']
         widgets = {
             'spouse_name':       forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Full name of spouse'}),
-            'priest':            forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Fr. Full Name'}),
             'principal_sponsor': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Optional'}),
             'secondary_sponsor': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Optional'}),
             'remarks':           forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
@@ -276,9 +300,9 @@ class MarriageForm(forms.ModelForm):
         return value.title()
 
     def clean_priest(self):
-        value = self.cleaned_data['priest'].strip()
+        value = self.cleaned_data['priest']
         if not value:
-            raise ValidationError('Officiating priest name is required.')
+            raise ValidationError('Officiating priest is required.')
         return value
 
 
@@ -288,12 +312,20 @@ class LastRitesForm(forms.ModelForm):
     date_administered = forms.DateField(
         widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
     )
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['priest'] = forms.ModelChoiceField(
+            queryset=ParishPriest.objects.filter(status='active').order_by('last_name', 'first_name'),
+            empty_label="Select Officiating Priest",
+            widget=forms.Select(attrs={'class': 'form-select'}),
+            to_field_name='id'
+        )
 
     class Meta:
         model = LastRites
         exclude = ['member']
         widgets = {
-            'priest':  forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Fr. Full Name'}),
             'remarks': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
 
@@ -303,9 +335,9 @@ class LastRitesForm(forms.ModelForm):
         return value
 
     def clean_priest(self):
-        value = self.cleaned_data['priest'].strip()
+        value = self.cleaned_data['priest']
         if not value:
-            raise ValidationError('Officiating priest name is required.')
+            raise ValidationError('Officiating priest is required.')
         return value
 
 
