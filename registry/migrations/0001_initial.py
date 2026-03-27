@@ -204,7 +204,27 @@ class Migration(migrations.Migration):
                 'ordering': ['-created_at'],
             },
         ),
-        # Create Organization Membership model
+
+        migrations.CreateModel(
+            name='Organization',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('name', models.CharField(max_length=200, verbose_name='Organization Name')),
+                ('description', models.TextField(blank=True, verbose_name='Description')),
+                ('meeting_schedule', models.CharField(blank=True, max_length=200, verbose_name='Meeting Schedule')),
+                ('meeting_venue', models.CharField(blank=True, max_length=200, verbose_name='Meeting Venue')),
+                ('contact_person', models.CharField(blank=True, max_length=200, verbose_name='Contact Person')),
+                ('is_active', models.BooleanField(default=True, verbose_name='Is Active')),
+                ('date_created', models.DateField(auto_now_add=True, verbose_name='Date Created')),
+                ('date_updated', models.DateField(auto_now=True, verbose_name='Date Updated')),
+            ],
+            options={
+                'verbose_name': 'Organization',
+                'verbose_name_plural': 'Organizations',
+                'ordering': ['name'],
+            },
+        ),
+
         migrations.CreateModel(
             name='OrganizationMembership',
             fields=[
