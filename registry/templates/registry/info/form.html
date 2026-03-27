@@ -1,0 +1,201 @@
+<form method="post" id="parishForm">
+    {% csrf_token %}
+
+    <!-- Tabs -->
+    <div class="card table-card">
+        <div class="card-header bg-white border-0 px-4 pt-3 pb-0">
+            <ul class="nav nav-tabs border-0" id="parishTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active d-flex align-items-center gap-2 px-4 py-2"
+                            id="tab-basic" data-bs-toggle="tab" data-bs-target="#pane-basic"
+                            type="button" role="tab">
+                        <i class="bi bi-info-circle-fill" style="color:#c9a84c;"></i>
+                        <span>Basic Info</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link d-flex align-items-center gap-2 px-4 py-2"
+                            id="tab-location" data-bs-toggle="tab" data-bs-target="#pane-location"
+                            type="button" role="tab">
+                        <i class="bi bi-geo-alt-fill" style="color:#c9a84c;"></i>
+                        <span>Location &amp; Address</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link d-flex align-items-center gap-2 px-4 py-2"
+                            id="tab-contact" data-bs-toggle="tab" data-bs-target="#pane-contact"
+                            type="button" role="tab">
+                        <i class="bi bi-telephone-fill" style="color:#c9a84c;"></i>
+                        <span>Contact</span>
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+        <div class="tab-content card-body px-4 pb-4 pt-4">
+
+            <!-- Basic Info Pane -->
+            <div class="tab-pane fade show active" id="pane-basic" role="tabpanel">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Parish Name</label>
+                        <div class="view-field">
+                            <p class="mb-0 fw-semibold fs-6" style="color:#2d2d2d;">
+                                <i class="bi bi-building me-1" style="color:#c9a84c;"></i>{{ info.parish_name|default:"—" }}
+                            </p>
+                        </div>
+                        <div class="edit-field d-none">
+                            {{ form.parish_name }}
+                            {% if form.parish_name.errors %}<div class="text-danger small mt-1">{{ form.parish_name.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Diocese</label>
+                        <div class="view-field">
+                            <p class="mb-0 fw-semibold fs-6" style="color:#2d2d2d;">
+                                <i class="bi bi-diagram-3 me-1" style="color:#c9a84c;"></i>{{ info.diocese|default:"—" }}
+                            </p>
+                        </div>
+                        <div class="edit-field d-none">
+                            {{ form.diocese }}
+                            {% if form.diocese.errors %}<div class="text-danger small mt-1">{{ form.diocese.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Date Established</label>
+                        <div class="view-field">
+                            <p class="mb-0 fw-semibold fs-6" style="color:#2d2d2d;">
+                                <i class="bi bi-calendar3 me-1" style="color:#c9a84c;"></i>{{ info.date_established|default:"—" }}
+                            </p>
+                        </div>
+                        <div class="edit-field d-none">
+                            {{ form.date_established }}
+                            {% if form.date_established.errors %}<div class="text-danger small mt-1">{{ form.date_established.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Location & Address Pane -->
+            <div class="tab-pane fade" id="pane-location" role="tabpanel">
+                <div class="row g-4 mb-2">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Street Address</label>
+                        <div class="view-field">
+                            <p class="mb-0 fw-semibold fs-6" style="color:#2d2d2d;">
+                                <i class="bi bi-signpost me-1" style="color:#c9a84c;"></i>{{ info.street_address|default:"—" }}
+                            </p>
+                        </div>
+                        <div class="edit-field d-none">
+                            {{ form.street_address }}
+                            {% if form.street_address.errors %}<div class="text-danger small mt-1">{{ form.street_address.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Barangay</label>
+                        <div class="view-field">
+                            <p class="mb-0 fw-semibold fs-6" style="color:#2d2d2d;">
+                                <i class="bi bi-map me-1" style="color:#c9a84c;"></i>{{ info.barangay|default:"—" }}
+                            </p>
+                        </div>
+                        <div class="edit-field d-none">
+                            {{ form.barangay }}
+                            {% if form.barangay.errors %}<div class="text-danger small mt-1">{{ form.barangay.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Municipality / City</label>
+                        <div class="view-field">
+                            <p class="mb-0 fw-semibold fs-6" style="color:#2d2d2d;">
+                                <i class="bi bi-geo-alt me-1" style="color:#c9a84c;"></i>{{ info.municipality|default:"—" }}
+                            </p>
+                        </div>
+                        <div class="edit-field d-none">
+                            {{ form.municipality }}
+                            {% if form.municipality.errors %}<div class="text-danger small mt-1">{{ form.municipality.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Province</label>
+                        <div class="view-field">
+                            <p class="mb-0 fw-semibold fs-6" style="color:#2d2d2d;">
+                                <i class="bi bi-pin-map me-1" style="color:#c9a84c;"></i>{{ info.province|default:"—" }}
+                            </p>
+                        </div>
+                        <div class="edit-field d-none">
+                            {{ form.province }}
+                            {% if form.province.errors %}<div class="text-danger small mt-1">{{ form.province.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">ZIP Code</label>
+                        <div class="view-field">
+                            <p class="mb-0 fw-semibold fs-6" style="color:#2d2d2d;">
+                                <i class="bi bi-mailbox me-1" style="color:#c9a84c;"></i>{{ info.zip_code|default:"—" }}
+                            </p>
+                        </div>
+                        <div class="edit-field d-none">
+                            {{ form.zip_code }}
+                            {% if form.zip_code.errors %}<div class="text-danger small mt-1">{{ form.zip_code.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Pane -->
+            <div class="tab-pane fade" id="pane-contact" role="tabpanel">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Contact Number</label>
+                        <div class="view-field">
+                            <p class="mb-0 fw-semibold fs-6 d-flex align-items-center gap-2" style="color:#2d2d2d;">
+                                <i class="bi bi-telephone-fill" style="color:#c9a84c;"></i>
+                                {% if info.contact_number %}
+                                    <a href="tel:{{ info.contact_number }}" class="text-decoration-none" style="color:#2d2d2d;">{{ info.contact_number }}</a>
+                                    <button type="button" class="btn btn-sm p-0 border-0 bg-transparent copy-btn"
+                                            data-copy="{{ info.contact_number }}" title="Copy to clipboard">
+                                        <i class="bi bi-clipboard" style="color:#aaa;font-size:0.85rem;"></i>
+                                    </button>
+                                {% else %}—{% endif %}
+                            </p>
+                        </div>
+                        <div class="edit-field d-none">
+                            {{ form.contact_number }}
+                            {% if form.contact_number.errors %}<div class="text-danger small mt-1">{{ form.contact_number.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Email Address</label>
+                        <div class="view-field">
+                            <p class="mb-0 fw-semibold fs-6 d-flex align-items-center gap-2" style="color:#2d2d2d;">
+                                <i class="bi bi-envelope-fill" style="color:#c9a84c;"></i>
+                                {% if info.email %}
+                                    <a href="mailto:{{ info.email }}" class="text-decoration-none" style="color:#2d2d2d;">{{ info.email }}</a>
+                                    <button type="button" class="btn btn-sm p-0 border-0 bg-transparent copy-btn"
+                                            data-copy="{{ info.email }}" title="Copy to clipboard">
+                                        <i class="bi bi-clipboard" style="color:#aaa;font-size:0.85rem;"></i>
+                                    </button>
+                                {% else %}—{% endif %}
+                            </p>
+                        </div>
+                        <div class="edit-field d-none">
+                            {{ form.email }}
+                            {% if form.email.errors %}<div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- end tab-content -->
+
+        <!-- Save / Cancel -->
+        <div id="formActions" class="d-none px-4 pb-4 d-flex gap-2">
+            <button type="button" class="btn btn-primary-church" id="saveParishBtn">
+                <i class="bi bi-check-lg me-1"></i> Save Changes
+            </button>
+            <a href="{% url 'parish_info' %}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+    </div><!-- end card -->
+</form>
