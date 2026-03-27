@@ -27,7 +27,7 @@
                         data-bs-toggle="tab" data-bs-target="#baptisms" type="button" role="tab">
                     <i class="bi bi-droplet-fill" style="color:#c9a84c;"></i>
                     <span>Baptisms</span>
-                    <span class="badge rounded-pill ms-1" style="background:#f5ede8;color:#6b3a2a;font-size:0.72rem;">{{ baptisms|length }}</span>
+                    <span class="badge rounded-pill ms-1" style="background:#f5ede8;color:#6b3a2a;font-size:0.72rem;">{{ baptisms.paginator.count }}</span>
                 </button>
             </li>
             <li class="nav-item" role="presentation">
@@ -35,7 +35,7 @@
                         data-bs-toggle="tab" data-bs-target="#confirmations" type="button" role="tab">
                     <i class="bi bi-patch-check-fill" style="color:#c9a84c;"></i>
                     <span>Confirmations</span>
-                    <span class="badge rounded-pill ms-1" style="background:#f5ede8;color:#6b3a2a;font-size:0.72rem;">{{ confirmations|length }}</span>
+                    <span class="badge rounded-pill ms-1" style="background:#f5ede8;color:#6b3a2a;font-size:0.72rem;">{{ confirmations.paginator.count }}</span>
                 </button>
             </li>
             <li class="nav-item" role="presentation">
@@ -43,7 +43,7 @@
                         data-bs-toggle="tab" data-bs-target="#communions" type="button" role="tab">
                     <i class="bi bi-cup-hot-fill" style="color:#c9a84c;"></i>
                     <span>Communions</span>
-                    <span class="badge rounded-pill ms-1" style="background:#f5ede8;color:#6b3a2a;font-size:0.72rem;">{{ communions|length }}</span>
+                    <span class="badge rounded-pill ms-1" style="background:#f5ede8;color:#6b3a2a;font-size:0.72rem;">{{ communions.paginator.count }}</span>
                 </button>
             </li>
             <li class="nav-item" role="presentation">
@@ -51,7 +51,7 @@
                         data-bs-toggle="tab" data-bs-target="#marriages" type="button" role="tab">
                     <i class="bi bi-heart-fill" style="color:#c9a84c;"></i>
                     <span>Marriages</span>
-                    <span class="badge rounded-pill ms-1" style="background:#f5ede8;color:#6b3a2a;font-size:0.72rem;">{{ marriages|length }}</span>
+                    <span class="badge rounded-pill ms-1" style="background:#f5ede8;color:#6b3a2a;font-size:0.72rem;">{{ marriages.paginator.count }}</span>
                 </button>
             </li>
             <li class="nav-item" role="presentation">
@@ -59,7 +59,7 @@
                         data-bs-toggle="tab" data-bs-target="#lastrites" type="button" role="tab">
                     <i class="bi bi-moon-fill" style="color:#c9a84c;"></i>
                     <span>Last Rites</span>
-                    <span class="badge rounded-pill ms-1" style="background:#f5ede8;color:#6b3a2a;font-size:0.72rem;">{{ last_rites|length }}</span>
+                    <span class="badge rounded-pill ms-1" style="background:#f5ede8;color:#6b3a2a;font-size:0.72rem;">{{ last_rites.paginator.count }}</span>
                 </button>
             </li>
         </ul>
@@ -88,6 +88,19 @@
                     </tbody>
                 </table>
             </div>
+            {% if baptisms.has_other_pages %}
+            <div class="card-footer bg-white border-0 px-4 py-2 d-flex justify-content-between align-items-center">
+                <small class="text-muted">{{ baptisms.paginator.count }} record(s)</small>
+                <nav><ul class="pagination pagination-sm mb-0">
+                    {% if baptisms.has_previous %}<li class="page-item"><a class="page-link" href="?{% if q %}q={{ q }}&{% endif %}page_b={{ baptisms.previous_page_number }}">&laquo;</a></li>{% endif %}
+                    {% for num in baptisms.paginator.page_range %}
+                        {% if baptisms.number == num %}<li class="page-item active"><span class="page-link" style="background:#6b3a2a;border-color:#6b3a2a;">{{ num }}</span></li>
+                        {% elif num > baptisms.number|add:'-3' and num < baptisms.number|add:'3' %}<li class="page-item"><a class="page-link" href="?{% if q %}q={{ q }}&{% endif %}page_b={{ num }}">{{ num }}</a></li>{% endif %}
+                    {% endfor %}
+                    {% if baptisms.has_next %}<li class="page-item"><a class="page-link" href="?{% if q %}q={{ q }}&{% endif %}page_b={{ baptisms.next_page_number }}">&raquo;</a></li>{% endif %}
+                </ul></nav>
+            </div>
+            {% endif %}
         </div>
 
         <!-- Confirmations -->
@@ -112,6 +125,19 @@
                     </tbody>
                 </table>
             </div>
+            {% if confirmations.has_other_pages %}
+            <div class="card-footer bg-white border-0 px-4 py-2 d-flex justify-content-between align-items-center">
+                <small class="text-muted">{{ confirmations.paginator.count }} record(s)</small>
+                <nav><ul class="pagination pagination-sm mb-0">
+                    {% if confirmations.has_previous %}<li class="page-item"><a class="page-link" href="?{% if q %}q={{ q }}&{% endif %}page_c={{ confirmations.previous_page_number }}">&laquo;</a></li>{% endif %}
+                    {% for num in confirmations.paginator.page_range %}
+                        {% if confirmations.number == num %}<li class="page-item active"><span class="page-link" style="background:#6b3a2a;border-color:#6b3a2a;">{{ num }}</span></li>
+                        {% elif num > confirmations.number|add:'-3' and num < confirmations.number|add:'3' %}<li class="page-item"><a class="page-link" href="?{% if q %}q={{ q }}&{% endif %}page_c={{ num }}">{{ num }}</a></li>{% endif %}
+                    {% endfor %}
+                    {% if confirmations.has_next %}<li class="page-item"><a class="page-link" href="?{% if q %}q={{ q }}&{% endif %}page_c={{ confirmations.next_page_number }}">&raquo;</a></li>{% endif %}
+                </ul></nav>
+            </div>
+            {% endif %}
         </div>
 
         <!-- Communions -->
@@ -135,6 +161,19 @@
                     </tbody>
                 </table>
             </div>
+            {% if communions.has_other_pages %}
+            <div class="card-footer bg-white border-0 px-4 py-2 d-flex justify-content-between align-items-center">
+                <small class="text-muted">{{ communions.paginator.count }} record(s)</small>
+                <nav><ul class="pagination pagination-sm mb-0">
+                    {% if communions.has_previous %}<li class="page-item"><a class="page-link" href="?{% if q %}q={{ q }}&{% endif %}page_co={{ communions.previous_page_number }}">&laquo;</a></li>{% endif %}
+                    {% for num in communions.paginator.page_range %}
+                        {% if communions.number == num %}<li class="page-item active"><span class="page-link" style="background:#6b3a2a;border-color:#6b3a2a;">{{ num }}</span></li>
+                        {% elif num > communions.number|add:'-3' and num < communions.number|add:'3' %}<li class="page-item"><a class="page-link" href="?{% if q %}q={{ q }}&{% endif %}page_co={{ num }}">{{ num }}</a></li>{% endif %}
+                    {% endfor %}
+                    {% if communions.has_next %}<li class="page-item"><a class="page-link" href="?{% if q %}q={{ q }}&{% endif %}page_co={{ communions.next_page_number }}">&raquo;</a></li>{% endif %}
+                </ul></nav>
+            </div>
+            {% endif %}
         </div>
 
         <!-- Marriages -->
@@ -159,6 +198,19 @@
                     </tbody>
                 </table>
             </div>
+            {% if marriages.has_other_pages %}
+            <div class="card-footer bg-white border-0 px-4 py-2 d-flex justify-content-between align-items-center">
+                <small class="text-muted">{{ marriages.paginator.count }} record(s)</small>
+                <nav><ul class="pagination pagination-sm mb-0">
+                    {% if marriages.has_previous %}<li class="page-item"><a class="page-link" href="?{% if q %}q={{ q }}&{% endif %}page_m={{ marriages.previous_page_number }}">&laquo;</a></li>{% endif %}
+                    {% for num in marriages.paginator.page_range %}
+                        {% if marriages.number == num %}<li class="page-item active"><span class="page-link" style="background:#6b3a2a;border-color:#6b3a2a;">{{ num }}</span></li>
+                        {% elif num > marriages.number|add:'-3' and num < marriages.number|add:'3' %}<li class="page-item"><a class="page-link" href="?{% if q %}q={{ q }}&{% endif %}page_m={{ num }}">{{ num }}</a></li>{% endif %}
+                    {% endfor %}
+                    {% if marriages.has_next %}<li class="page-item"><a class="page-link" href="?{% if q %}q={{ q }}&{% endif %}page_m={{ marriages.next_page_number }}">&raquo;</a></li>{% endif %}
+                </ul></nav>
+            </div>
+            {% endif %}
         </div>
 
         <!-- Last Rites -->
@@ -182,6 +234,19 @@
                     </tbody>
                 </table>
             </div>
+            {% if last_rites.has_other_pages %}
+            <div class="card-footer bg-white border-0 px-4 py-2 d-flex justify-content-between align-items-center">
+                <small class="text-muted">{{ last_rites.paginator.count }} record(s)</small>
+                <nav><ul class="pagination pagination-sm mb-0">
+                    {% if last_rites.has_previous %}<li class="page-item"><a class="page-link" href="?{% if q %}q={{ q }}&{% endif %}page_lr={{ last_rites.previous_page_number }}">&laquo;</a></li>{% endif %}
+                    {% for num in last_rites.paginator.page_range %}
+                        {% if last_rites.number == num %}<li class="page-item active"><span class="page-link" style="background:#6b3a2a;border-color:#6b3a2a;">{{ num }}</span></li>
+                        {% elif num > last_rites.number|add:'-3' and num < last_rites.number|add:'3' %}<li class="page-item"><a class="page-link" href="?{% if q %}q={{ q }}&{% endif %}page_lr={{ num }}">{{ num }}</a></li>{% endif %}
+                    {% endfor %}
+                    {% if last_rites.has_next %}<li class="page-item"><a class="page-link" href="?{% if q %}q={{ q }}&{% endif %}page_lr={{ last_rites.next_page_number }}">&raquo;</a></li>{% endif %}
+                </ul></nav>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>

@@ -148,6 +148,7 @@ def _parish_ctx():
 
 @login_required
 def sacrament_list(request):
+    from django.core.paginator import Paginator
     q = request.GET.get('q', '')
     baptisms      = Baptism.objects.select_related('member')
     confirmations = Confirmation.objects.select_related('member')
@@ -161,10 +162,17 @@ def sacrament_list(request):
         communions    = communions.filter(f)
         marriages     = marriages.filter(f | Q(spouse_name__icontains=q))
         last_rites    = last_rites.filter(f)
+
+    def paginate(qs, param):
+        return Paginator(qs, 15).get_page(request.GET.get(param))
+
     context = {
-        'baptisms': baptisms, 'confirmations': confirmations,
-        'communions': communions, 'marriages': marriages,
-        'last_rites': last_rites, 'q': q,
+        'baptisms':      paginate(baptisms,      'page_b'),
+        'confirmations': paginate(confirmations, 'page_c'),
+        'communions':    paginate(communions,    'page_co'),
+        'marriages':     paginate(marriages,     'page_m'),
+        'last_rites':    paginate(last_rites,    'page_lr'),
+        'q': q,
         'all_members': Member.objects.filter(is_active=True).order_by('last_name', 'first_name'),
     }
     return render(request, 'registry/sacraments/list.html', context)
