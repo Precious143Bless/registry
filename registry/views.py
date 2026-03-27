@@ -614,14 +614,18 @@ def pledge_delete(request, pk):
 @login_required
 def payment_add(request, pledge_pk):
     pledge = get_object_or_404(Pledge, pk=pledge_pk)
-    form = PledgePaymentForm(request.POST or None)
-    if form.is_valid():
-        payment = form.save(commit=False)
-        payment.pledge = pledge
-        payment.save()
-        messages.success(request, 'Payment recorded.')
+    if request.method == 'POST':
+        form = PledgePaymentForm(request.POST)
+        if form.is_valid():
+            payment = form.save(commit=False)
+            payment.pledge = pledge
+            payment.save()
+            messages.success(request, 'Payment recorded.')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field.replace("_", " ").title()}: {error}')
         return redirect('pledge_detail', pk=pledge_pk)
-    return render(request, 'registry/pledges/payment_form.html', {'form': form, 'pledge': pledge})
 
 
 @login_required
