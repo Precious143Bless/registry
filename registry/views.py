@@ -148,6 +148,7 @@ def _parish_ctx():
 
 @login_required
 def sacrament_list(request):
+    from django.core.paginator import Paginator
     q = request.GET.get('q', '')
     baptisms      = Baptism.objects.select_related('member')
     confirmations = Confirmation.objects.select_related('member')
@@ -161,10 +162,17 @@ def sacrament_list(request):
         communions    = communions.filter(f)
         marriages     = marriages.filter(f | Q(spouse_name__icontains=q))
         last_rites    = last_rites.filter(f)
+
+    def paginate(qs, param):
+        return Paginator(qs, 15).get_page(request.GET.get(param))
+
     context = {
-        'baptisms': baptisms, 'confirmations': confirmations,
-        'communions': communions, 'marriages': marriages,
-        'last_rites': last_rites, 'q': q,
+        'baptisms':      paginate(baptisms,      'page_b'),
+        'confirmations': paginate(confirmations, 'page_c'),
+        'communions':    paginate(communions,    'page_co'),
+        'marriages':     paginate(marriages,     'page_m'),
+        'last_rites':    paginate(last_rites,    'page_lr'),
+        'q': q,
         'all_members': Member.objects.filter(is_active=True).order_by('last_name', 'first_name'),
     }
     return render(request, 'registry/sacraments/list.html', context)
@@ -499,7 +507,22 @@ def priests_list(request):
 def priest_create(request):
     form = ParishPriestForm(request.POST or None, request.FILES or None) 
     if form.is_valid():
-        form.save()
+        priest = form.save()
+        # Automatically create corresponding ParishOfficer entry
+        ParishOfficer.objects.create(
+            first_name=priest.first_name,
+            middle_name=priest.middle_name,
+            last_name=priest.last_name,
+            position='parish_priest',
+            contact_number=priest.contact_number,
+            email=priest.email,
+            date_assigned=priest.date_assigned,
+            date_departed=priest.date_departed,
+            status=priest.status,
+            biography=priest.biography,
+            remarks=priest.remarks,
+            image=priest.image
+        )
         messages.success(request, 'Parish priest added successfully.')
         return redirect('priests_list')
     return render(request, 'registry/priests/form.html', {
@@ -523,7 +546,37 @@ def priest_edit(request, pk):
             if priest.image:
                 priest.image.delete(save=False)
             form.instance.image = None
-        form.save()
+        priest = form.save()
+        
+        # Update corresponding ParishOfficer entry
+        officer, created = ParishOfficer.objects.get_or_create(
+            first_name=priest.first_name,
+            last_name=priest.last_name,
+            position='parish_priest',
+            defaults={
+                'middle_name': priest.middle_name,
+                'contact_number': priest.contact_number,
+                'email': priest.email,
+                'date_assigned': priest.date_assigned,
+                'date_departed': priest.date_departed,
+                'status': priest.status,
+                'biography': priest.biography,
+                'remarks': priest.remarks,
+                'image': priest.image
+            }
+        )
+        if not created:
+            officer.middle_name = priest.middle_name
+            officer.contact_number = priest.contact_number
+            officer.email = priest.email
+            officer.date_assigned = priest.date_assigned
+            officer.date_departed = priest.date_departed
+            officer.status = priest.status
+            officer.biography = priest.biography
+            officer.remarks = priest.remarks
+            officer.image = priest.image
+            officer.save()
+        
         messages.success(request, 'Parish priest updated successfully.')
         return redirect('priest_detail', pk=priest.pk)
     return render(request, 'registry/priests/form.html', {
@@ -544,6 +597,19 @@ def priest_deactivate(request, pk):
             priest.status = 'active'
             messages.success(request, f'Fr. {priest.last_name} has been reactivated.')
         priest.save()
+        
+        # Update corresponding ParishOfficer status
+        try:
+            officer = ParishOfficer.objects.get(
+                first_name=priest.first_name,
+                last_name=priest.last_name,
+                position='parish_priest'
+            )
+            officer.status = priest.status
+            officer.save()
+        except ParishOfficer.DoesNotExist:
+            pass  # Officer might not exist if created before this change
+        
         return redirect('priests_list')
     return redirect('priest_detail', pk=pk)
 
