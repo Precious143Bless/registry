@@ -88,6 +88,7 @@ def mark_all_notifications_read(request):
 
 @login_required
 def member_list(request):
+    from django.core.paginator import Paginator
     q = request.GET.get('q', '')
     members = Member.objects.filter(is_active=True)
     if q:
@@ -95,7 +96,9 @@ def member_list(request):
             Q(first_name__icontains=q) | Q(last_name__icontains=q) |
             Q(middle_name__icontains=q) | Q(contact_number__icontains=q)
         )
-    return render(request, 'registry/members/list.html', {'members': members, 'q': q})
+    paginator = Paginator(members, 15)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'registry/members/list.html', {'members': page_obj, 'page_obj': page_obj, 'q': q})
 
 
 @login_required
@@ -347,6 +350,7 @@ def last_rites_print(request, pk):
 
 @login_required
 def pledge_list(request):
+    from django.core.paginator import Paginator
     q = request.GET.get('q', '')
     pledges = Pledge.objects.select_related('member')
     if q:
@@ -354,8 +358,11 @@ def pledge_list(request):
             Q(member__first_name__icontains=q) | Q(member__last_name__icontains=q) |
             Q(description__icontains=q)
         )
+    paginator = Paginator(pledges, 15)
+    page_obj = paginator.get_page(request.GET.get('page'))
     return render(request, 'registry/pledges/list.html', {
-        'pledges': pledges,
+        'pledges': page_obj,
+        'page_obj': page_obj,
         'q': q,
         'all_members': Member.objects.filter(is_active=True).order_by('last_name', 'first_name'),
     })
@@ -464,26 +471,26 @@ def payment_edit(request, pk):
 
 @login_required
 def priests_list(request):
+    from django.core.paginator import Paginator
     q = request.GET.get('q', '')
     status_filter = request.GET.get('status', '')
-    
     priests = ParishPriest.objects.all()
-    
     if q:
         priests = priests.filter(
-            Q(first_name__icontains=q) | 
+            Q(first_name__icontains=q) |
             Q(last_name__icontains=q) |
             Q(middle_name__icontains=q) |
             Q(email__icontains=q) |
             Q(contact_number__icontains=q)
         )
-    
     if status_filter:
         priests = priests.filter(status=status_filter)
-    
+    paginator = Paginator(priests, 15)
+    page_obj = paginator.get_page(request.GET.get('page'))
     return render(request, 'registry/priests/list.html', {
-        'priests': priests, 
-        'q': q, 
+        'priests': page_obj,
+        'page_obj': page_obj,
+        'q': q,
         'status_filter': status_filter
     })
 
@@ -550,10 +557,10 @@ def priests_list_print(request):
 
 @login_required
 def officers_list(request):
+    from django.core.paginator import Paginator
     q = request.GET.get('q', '')
     status_filter = request.GET.get('status', '')
     officers = ParishOfficer.objects.all()
-
     if q:
         officers = officers.filter(
             Q(first_name__icontains=q) |
@@ -563,12 +570,13 @@ def officers_list(request):
             Q(email__icontains=q) |
             Q(contact_number__icontains=q)
         )
-
     if status_filter:
         officers = officers.filter(status=status_filter)
-
+    paginator = Paginator(officers, 15)
+    page_obj = paginator.get_page(request.GET.get('page'))
     return render(request, 'registry/officers/list.html', {
-        'officers': officers,
+        'officers': page_obj,
+        'page_obj': page_obj,
         'q': q,
         'status_filter': status_filter
     })
