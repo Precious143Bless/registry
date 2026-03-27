@@ -1,4 +1,5 @@
 import re
+from django.contrib.auth.models import User
 from datetime import date
 from django import forms
 from django.core.exceptions import ValidationError
@@ -57,6 +58,67 @@ def validate_address_length(value):
     if len(value.strip()) > 500:
         raise ValidationError('Address cannot exceed 500 characters.')
 
+# ─── REGITRATION FORM ─────────────────────────────────────────────────────────────
+class ParishOfficerRegistrationForm(forms.Form):
+    first_name = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter your first name'
+        })
+    )
+    last_name = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter your last name'
+        })
+    )
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter your registered email'
+        })
+    )
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Create a password (min. 8 characters)'
+        })
+    )
+    confirm_password = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Confirm your password'
+        })
+    )
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get('password')
+        confirm_password = cleaned_data.get('confirm_password')
+        
+        if password and confirm_password and password != confirm_password:
+            raise ValidationError("Passwords don't match")
+        
+        # Check password length
+        if password and len(password) < 8:
+            raise ValidationError("Password must be at least 8 characters long")
+        
+        return cleaned_data
+    
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if email:
+            # Check if email exists in ParishOfficer
+            if not ParishOfficer.objects.filter(email=email).exists():
+                raise ValidationError('This email is not registered as a parish officer.')
+            
+            # Check if user already exists
+            if User.objects.filter(email=email).exists():
+                raise ValidationError('An account with this email already exists. Please login instead.')
+        
+        return email
 
 # ─── MEMBER FORM ─────────────────────────────────────────────────────────────
 

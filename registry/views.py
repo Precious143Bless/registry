@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User  
 from django.contrib import messages
 from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
@@ -13,7 +14,8 @@ import subprocess
 from datetime import datetime
 from .models import Member, Baptism, Confirmation, FirstHolyCommunion, Marriage, LastRites, Pledge, PledgePayment, ParishInfo, ParishPriest, ParishOfficer, Notification, Organization, OrganizationMembership
 from .forms import (MemberForm, BaptismForm, ConfirmationForm, CommunionForm,
-                    MarriageForm, LastRitesForm, PledgeForm, PledgePaymentForm, ParishInfoForm,ParishPriestForm, ParishOfficerForm, OrganizationForm,OrganizationMembershipForm)
+                    MarriageForm, LastRitesForm, PledgeForm, PledgePaymentForm, ParishInfoForm,ParishPriestForm, ParishOfficerForm, OrganizationForm,OrganizationMembershipForm, ParishOfficerRegistrationForm)
+from .decorators import admin_required, officer_required  
 
 
 # ─── AUTH ────────────────────────────────────────────────────────────────────
@@ -24,18 +26,120 @@ def landing_view(request):
     parish = ParishInfo.objects.first()
     return render(request, 'registry/landing.html', {'parish': parish})
 
-
 def login_view(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
+    
     if request.method == 'POST':
-        user = authenticate(request, username=request.POST.get('username'), password=request.POST.get('password'))
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        
+        # Try to find user by email
+        try:
+            user_obj = User.objects.get(email=email)
+            username = user_obj.username
+        except User.DoesNotExist:
+            username = None
+        
+        # Authenticate with username
+        user = authenticate(request, username=username, password=password)
+        
         if user:
             login(request, user)
-            return redirect('dashboard')
-        messages.error(request, 'Invalid username or password.')
+            
+            # Check if user is superuser
+            if user.is_superuser:
+                messages.success(request, f'Welcome back, Administrator!')
+                return redirect('dashboard')
+            
+            # Check if this user has a parish officer record
+            try:
+                officer = ParishOfficer.objects.filter(email=user.email).first()
+                
+                if officer and officer.status == 'active':
+                    messages.success(request, f'Welcome back, {user.get_full_name() or user.username}!')
+                    return redirect('dashboard')
+                else:
+                    messages.error(request, 'Your account is not authorized or not active.')
+                    logout(request)
+                    return render(request, 'registry/login.html')
+            except Exception as e:
+                print(f"Login error: {e}")
+                messages.error(request, 'Your account is not authorized for this system.')
+                logout(request)
+                return render(request, 'registry/login.html')
+        else:
+            messages.error(request, 'Invalid email or password.')
+    
     return render(request, 'registry/login.html')
 
+def register_view(request):
+    """Registration view for parish officers"""
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+    
+    if request.method == 'POST':
+        form = ParishOfficerRegistrationForm(request.POST)
+        if form.is_valid():
+            # Get the officer data
+            email = form.cleaned_data['email']
+            first_name = form.cleaned_data['first_name']
+            last_name = form.cleaned_data['last_name']
+            password = form.cleaned_data['password']
+            
+            # Check if this email is registered in ParishOfficer table
+            try:
+                officer = ParishOfficer.objects.get(email=email)
+                
+                # Also verify name matches
+                if officer.first_name.lower() != first_name.lower() or officer.last_name.lower() != last_name.lower():
+                    messages.error(request, 'The name you entered does not match our records for this email.')
+                    return render(request, 'registry/register.html', {'form': form})
+                
+                # Check if officer is active
+                if officer.status != 'active':
+                    messages.error(request, 'Your account is not active. Please contact the administrator.')
+                    return render(request, 'registry/register.html', {'form': form})
+                
+                # Check if user already exists
+                if User.objects.filter(email=email).exists():
+                    messages.error(request, 'An account with this email already exists. Please login instead.')
+                    return redirect('login')
+                
+                # Create username from email (without @ symbol)
+                username = email.split('@')[0]
+                # Ensure unique username
+                base_username = username
+                counter = 1
+                while User.objects.filter(username=username).exists():
+                    username = f"{base_username}{counter}"
+                    counter += 1
+                
+                # Create the user account
+                user = User.objects.create_user(
+                    username=username,
+                    email=email,
+                    first_name=first_name,
+                    last_name=last_name,
+                    password=password
+                )
+                user.save()
+                
+                # Log the user in
+                login(request, user)
+                messages.success(request, f'Welcome {first_name}! Your account has been created successfully.')
+                return redirect('dashboard')
+                
+            except ParishOfficer.DoesNotExist:
+                messages.error(request, 'You are not authorized to register. Only parish officers can create accounts.')
+                return render(request, 'registry/register.html', {'form': form})
+            except Exception as e:
+                messages.error(request, f'Registration error: {str(e)}')
+                return render(request, 'registry/register.html', {'form': form})
+    else:
+        form = ParishOfficerRegistrationForm()
+    
+    return render(request, 'registry/register.html', {'form': form})
 
 def logout_view(request):
     logout(request)
@@ -543,9 +647,9 @@ def payment_edit(request, pk):
     return redirect('pledge_detail', pk=payment.pledge.pk)
 
 
-# ─── PARISH PRIESTS ────────────────────────────────────────────────────────────
+# ─── ADMIN-ONLY VIEWS (PARISH PRIESTS) ───────────────────────────────────────
 
-@login_required
+@admin_required
 def priests_list(request):
     from django.core.paginator import Paginator
     q = request.GET.get('q', '')
@@ -567,7 +671,7 @@ def priests_list(request):
     })
 
 
-@login_required
+@admin_required
 def priest_create(request):
     form = ParishPriestForm(request.POST or None, request.FILES or None) 
     if form.is_valid():
@@ -595,13 +699,13 @@ def priest_create(request):
     })
 
 
-@login_required
+@admin_required
 def priest_detail(request, pk):
     priest = get_object_or_404(ParishPriest, pk=pk)
     return render(request, 'registry/priests/detail.html', {'priest': priest})
 
 
-@login_required
+@admin_required
 def priest_edit(request, pk):
     priest = get_object_or_404(ParishPriest, pk=pk)
     form = ParishPriestForm(request.POST or None, request.FILES or None, instance=priest) 
@@ -650,7 +754,7 @@ def priest_edit(request, pk):
     })
 
 
-@login_required
+@admin_required
 def priest_deactivate(request, pk):
     priest = get_object_or_404(ParishPriest, pk=pk)
     if request.method == 'POST':
@@ -672,18 +776,19 @@ def priest_deactivate(request, pk):
             officer.status = priest.status
             officer.save()
         except ParishOfficer.DoesNotExist:
-            pass  # Officer might not exist if created before this change
+            pass
         
         return redirect('priests_list')
     return redirect('priest_detail', pk=pk)
 
-@login_required
+
+@admin_required
 def priests_list_print(request):
     priests = ParishPriest.objects.all().order_by('last_name', 'first_name')
     return render(request, 'registry/priests/print_priest_list.html', {'priests': priests})
 
 
-@login_required
+@admin_required
 def priest_archive(request):
     from django.core.paginator import Paginator
     q = request.GET.get('q', '')
@@ -697,9 +802,9 @@ def priest_archive(request):
     return render(request, 'registry/priests/archive.html', {'priests': page_obj, 'page_obj': page_obj, 'q': q})
 
 
-# ─── PARISH OFFICERS ─────────────────────────────────────────────────────────
+# ─── ADMIN-ONLY VIEWS (PARISH OFFICERS) ─────────────────────────────────────
 
-@login_required
+@admin_required
 def officers_list(request):
     from django.core.paginator import Paginator
     q = request.GET.get('q', '')
@@ -722,7 +827,7 @@ def officers_list(request):
     })
 
 
-@login_required
+@admin_required
 def officer_create(request):
     form = ParishOfficerForm(request.POST or None, request.FILES or None)
     if form.is_valid():
@@ -732,13 +837,13 @@ def officer_create(request):
     return render(request, 'registry/officers/form.html', {'form': form, 'title': 'Add Parish Officer'})
 
 
-@login_required
+@admin_required
 def officer_detail(request, pk):
     officer = get_object_or_404(ParishOfficer, pk=pk)
     return render(request, 'registry/officers/detail.html', {'officer': officer})
 
 
-@login_required
+@admin_required
 def officer_edit(request, pk):
     officer = get_object_or_404(ParishOfficer, pk=pk)
     form = ParishOfficerForm(request.POST or None, request.FILES or None, instance=officer)
@@ -753,7 +858,7 @@ def officer_edit(request, pk):
     return render(request, 'registry/officers/form.html', {'form': form, 'title': 'Edit Parish Officer', 'officer': officer})
 
 
-@login_required
+@admin_required
 def officer_deactivate(request, pk):
     officer = get_object_or_404(ParishOfficer, pk=pk)
     if request.method == 'POST':
@@ -768,13 +873,13 @@ def officer_deactivate(request, pk):
     return render(request, 'registry/officers/confirm_status.html', {'officer': officer})
 
 
-@login_required
+@admin_required
 def officers_list_print(request):
     officers = ParishOfficer.objects.all().order_by('last_name', 'first_name')
     return render(request, 'registry/officers/print_officer_list.html', {'officers': officers})
 
 
-@login_required
+@admin_required
 def officer_archive(request):
     from django.core.paginator import Paginator
     q = request.GET.get('q', '')
@@ -788,7 +893,8 @@ def officer_archive(request):
     page_obj = paginator.get_page(request.GET.get('page'))
     return render(request, 'registry/officers/archive.html', {'officers': page_obj, 'page_obj': page_obj, 'q': q})
 
-@login_required
+
+@admin_required
 def officers_chart(request):
     # Define hierarchy levels
     hierarchy = {
@@ -834,7 +940,7 @@ def officers_chart(request):
         }
     }
     
-    # Fetch officers for each category - using ParishOfficer model
+    # Fetch officers for each category
     chart_data = {}
     for key, category in hierarchy.items():
         officers_in_category = ParishOfficer.objects.filter(
@@ -857,7 +963,7 @@ def officers_chart(request):
             'count': officers_in_category.count()
         }
     
-    # Get parish priest for top-level display - using ParishOfficer model
+    # Get parish priest for top-level display
     parish_priest = ParishOfficer.objects.filter(position='parish_priest', status='active').first()
     parochial_vicar = ParishOfficer.objects.filter(position='parochial_vicar', status='active').first()
     
@@ -869,6 +975,7 @@ def officers_chart(request):
     }
     
     return render(request, 'registry/officers/officers_chart.html', context)
+
 
 # ─── PRINT VIEWS ─────────────────────────────────────────────────────────────
 
@@ -906,9 +1013,9 @@ def pledge_list_print(request):
     })
 
 
-# ─── DATABASE MANAGEMENT ────────────────────────────────────────────────────────
+# ─── ADMIN-ONLY VIEWS (DATABASE MANAGEMENT) ─────────────────────────────────
 
-@login_required
+@admin_required
 def backup_database(request):
     if request.method == 'POST':
         try:
@@ -960,7 +1067,7 @@ def backup_database(request):
     return render(request, 'registry/backup.html')
 
 
-@login_required
+@admin_required
 def restore_database(request):
     if request.method == 'POST':
         try:
@@ -1023,9 +1130,9 @@ def restore_database(request):
     return render(request, 'registry/restore.html')
 
 
-# ─── PARISH INFO ─────────────────────────────────────────────────────────────
+# ─── ADMIN-ONLY VIEWS (PARISH INFO) ─────────────────────────────────────────
 
-@login_required
+@admin_required
 def parish_info(request):
     info = ParishInfo.objects.first()
     if request.method == 'POST':
@@ -1038,9 +1145,10 @@ def parish_info(request):
         form = ParishInfoForm(instance=info)
     return render(request, 'registry/info/detail.html', {'info': info, 'form': form})
 
-# ─── ORGANIZATIONS ─────────────────────────────────────────────────────────────
 
-@login_required
+# ─── ADMIN-ONLY VIEWS (ORGANIZATIONS) ───────────────────────────────────────
+
+@admin_required
 def organization_list(request):
     q = request.GET.get('q', '')
     organizations = Organization.objects.all()
@@ -1059,7 +1167,7 @@ def organization_list(request):
     })
 
 
-@login_required
+@admin_required
 def organization_create(request):
     form = OrganizationForm(request.POST or None)
     if form.is_valid():
@@ -1072,7 +1180,7 @@ def organization_create(request):
     })
 
 
-@login_required
+@admin_required
 def organization_detail(request, pk):
     organization = get_object_or_404(Organization, pk=pk)
     memberships = organization.memberships.select_related('member').all()
@@ -1094,7 +1202,7 @@ def organization_detail(request, pk):
     })
 
 
-@login_required
+@admin_required
 def organization_edit(request, pk):
     organization = get_object_or_404(Organization, pk=pk)
     form = OrganizationForm(request.POST or None, instance=organization)
@@ -1109,7 +1217,7 @@ def organization_edit(request, pk):
     })
 
 
-@login_required
+@admin_required
 def organization_delete(request, pk):
     organization = get_object_or_404(Organization, pk=pk)
     if request.method == 'POST':
@@ -1121,9 +1229,9 @@ def organization_delete(request, pk):
     })
 
 
-# ─── ORGANIZATION MEMBERSHIPS ─────────────────────────────────────────────────
+# ─── ADMIN-ONLY VIEWS (ORGANIZATION MEMBERSHIPS) ────────────────────────────
 
-@login_required
+@admin_required
 def organization_add_member(request, org_pk):
     organization = get_object_or_404(Organization, pk=org_pk)
     form = OrganizationMembershipForm(request.POST or None)
@@ -1150,7 +1258,7 @@ def organization_add_member(request, org_pk):
     })
 
 
-@login_required
+@admin_required
 def membership_edit(request, pk):
     membership = get_object_or_404(OrganizationMembership, pk=pk)
     form = OrganizationMembershipForm(request.POST or None, instance=membership)
@@ -1168,7 +1276,7 @@ def membership_edit(request, pk):
     })
 
 
-@login_required
+@admin_required
 def membership_delete(request, pk):
     membership = get_object_or_404(OrganizationMembership, pk=pk)
     organization_pk = membership.organization.pk

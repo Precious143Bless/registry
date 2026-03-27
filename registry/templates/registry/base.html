@@ -284,59 +284,64 @@
     </div>
     <ul class="nav flex-column mt-1" style="padding-bottom: 0.5rem;">
         <li class="nav-section">Main</li>
-        <li class="nav-item">
-            <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-                <i class="bi bi-speedometer2"></i> Dashboard
-            </a>
-        </li>
-        <li class="nav-section">Records</li>
-        <li class="nav-item">
-            <a href="{% url 'member_list' %}" class="nav-link {% if 'member' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-people-fill"></i> Members
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="{% url 'sacrament_list' %}" class="nav-link {% if 'sacrament' in request.resolver_match.url_name or 'baptism' in request.resolver_match.url_name or 'confirmation' in request.resolver_match.url_name or 'communion' in request.resolver_match.url_name or 'marriage' in request.resolver_match.url_name or 'last_rites' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-journal-bookmark-fill"></i> Sacraments
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="{% url 'pledge_list' %}" class="nav-link {% if 'pledge' in request.resolver_match.url_name or 'payment' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-cash-coin"></i> Pledges
-            </a>
-        </li>
-        <li class="nav-section">Church Details</li>
-        <li class="nav-item">
-            <a href="{% url 'priests_list' %}" class="nav-link {% if 'priests' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-person-badge"></i> Parish Priest
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="{% url 'officers_list' %}" class="nav-link {% if 'officer' in request.resolver_match.url_name or 'officers' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-people-fill"></i> Parish Officers
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="{% url 'parish_info' %}" class="nav-link {% if request.resolver_match.url_name == 'parish_info' %}active{% endif %}">
-                <i class="bi bi-building"></i> Parish Info
-            </a>
-        </li>
-       <li class="nav-item">
-            <a href="{% url 'organization_list' %}" class="nav-link {% if 'organization' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-people"></i> Parish Organizations
-            </a>
-        </li>
-       <li class="nav-section">Database Management</li>
-        <li class="nav-item">
-            <a href="{% url 'database_restore' %}" class="nav-link {% if 'restore' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-arrow-repeat"></i> Restore
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="{% url 'database_backup' %}" class="nav-link {% if 'backup' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-database"></i> Backup
-            </a>
-        </li>
+            <li class="nav-item">
+                <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+            </li>
+
+            <li class="nav-section">Records</li>
+            <li class="nav-item">
+                <a href="{% url 'member_list' %}" class="nav-link {% if 'member' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="bi bi-people-fill"></i> Members
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'sacrament_list' %}" class="nav-link {% if 'sacrament' in request.resolver_match.url_name or 'baptism' in request.resolver_match.url_name or 'confirmation' in request.resolver_match.url_name or 'communion' in request.resolver_match.url_name or 'marriage' in request.resolver_match.url_name or 'last_rites' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="bi bi-journal-bookmark-fill"></i> Sacraments
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'pledge_list' %}" class="nav-link {% if 'pledge' in request.resolver_match.url_name or 'payment' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="bi bi-cash-coin"></i> Pledges
+                </a>
+            </li>
+
+            <!-- Admin-Only Sections -->
+            {% if user.is_superuser %}
+            <li class="nav-section">Church Details</li>
+            <li class="nav-item">
+                <a href="{% url 'priests_list' %}" class="nav-link {% if 'priests' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="bi bi-person-badge"></i> Parish Priest
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'officers_list' %}" class="nav-link {% if 'officer' in request.resolver_match.url_name or 'officers' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="bi bi-people-fill"></i> Parish Officers
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'parish_info' %}" class="nav-link {% if request.resolver_match.url_name == 'parish_info' %}active{% endif %}">
+                    <i class="bi bi-building"></i> Parish Info
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'organization_list' %}" class="nav-link {% if 'organization' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="bi bi-building"></i> Parish Organizations
+                </a>
+            </li>
+            <li class="nav-section">Database Management</li>
+            <li class="nav-item">
+                <a href="{% url 'database_restore' %}" class="nav-link {% if 'restore' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="bi bi-arrow-repeat"></i> Restore
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'database_backup' %}" class="nav-link {% if 'backup' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="bi bi-database"></i> Backup
+                </a>
+            </li>
+            {% endif %}
     </ul>
 </nav>
 
@@ -365,7 +370,7 @@
                 <li class="dropdown-header d-flex justify-content-between align-items-center px-3 py-2">
                     <strong class="small">Notifications</strong>
                     {% if notification_count > 0 %}
-                        <button id="markAllBtn" class="btn btn-sm btn-outline-primary" onclick="markAllNotificationsRead()">Mark All Read</button>
+                        <button class="btn btn-sm btn-outline-primary btn-sm" onclick="markAllNotificationsRead()">Mark All Read</button>
                     {% endif %}
                 </li>
                 <li><hr class="dropdown-divider my-1"></li>
@@ -501,81 +506,78 @@ function showSuccessModal(message) {
 
 // Notification functions
 function markNotificationRead(notificationId, element) {
+    console.log('Marking notification as read:', notificationId, element);
     fetch(`/notifications/${notificationId}/read/`, {
         method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
         credentials: 'same-origin'
     })
-    .then(r => r.json())
+    .then(response => {
+        console.log('Response status:', response.status);
+        return response.json();
+    })
     .then(data => {
+        console.log('Response data:', data);
         if (data.success) {
-            removeNotificationItem(element);
+            // Remove the notification from the dropdown
+            if (element) {
+                element.remove();
+                console.log('Removed notification from DOM');
+            }
+            // Update notification count
+            updateNotificationCount();
         }
     })
     .catch(error => console.error('Error:', error));
 }
 
 function markAllNotificationsRead() {
+    console.log('Marking all notifications as read');
+    // Remove all notifications from DOM immediately
+    const notificationItems = document.querySelectorAll('.notification-item');
+    notificationItems.forEach(item => {
+        console.log('Removing item:', item);
+        item.remove();
+    });
+    // Update notification count
+    updateNotificationCount();
+    
+    // Then make the AJAX call
     fetch('/notifications/mark-all-read/', {
         method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
         credentials: 'same-origin'
     })
-    .then(r => r.json())
+    .then(response => {
+        console.log('Mark all response status:', response.status);
+        return response.json();
+    })
     .then(data => {
-        if (data.success) {
-            document.querySelectorAll('.notification-item').forEach(item => removeNotificationItem(item));
-        }
+        console.log('Mark all response data:', data);
+        // DOM is already updated, so we don't need to do anything else
     })
     .catch(error => console.error('Error:', error));
 }
 
-function removeNotificationItem(element) {
-    if (!element) return;
-    // Remove the adjacent divider (next or previous sibling li with hr)
-    const next = element.nextElementSibling;
-    const prev = element.previousElementSibling;
-    if (next && next.querySelector && next.querySelector('.dropdown-divider')) {
-        next.remove();
-    } else if (prev && prev.querySelector && prev.querySelector('.dropdown-divider')) {
-        prev.remove();
-    }
-    element.remove();
-    updateNotificationCount();
-}
-
 function updateNotificationCount() {
-    const items = document.querySelectorAll('.notification-item');
-    const count = items.length;
+    const notificationItems = document.querySelectorAll('.notification-item');
+    console.log('Remaining notification items:', notificationItems.length);
     const badge = document.querySelector('.notification-badge');
-    const markAllBtn = document.querySelector('#markAllBtn');
-
-    if (count === 0) {
-        // Remove badge
+    
+    if (notificationItems.length === 0) {
+        console.log('No notifications left, removing badge');
         if (badge) badge.remove();
-        // Hide mark all button
-        if (markAllBtn) markAllBtn.style.display = 'none';
-        // Show empty state if not already there
-        const dropdown = document.querySelector('.notification-dropdown');
-        if (dropdown && !dropdown.querySelector('.notif-empty')) {
-            const empty = document.createElement('li');
-            empty.className = 'notif-empty text-center text-muted py-4';
-            empty.innerHTML = '<i class="bi bi-bell-slash fs-2 mb-2 d-block"></i><div class="small">No new notifications</div>';
-            dropdown.appendChild(empty);
-        }
+        // Close notification dropdown if no notifications
+        const dropdown = bootstrap.Dropdown.getInstance(document.getElementById('notificationDropdown'));
+        if (dropdown) dropdown.hide();
     } else {
+        console.log('Updating badge to:', notificationItems.length);
         if (badge) {
-            badge.textContent = count;
-        } else {
-            // Re-create badge if it was removed
-            const btn = document.getElementById('notificationDropdown');
-            const newBadge = document.createElement('span');
-            newBadge.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notification-badge';
-            newBadge.style.fontSize = '0.6rem';
-            newBadge.style.padding = '0.15em 0.35em';
-            newBadge.style.minWidth = '1rem';
-            newBadge.style.height = '1rem';
-            newBadge.style.lineHeight = '0.8';
-            newBadge.textContent = count;
-            btn.appendChild(newBadge);
+            badge.textContent = notificationItems.length;
         }
     }
 }
