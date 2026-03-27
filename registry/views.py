@@ -627,10 +627,11 @@ def payment_add(request, pledge_pk):
 @login_required
 def payment_delete(request, pk):
     payment = get_object_or_404(PledgePayment, pk=pk)
-    pledge_pk = payment.pledge.pk
+    pledge = payment.pledge
+    pledge_pk = pledge.pk
     if request.method == 'POST':
         payment.delete()
-        payment.pledge.update_status()
+        pledge.update_status()
         messages.success(request, 'Payment removed.')
         return redirect('pledge_detail', pk=pledge_pk)
     return render(request, 'registry/confirm_delete.html', {'object': payment, 'type': 'Payment'})
