@@ -208,9 +208,9 @@
                 <h6 class="fw-bold mb-0" style="color:#4e2a1e;">
                     <i class="bi bi-cash-coin me-2" style="color:#c9a84c;"></i>Pledges
                 </h6>
-                <a href="{% url 'pledge_create' %}" class="btn btn-sm btn-primary-church">
+                <button type="button" class="btn btn-sm btn-primary-church" data-bs-toggle="modal" data-bs-target="#addPledgeModal">
                     <i class="bi bi-plus-lg me-1"></i>Add Pledge
-                </a>
+                </button>
             </div>
             <div class="card-body p-0">
                 <table class="table mb-0">
@@ -253,6 +253,50 @@
         </div>
     </div>
 </div>
+
+<!-- Add Pledge Modal -->
+<div class="modal fade" id="addPledgeModal" tabindex="-1" aria-labelledby="addPledgeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:12px;border:none;box-shadow:0 8px 30px rgba(0,0,0,0.15);">
+            <div class="modal-header border-0 pb-0" style="background:#f5ede8;border-radius:12px 12px 0 0;">
+                <div>
+                    <h6 class="modal-title fw-bold mb-0" id="addPledgeModalLabel" style="color:#4e2a1e;">
+                        <i class="bi bi-cash-coin me-2" style="color:#c9a84c;"></i>Add Pledge
+                    </h6>
+                    <small class="text-muted">{{ member.full_name }}</small>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'member_pledge_create' member.pk %}" id="addPledgeForm">
+                {% csrf_token %}
+                <div class="modal-body pt-3">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Description</label>
+                        <input type="text" name="description" class="form-control" placeholder="e.g. Church Renovation Fund" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Amount Pledged</label>
+                        <div class="input-group">
+                            <span class="input-group-text" style="background:#f5ede8;color:#6b3a2a;border-color:#dee2e6;">₱</span>
+                            <input type="number" name="amount_pledged" class="form-control" step="0.01" min="0.01" placeholder="0.00" required>
+                        </div>
+                    </div>
+                    <div class="mb-1">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Due Date</label>
+                        <input type="date" name="due_date" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-sm btn-primary-church" id="confirmAddPledgeBtn">
+                        <i class="bi bi-check-lg me-1"></i>Save Pledge
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -263,5 +307,15 @@ function confirmDeactivate() {
         function() { document.getElementById('deactivateForm').submit(); }
     );
 }
+
+document.getElementById('confirmAddPledgeBtn').addEventListener('click', function() {
+    const form = document.getElementById('addPledgeForm');
+    const desc = form.querySelector('[name="description"]').value.trim() || 'this pledge';
+    const modal = bootstrap.Modal.getInstance(document.getElementById('addPledgeModal'));
+    modal.hide();
+    showConfirmModal(`Add pledge "${desc}" for {{ member.full_name }}?`, function() {
+        form.submit();
+    });
+});
 </script>
 {% endblock %}

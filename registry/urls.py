@@ -58,6 +58,7 @@ urlpatterns = [
     # Pledges
     path('pledges/', views.pledge_list, name='pledge_list'),
     path('pledges/new/', views.pledge_create, name='pledge_create'),
+    path('members/<int:member_pk>/pledge/add/', views.member_pledge_create, name='member_pledge_create'),
     path('pledges/print/all/', views.pledge_list_print, name='pledge_list_print'),
     path('pledges/<int:pk>/', views.pledge_detail, name='pledge_detail'),
     path('pledges/<int:pk>/edit/', views.pledge_edit, name='pledge_edit'),

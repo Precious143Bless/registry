@@ -383,7 +383,49 @@ def pledge_create(request):
         form.save()
         messages.success(request, 'Pledge recorded successfully.')
         return redirect('pledge_list')
+    if request.method == 'POST':
+        for field, errors in form.errors.items():
+            for error in errors:
+                messages.error(request, f'{field.replace("_", " ").title()}: {error}')
+        return redirect('pledge_list')
     return render(request, 'registry/pledges/form.html', {'form': form, 'title': 'Add Pledge'})
+
+
+@login_required
+def member_pledge_create(request, member_pk):
+    member = get_object_or_404(Member, pk=member_pk)
+    if request.method == 'POST':
+        from datetime import date as _date
+        description = request.POST.get('description', '').strip()
+        amount = request.POST.get('amount_pledged', '')
+        due_date = request.POST.get('due_date', '')
+        errors = []
+        if not description or len(description) < 3:
+            errors.append('Description must be at least 3 characters.')
+        try:
+            amount_val = float(amount)
+            if amount_val <= 0:
+                errors.append('Amount must be greater than zero.')
+        except (ValueError, TypeError):
+            errors.append('Enter a valid amount.')
+        try:
+            due_date_val = _date.fromisoformat(due_date)
+            if due_date_val < _date.today():
+                errors.append('Due date cannot be in the past.')
+        except (ValueError, TypeError):
+            errors.append('Enter a valid due date.')
+        if not errors:
+            Pledge.objects.create(
+                member=member,
+                description=description,
+                amount_pledged=amount_val,
+                due_date=due_date_val,
+            )
+            messages.success(request, 'Pledge recorded successfully.')
+        else:
+            for e in errors:
+                messages.error(request, e)
+    return redirect('member_detail', pk=member_pk)
 
 
 @login_required
