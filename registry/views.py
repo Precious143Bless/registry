@@ -9,6 +9,10 @@ from django.conf import settings
 from django.core.management import call_command
 from django.core.files.storage import default_storage
 from django.views.decorators.csrf import csrf_exempt
+from django.core.mail import send_mail
+from django.conf import settings
+import random
+import string
 import os
 import subprocess
 from datetime import datetime
@@ -145,6 +149,141 @@ def logout_view(request):
     logout(request)
     return redirect('login')
 
+# ─── PASSWORD RESET WITH OTP ─────────────────────────────────────────────────
+
+def generate_otp():
+    """Generate a 6-digit OTP"""
+    return ''.join(random.choices(string.digits, k=6))
+
+def forgot_password(request):
+    """Forgot password - request OTP"""
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        
+        try:
+            # Check if user exists
+            user = User.objects.get(email=email)
+            
+            # Check if user is a parish officer or admin
+            is_authorized = False
+            if user.is_superuser:
+                is_authorized = True
+            else:
+                officer = ParishOfficer.objects.filter(email=email).first()
+                if officer and officer.status == 'active':
+                    is_authorized = True
+            
+            if is_authorized:
+                # Generate OTP
+                otp = generate_otp()
+                
+                # Store OTP in session (expires after 10 minutes)
+                request.session['reset_otp'] = otp
+                request.session['reset_email'] = email
+                request.session['reset_otp_time'] = datetime.now().timestamp()
+                
+                # Send OTP via email
+                subject = 'Password Reset OTP - Parish Registry System'
+                message = f"""
+                Dear {user.first_name or user.username},
+
+                You have requested to reset your password for the Parish Registry System.
+
+                Your OTP (One-Time Password) is: {otp}
+
+                This OTP is valid for 10 minutes.
+
+                If you did not request this, please ignore this email.
+
+                Thank you,
+                Parish Registry System
+                """
+                
+                try:
+                    send_mail(
+                        subject,
+                        message,
+                        settings.DEFAULT_FROM_EMAIL or 'noreply@parish.com',
+                        [email],
+                        fail_silently=False,
+                    )
+                    messages.success(request, f'An OTP has been sent to {email}. Please check your inbox.')
+                    return redirect('verify_otp')
+                except Exception as e:
+                    messages.error(request, f'Failed to send email. Please try again later. Error: {str(e)}')
+            else:
+                messages.error(request, 'This email is not authorized to reset password.')
+                
+        except User.DoesNotExist:
+            messages.error(request, 'No account found with this email address.')
+    
+    return render(request, 'registry/forgot_password/forgot_password.html')
+
+def verify_otp(request):
+    """Verify OTP sent to email"""
+    if 'reset_otp' not in request.session:
+        messages.error(request, 'Please request a password reset first.')
+        return redirect('forgot_password')
+    
+    if request.method == 'POST':
+        entered_otp = request.POST.get('otp')
+        stored_otp = request.session.get('reset_otp')
+        otp_time = request.session.get('reset_otp_time')
+        
+        # Check if OTP is expired (10 minutes)
+        if otp_time and (datetime.now().timestamp() - float(otp_time)) > 600:
+            del request.session['reset_otp']
+            del request.session['reset_email']
+            del request.session['reset_otp_time']
+            messages.error(request, 'OTP has expired. Please request a new one.')
+            return redirect('forgot_password')
+        
+        if entered_otp == stored_otp:
+            # OTP verified, proceed to reset password
+            messages.success(request, 'OTP verified. You can now reset your password.')
+            return redirect('reset_password')
+        else:
+            messages.error(request, 'Invalid OTP. Please try again.')
+    
+    return render(request, 'registry/forgot_password/verify_otp.html')
+
+def reset_password(request):
+    """Reset password after OTP verification"""
+    if 'reset_email' not in request.session:
+        messages.error(request, 'Please request a password reset first.')
+        return redirect('forgot_password')
+    
+    if request.method == 'POST':
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+        
+        if new_password != confirm_password:
+            messages.error(request, 'Passwords do not match.')
+            return render(request, 'registry/forgot_password/reset_password.html')
+        
+        if len(new_password) < 8:
+            messages.error(request, 'Password must be at least 8 characters long.')
+            return render(request, 'registry/forgot_password/reset_password.html')
+        
+        try:
+            email = request.session['reset_email']
+            user = User.objects.get(email=email)
+            user.set_password(new_password)
+            user.save()
+            
+            # Clear session data
+            del request.session['reset_otp']
+            del request.session['reset_email']
+            del request.session['reset_otp_time']
+            
+            messages.success(request, 'Password reset successfully. Please login with your new password.')
+            return redirect('login')
+            
+        except User.DoesNotExist:
+            messages.error(request, 'User not found.')
+            return redirect('forgot_password')
+    
+    return render(request, 'registry/forgot_password/reset_password.html')
 
 # ─── DASHBOARD ───────────────────────────────────────────────────────────────
 

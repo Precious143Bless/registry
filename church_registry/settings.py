@@ -1,4 +1,4 @@
-
+import os
 import pymysql
 
 pymysql.install_as_MySQLdb()
@@ -93,6 +93,14 @@ CRISPY_TEMPLATE_PACK = 'bootstrap5'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'registry', 'templates', 'registry', 'assets', 'images')
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = '134blessie@gmail.com'  
+EMAIL_HOST_PASSWORD = 'mhlrdhbmouiryvmv'
+DEFAULT_FROM_EMAIL = f'Parish Registry <{EMAIL_HOST_USER}>'
 
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/dashboard/'

@@ -292,10 +292,15 @@
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-lock"></i></span>
                     <input type="password" name="password" id="passwordInput" class="form-control"
-                           placeholder="Enter password" required>
+                        placeholder="Enter password" required>
                     <button type="button" class="pw-toggle" onclick="togglePw()">
                         <i class="bi bi-eye" id="pwIcon"></i>
                     </button>
+                </div>
+                <div class="text-end mt-1">
+                    <a href="{% url 'forgot_password' %}" style="color: #c9a84c; font-size: 0.75rem; text-decoration: none;">
+                        Forgot Password?
+                    </a>
                 </div>
             </div>
             <button type="submit" class="btn-signin">Sign In</button>
