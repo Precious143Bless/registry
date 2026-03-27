@@ -1,0 +1,142 @@
+{% extends 'registry/base.html' %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm" style="border-radius:12px;">
+            <div class="card-header bg-white border-0 pt-4 px-4">
+                <h6 class="fw-bold mb-0" style="color:#4e2a1e;">
+                    <i class="bi bi-person-standing me-2" style="color:#c9a84c;"></i>{{ title }}
+                </h6>
+                <p class="small text-muted mt-1">Parish: {{ parish.name }}</p>
+            </div>
+            <div class="card-body px-4 pb-4">
+                {% if form.errors %}
+                <div class="alert alert-danger py-2 px-3 mb-3" style="border-radius:8px;">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <strong>Please fix the errors below before saving.</strong>
+                </div>
+                {% endif %}
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">First Name *</label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.first_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Middle Name</label>
+                            {{ form.middle_name }}
+                            {% if form.middle_name.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.middle_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Last Name *</label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.last_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Position *</label>
+                            {{ form.position }}
+                            {% if form.position.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.position.errors.0 }}</div>
+                            {% endif %}
+                            <div class="text-muted small mt-1">
+                                <strong>Available Positions:</strong> Bishop, Priest, Deacon, Senior Warden, Junior Warden, Treasurer, Secretary, Vestry Member
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Contact Number</label>
+                            {{ form.contact_number }}
+                            {% if form.contact_number.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.contact_number.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Email Address</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.email.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Date Assigned *</label>
+                            {{ form.date_assigned }}
+                            {% if form.date_assigned.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.date_assigned.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Date Departed</label>
+                            {{ form.date_departed }}
+                            {% if form.date_departed.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.date_departed.errors.0 }}</div>
+                            {% endif %}
+                            <div class="text-muted small mt-1">Leave blank if currently serving.</div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                {{ form.is_active }}
+                                <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                    Active Officer
+                                </label>
+                            </div>
+                            {% if form.is_active.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.is_active.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Remarks</label>
+                            {{ form.remarks }}
+                            {% if form.remarks.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.remarks.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary-church px-4">
+                            <i class="bi bi-check-lg me-1"></i>Add Officer
+                        </button>
+                        <a href="{% url 'parish_detail' parish.pk %}" class="btn btn-outline-secondary px-4">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const dateAssignedInput = document.querySelector('input[name="date_assigned"]');
+        if (dateAssignedInput && !dateAssignedInput.value) {
+            dateAssignedInput.value = new Date().toISOString().split('T')[0];
+        }
+        
+        const contactInput = document.querySelector('input[name="contact_number"]');
+        if (contactInput) {
+            contactInput.addEventListener('input', function(e) {
+                this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11);
+            });
+        }
+        
+        // Highlight invalid fields
+        document.querySelectorAll('.text-danger').forEach(function (el) {
+            const input = el.previousElementSibling;
+            if (input && (input.tagName === 'INPUT' || input.tagName === 'SELECT' || input.tagName === 'TEXTAREA')) {
+                input.classList.add('is-invalid');
+            }
+        });
+    });
+</script>
+{% endblock %}

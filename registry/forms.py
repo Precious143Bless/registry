@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from datetime import date
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Member, Baptism, Confirmation, FirstHolyCommunion, Marriage, LastRites, Pledge, PledgePayment, ParishInfo, ParishPriest, ParishOfficer, OrganizationMembership, Organization
+from .models import Member, Baptism, Confirmation, FirstHolyCommunion, Marriage, LastRites, Pledge, PledgePayment, ParishInfo, ParishPriest, ParishOfficer, OrganizationMembership, Organization, Church, Parish, ParishOfficerEP
 
 
 # ─── REUSABLE VALIDATORS ─────────────────────────────────────────────────────
@@ -58,7 +58,8 @@ def validate_address_length(value):
     if len(value.strip()) > 500:
         raise ValidationError('Address cannot exceed 500 characters.')
 
-# ─── REGITRATION FORM ─────────────────────────────────────────────────────────────
+# ─── REGISTRATION FORM ─────────────────────────────────────────────────────────────
+
 class ParishOfficerRegistrationForm(forms.Form):
     first_name = forms.CharField(
         max_length=100,
@@ -120,6 +121,7 @@ class ParishOfficerRegistrationForm(forms.Form):
         
         return email
 
+
 # ─── MEMBER FORM ─────────────────────────────────────────────────────────────
 
 class MemberForm(forms.ModelForm):
@@ -150,7 +152,23 @@ class MemberForm(forms.ModelForm):
                 'onkeypress': "return (event.charCode >= 48 && event.charCode <= 57) && this.value.length < 11",
             }),
             'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'example@email.com'}),
+            'church': forms.Select(attrs={'class': 'form-select', 'id': 'member-church-select'}),
+            'parish': forms.Select(attrs={'class': 'form-select', 'id': 'member-parish-select'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Filter church queryset
+        self.fields['church'].queryset = Church.objects.filter(is_active=True).order_by('name')
+        self.fields['church'].empty_label = "Select Church/Diocese"
+        self.fields['church'].required = False
+        
+        # IMPORTANT: Allow all parishes initially for validation
+        # The form must accept any valid parish ID, even if filtered in the template
+        self.fields['parish'].queryset = Parish.objects.filter(is_active=True).order_by('name')
+        self.fields['parish'].empty_label = "Select Parish"
+        self.fields['parish'].required = False
 
     def clean_first_name(self):
         value = self.cleaned_data['first_name'].strip()
@@ -182,7 +200,6 @@ class MemberForm(forms.ModelForm):
             raise ValidationError('Birthday cannot be in the future.')
         if value.year < 1900:
             raise ValidationError('Please enter a valid birthday.')
-        # Check if person is not too old (more than 120 years)
         age = date.today().year - value.year
         if age > 120:
             raise ValidationError('Please enter a valid birthday.')
@@ -205,13 +222,39 @@ class MemberForm(forms.ModelForm):
         value = self.cleaned_data.get('email', '').strip()
         if value:
             validate_email_format(value)
-            # basic duplicate check
             qs = Member.objects.filter(email=value)
             if self.instance.pk:
                 qs = qs.exclude(pk=self.instance.pk)
             if qs.exists():
                 raise ValidationError('A member with this email already exists.')
         return value
+    
+    def clean_parish(self):
+        parish = self.cleaned_data.get('parish')
+        church = self.cleaned_data.get('church')
+        
+        # If parish is selected, validate it exists
+        if parish:
+            # Check if parish exists in database
+            if not Parish.objects.filter(id=parish.id).exists():
+                raise ValidationError('Invalid parish selected.')
+            
+            # If church is selected, verify parish belongs to church
+            if church and parish.church_id != church.id:
+                raise ValidationError(f'This parish does not belong to {church.name}.')
+        
+        return parish
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        church = cleaned_data.get('church')
+        parish = cleaned_data.get('parish')
+        
+        # Auto-set church from parish if needed
+        if parish and not church:
+            cleaned_data['church'] = parish.church
+
+        return cleaned_data
 
 
 # ─── BAPTISM FORM ────────────────────────────────────────────────────────────
@@ -492,6 +535,7 @@ class ParishInfoForm(forms.ModelForm):
             'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'parish@example.com'}),
         }
         
+
 # ─── PARISH PRIEST FORM ─────────────────────────────────────────────────────
 
 class ParishPriestForm(forms.ModelForm):
@@ -530,11 +574,25 @@ class ParishPriestForm(forms.ModelForm):
                 'oninput': "this.value=this.value.replace(/[^0-9]/g,'').slice(0,11)",
             }),
             'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'example@email.com'}),
+            'church': forms.Select(attrs={'class': 'form-select', 'id': 'church-select'}),
+            'parish': forms.Select(attrs={'class': 'form-select', 'id': 'parish-select'}),
             'biography': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Brief biography of the priest...'}),
             'remarks': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Additional remarks...'}),
             'status': forms.Select(attrs={'class': 'form-select'}),
             'image': forms.FileInput(attrs={'class': 'form-control'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Filter church queryset
+        self.fields['church'].queryset = Church.objects.filter(is_active=True).order_by('name')
+        self.fields['church'].empty_label = "Select Church/Diocese"
+        
+        # Show all parishes initially (for validation purposes)
+        self.fields['parish'].queryset = Parish.objects.filter(is_active=True).order_by('name')
+        self.fields['parish'].empty_label = "Select Parish"
+        self.fields['parish'].required = False  # Make parish optional
 
     def clean_first_name(self):
         value = self.cleaned_data['first_name'].strip()
@@ -562,13 +620,27 @@ class ParishPriestForm(forms.ModelForm):
         if value:
             validate_ph_contact(value)
         return value
-
+    
+    def clean_parish(self):
+        parish = self.cleaned_data.get('parish')
+        church = self.cleaned_data.get('church')
+        
+        # If parish is selected, validate it exists
+        if parish:
+            # If church is selected, verify parish belongs to church
+            if church and parish.church_id != church.id:
+                raise ValidationError(f'This parish does not belong to {church.name}.')
+        
+        return parish
+    
     def clean(self):
         cleaned_data = super().clean()
         ordination_date = cleaned_data.get('ordination_date')
         priest_since = cleaned_data.get('priest_since')
         date_assigned = cleaned_data.get('date_assigned')
         date_departed = cleaned_data.get('date_departed')
+        church = cleaned_data.get('church')
+        parish = cleaned_data.get('parish')
 
         # Validation: priest_since should be on or after ordination_date
         if ordination_date and priest_since:
@@ -597,9 +669,15 @@ class ParishPriestForm(forms.ModelForm):
                 raise ValidationError({
                     'date_departed': 'Date departed cannot be before or on ordination date.'
                 })
+        
+        # Auto-set church from parish if needed
+        if parish and not church:
+            cleaned_data['church'] = parish.church
 
         return cleaned_data
 
+
+# ─── PARISH OFFICER FORM ─────────────────────────────────────────────────────
 
 class ParishOfficerForm(forms.ModelForm):
     date_assigned = forms.DateField(
@@ -669,6 +747,9 @@ class ParishOfficerForm(forms.ModelForm):
             validate_ph_contact(value)
         return value
 
+
+# ─── ORGANIZATION FORM ─────────────────────────────────────────────────────
+
 class OrganizationForm(forms.ModelForm):
     class Meta:
         model = Organization
@@ -691,6 +772,8 @@ class OrganizationForm(forms.ModelForm):
         return name
 
 
+# ─── ORGANIZATION MEMBERSHIP FORM ─────────────────────────────────────────
+
 class OrganizationMembershipForm(forms.ModelForm):
     joined_date = forms.DateField(
         widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
@@ -711,3 +794,140 @@ class OrganizationMembershipForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         # Filter only active members
         self.fields['member'].queryset = Member.objects.filter(is_active=True).order_by('last_name', 'first_name')
+
+
+# ─── CHURCH FORM ─────────────────────────────────────────────────────────
+
+class ChurchForm(forms.ModelForm):
+    established_date = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+    )
+
+    class Meta:
+        model = Church
+        fields = ['name', 'location', 'description', 'established_date', 'contact_number', 'email', 'is_active', 'image', 'bishop']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Cathedral of St. Mary and St. John'}),
+            'location': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Full address...'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Brief description...'}),
+            'contact_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '09XXXXXXXXX'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'church@email.com'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'image': forms.FileInput(attrs={'class': 'form-control'}),
+            'bishop': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., The Rt. Rev. John Smith'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make image field optional
+        self.fields['image'].required = False
+        self.fields['image'].widget.attrs.update({'accept': 'image/*'})
+
+    def clean_name(self):
+        name = self.cleaned_data['name'].strip()
+        if not name:
+            raise ValidationError('Church name is required.')
+        if len(name) < 3:
+            raise ValidationError('Church name must be at least 3 characters.')
+        return name
+
+    def clean_image(self):
+        image = self.cleaned_data.get('image')
+        if image:
+            # Validate file size (max 5MB)
+            if image.size > 5 * 1024 * 1024:
+                raise ValidationError('Image file too large (max 5MB).')
+            # Validate file type
+            if not image.content_type in ['image/jpeg', 'image/png', 'image/gif', 'image/webp']:
+                raise ValidationError('Only JPEG, PNG, GIF, and WEBP images are allowed.')
+        return image
+
+
+# ─── PARISH FORM ─────────────────────────────────────────────────────────
+
+class ParishForm(forms.ModelForm):
+    established_date = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+    )
+
+    class Meta:
+        model = Parish
+        fields = ['church', 'name', 'parish_type', 'location', 'description', 'established_date', 'contact_number', 'email', 'is_active']
+        widgets = {
+            'church': forms.Select(attrs={'class': 'form-select'}),
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., St. Stephen\'s Parish'}),
+            'parish_type': forms.Select(attrs={'class': 'form-select'}),
+            'location': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Full address...'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Brief description...'}),
+            'contact_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '09XXXXXXXXX'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'parish@email.com'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+    def clean_name(self):
+        name = self.cleaned_data['name'].strip()
+        if not name:
+            raise ValidationError('Parish name is required.')
+        if len(name) < 3:
+            raise ValidationError('Parish name must be at least 3 characters.')
+        return name
+
+
+# ─── PARISH OFFICER EP FORM ───────────────────────────────────────────────
+
+class ParishOfficerEPForm(forms.ModelForm):
+    date_assigned = forms.DateField(
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+    )
+    date_departed = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+    )
+
+    class Meta:
+        model = ParishOfficerEP
+        fields = ['first_name', 'middle_name', 'last_name', 'position', 'date_assigned', 'date_departed', 'is_active', 'contact_number', 'email', 'remarks']
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First name'}),
+            'middle_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Middle name (optional)'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last name'}),
+            'position': forms.Select(attrs={'class': 'form-select'}),
+            'contact_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '09XXXXXXXXX'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'email@example.com'}),
+            'remarks': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Optional remarks...'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+    def clean_first_name(self):
+        value = self.cleaned_data['first_name'].strip()
+        if not value:
+            raise ValidationError('First name is required.')
+        if len(value) < 2:
+            raise ValidationError('First name must be at least 2 characters.')
+        return value.title()
+
+    def clean_last_name(self):
+        value = self.cleaned_data['last_name'].strip()
+        if not value:
+            raise ValidationError('Last name is required.')
+        if len(value) < 2:
+            raise ValidationError('Last name must be at least 2 characters.')
+        return value.title()
+    
+    def clean_contact_number(self):
+        value = self.cleaned_data.get('contact_number', '').strip()
+        if value:
+            validate_ph_contact(value)
+        return value
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        date_assigned = cleaned_data.get('date_assigned')
+        date_departed = cleaned_data.get('date_departed')
+        
+        if date_assigned and date_departed and date_departed <= date_assigned:
+            raise ValidationError('Date departed must be after date assigned.')
+        
+        return cleaned_data

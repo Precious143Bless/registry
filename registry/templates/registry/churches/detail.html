@@ -1,0 +1,275 @@
+{% extends 'registry/base.html' %}
+{% load static %}
+
+{% block page_title %}{{ church.name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Church Header -->
+        <div class="card border-0 shadow-sm mb-4" style="border-radius:12px;">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="d-flex gap-3">
+                            {% if church.image %}
+                            <div style="width: 100px; height: 100px; border-radius: 50%; overflow: hidden; flex-shrink: 0;">
+                                <img src="{{ church.image.url }}" alt="{{ church.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                            </div>
+                            {% else %}
+                            <div style="width: 100px; height: 100px; background: #fef9f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="bi bi-building" style="font-size: 2.5rem; color: #c9a84c;"></i>
+                            </div>
+                            {% endif %}
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <h4 class="fw-bold mb-0" style="color:#4e2a1e;">{{ church.name }}</h4>
+                                {% if church.is_active %}
+                                <span class="badge badge-paid ms-2">Active</span>
+                                {% else %}
+                                <span class="badge badge-unpaid ms-2">Inactive</span>
+                                {% endif %}
+                            </div>
+                            {% if church.bishop %}
+                            <div class="d-flex align-items-center gap-2 mt-1">
+                                <i class="bi bi-person-badge" style="color: #c9a84c;"></i>
+                                <span class="text-muted">Bishop: {{ church.bishop }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'church_edit' church.pk %}" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-pencil me-1"></i>Edit
+                        </a>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteChurch({{ church.id }}, '{{ church.name|escapejs }}')">
+                            <i class="bi bi-trash me-1"></i>Delete
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Church Information Cards -->
+                <div class="row g-3 mb-4 mt-2">
+                    <div class="col-md-4">
+                        <div class="p-3 rounded" style="background:#f5ede8;">
+                            <div class="small text-muted mb-1">Location</div>
+                            <div class="fw-semibold">{{ church.location|default:"—" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 rounded" style="background:#f5ede8;">
+                            <div class="small text-muted mb-1">Established</div>
+                            <div class="fw-semibold">{{ church.established_date|date:"F d, Y"|default:"—" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 rounded" style="background:#f5ede8;">
+                            <div class="small text-muted mb-1">Contact Number</div>
+                            <div class="fw-semibold">{{ church.contact_number|default:"—" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="p-3 rounded" style="background:#f5ede8;">
+                            <div class="small text-muted mb-1">Email</div>
+                            <div class="fw-semibold small">{{ church.email|default:"—"|truncatechars:20 }}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if church.description %}
+                <div class="mt-3 p-3" style="background: #f5ede8; border-radius: 12px;">
+                    <p class="mb-0 text-muted">{{ church.description }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    
+        
+        <!-- Parishes Section -->
+        <div class="card border-0 shadow-sm" style="border-radius:12px;">
+            <div class="card-header bg-white border-0 pt-4 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <h6 class="fw-bold mb-0" style="color:#4e2a1e;">
+                    <i class="bi bi-church me-2" style="color:#c9a84c;"></i>Parishes Under {{ church.name }}
+                </h6>
+                <div class="d-flex gap-2">
+                    <div class="input-group input-group-sm" style="width: 250px;">
+                        <input type="text" id="parishSearch" class="form-control" placeholder="Search parishes...">
+                        <button class="btn btn-outline-secondary" onclick="filterParishes()"><i class="bi bi-search"></i></button>
+                    </div>
+                    <a href="{% url 'parish_create' church.pk %}" class="btn btn-sm btn-primary-church">
+                        <i class="bi bi-plus-lg me-1"></i>Add Parish
+                    </a>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-4" id="parishesContainer">
+                    {% for parish in parishes %}
+                    <div class="col-md-6 col-lg-4 parish-card" data-name="{{ parish.name|lower }}">
+                        <div class="card border-0 shadow-sm h-100" style="border-radius:12px;">
+                            <div class="card-body p-3">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <h6 class="fw-bold mb-0" style="color:#4e2a1e;">
+                                            {{ parish.name }}
+                                        </h6>
+                                        <span class="badge mt-1" style="background: #f5ede8; color: #6b3a2a;">
+                                            {{ parish.get_parish_type_display }}
+                                        </span>
+                                    </div>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary" style="border-radius: 8px;" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li>
+                                                <a class="dropdown-item" href="{% url 'parish_detail' parish.pk %}">
+                                                    <i class="bi bi-eye me-2"></i>View Details
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="{% url 'parish_edit' parish.pk %}">
+                                                    <i class="bi bi-pencil me-2"></i>Edit Parish
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="{% url 'parish_officer_add' parish.pk %}">
+                                                    <i class="bi bi-person-plus me-2"></i>Add Officer
+                                                </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <button class="dropdown-item text-danger" onclick="deleteParish({{ parish.id }}, '{{ parish.name|escapejs }}')">
+                                                    <i class="bi bi-trash me-2"></i>Delete
+                                                </button>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                
+                                <div class="small text-muted mb-2">
+                                    <i class="bi bi-geo-alt me-1"></i>{{ parish.location|truncatechars:60 }}
+                                </div>
+                                
+                                <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                                    <div>
+                                        <span class="badge" style="background: #f5ede8; color: #6b3a2a;">
+                                            <i class="bi bi-person-badge me-1"></i>{{ parish.officer_count }} Officers
+                                        </span>
+                                    </div>
+                                    {% if parish.is_active %}
+                                    <span class="badge badge-paid">Active</span>
+                                    {% else %}
+                                    <span class="badge badge-unpaid">Inactive</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="card-footer bg-white border-0 pt-0 pb-3 px-3">
+                                <a href="{% url 'parish_detail' parish.pk %}" class="btn btn-sm btn-outline-secondary w-100">
+                                    View Parish <i class="bi bi-arrow-right ms-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12">
+                        <div class="text-center py-5">
+                            <i class="bi bi-church" style="font-size: 3rem; color: #c9a84c;"></i>
+                            <p class="text-muted mt-3">No parishes added under this church yet.</p>
+                            <a href="{% url 'parish_create' church.pk %}" class="btn btn-primary-church">
+                                <i class="bi bi-plus-lg me-1"></i>Add First Parish
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Church Modal -->
+<div class="modal fade" id="deleteChurchModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0" style="border-radius:14px;">
+            <div class="modal-body text-center p-4">
+                <i class="bi bi-exclamation-triangle-fill" style="font-size: 2rem; color: #dc3545;"></i>
+                <h6 class="fw-bold mt-2">Delete Church</h6>
+                <p class="small text-muted" id="deleteChurchMessage">Are you sure you want to delete this church?</p>
+                <div class="d-flex gap-2 justify-content-center mt-3">
+                    <button class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form method="post" id="deleteChurchForm" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Parish Modal -->
+<div class="modal fade" id="deleteParishModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0" style="border-radius:14px;">
+            <div class="modal-body text-center p-4">
+                <i class="bi bi-exclamation-triangle-fill" style="font-size: 2rem; color: #dc3545;"></i>
+                <h6 class="fw-bold mt-2">Delete Parish</h6>
+                <p class="small text-muted" id="deleteParishMessage">Are you sure you want to delete this parish?</p>
+                <div class="d-flex gap-2 justify-content-center mt-3">
+                    <button class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form method="post" id="deleteParishForm" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let deleteChurchUrl = '';
+    let deleteParishUrl = '';
+    
+    function deleteChurch(id, name) {
+        document.getElementById('deleteChurchMessage').innerHTML = `Are you sure you want to delete "<strong>${name}</strong>"? This will also delete all parishes under this church.`;
+        deleteChurchUrl = `/churches/${id}/delete/`;
+        document.getElementById('deleteChurchForm').action = deleteChurchUrl;
+        new bootstrap.Modal(document.getElementById('deleteChurchModal')).show();
+    }
+    
+    function deleteParish(id, name) {
+        document.getElementById('deleteParishMessage').innerHTML = `Are you sure you want to delete "<strong>${name}</strong>"? This will remove all officers associated with this parish.`;
+        deleteParishUrl = `/churches/parishes/${id}/delete/`;
+        document.getElementById('deleteParishForm').action = deleteParishUrl;
+        new bootstrap.Modal(document.getElementById('deleteParishModal')).show();
+    }
+    
+    // Search/filter parishes
+    function filterParishes() {
+        const searchTerm = document.getElementById('parishSearch').value.toLowerCase();
+        const parishCards = document.querySelectorAll('.parish-card');
+        
+        parishCards.forEach(card => {
+            const name = card.getAttribute('data-name');
+            if (name && name.includes(searchTerm)) {
+                card.style.display = '';
+            } else if (!searchTerm) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+    
+    document.getElementById('parishSearch')?.addEventListener('keyup', function(e) {
+        if (e.key === 'Enter') {
+            filterParishes();
+        }
+    });
+</script>
+{% endblock %}

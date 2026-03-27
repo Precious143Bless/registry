@@ -21,6 +21,26 @@ class Member(models.Model):
     email = models.EmailField(blank=True)
     is_active = models.BooleanField(default=True)
     date_registered = models.DateField(auto_now_add=True)
+    
+    # NEW: Church/Diocese Assignment
+    church = models.ForeignKey(
+        'Church', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='members',
+        verbose_name='Assigned Church/Diocese'
+    )
+    
+    # NEW: Parish Assignment
+    parish = models.ForeignKey(
+        'Parish', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='members',
+        verbose_name='Assigned Parish'
+    )
 
     class Meta:
         ordering = ['last_name', 'first_name']
@@ -32,6 +52,15 @@ class Member(models.Model):
     def full_name(self):
         parts = [self.first_name, self.middle_name, self.last_name]
         return ' '.join(p for p in parts if p)
+    
+    @property
+    def church_parish_display(self):
+        """Display the member's church and parish assignment"""
+        if self.parish:
+            return f"{self.parish.name} ({self.parish.church.name})"
+        elif self.church:
+            return f"{self.church.name}"
+        return "Not Assigned"
 
 
 class Baptism(models.Model):
@@ -199,6 +228,26 @@ class ParishPriest(models.Model):
     ordination_date = models.DateField(null=True, blank=True)
     priest_since = models.DateField(null=True, blank=True)
     
+    # NEW: Church/Diocese Assignment
+    church = models.ForeignKey(
+        'Church', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='priests',
+        verbose_name='Assigned Church/Diocese'
+    )
+    
+    # NEW: Parish Assignment
+    parish = models.ForeignKey(
+        'Parish', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='priests',
+        verbose_name='Assigned Parish'
+    )
+    
     # Assignment
     date_assigned = models.DateField(null=True, blank=True)
     date_departed = models.DateField(null=True, blank=True)
@@ -229,6 +278,14 @@ class ParishPriest(models.Model):
     @property
     def full_name_with_title(self):
         return f"Rev. Fr. {self.first_name} {self.last_name}"
+    
+    @property
+    def assignment_display(self):
+        if self.parish:
+            return f"{self.parish.name} ({self.parish.church.name})"
+        elif self.church:
+            return f"{self.church.name}"
+        return "Not Assigned"
 
 
 class ParishOfficer(models.Model):
@@ -378,3 +435,117 @@ class OrganizationMembership(models.Model):
     def __str__(self):
         return f"{self.member.full_name} - {self.organization.name} ({self.get_role_display()})"
 
+class Church(models.Model):
+    """Episcopal Church - contains parishes"""
+    name = models.CharField(max_length=200)
+    location = models.CharField(max_length=300, help_text="Full address of the church")
+    description = models.TextField(blank=True)
+    established_date = models.DateField(null=True, blank=True)
+    contact_number = models.CharField(max_length=20, blank=True)
+    email = models.EmailField(blank=True)
+    is_active = models.BooleanField(default=True)
+    
+    # Church logo and bishop
+    image = models.ImageField(
+        upload_to='logo/',  
+        blank=True, 
+        null=True,
+        verbose_name='Church Logo'
+    )
+    bishop = models.CharField(max_length=200, blank=True, help_text="Current bishop of the church")
+    
+    date_created = models.DateField(auto_now_add=True)
+    date_updated = models.DateField(auto_now=True)
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = 'Church'
+        verbose_name_plural = 'Churches'
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def parish_count(self):
+        return self.parishes.filter(is_active=True).count()
+
+    @property
+    def total_officers(self):
+        total = 0
+        for parish in self.parishes.filter(is_active=True):
+            total += parish.officer_count
+        return total
+
+
+class Parish(models.Model):
+    """Parish under a church"""
+    PARISH_TYPES = [
+        ('cathedral', 'Cathedral'),
+        ('parish', 'Parish'),
+        ('mission', 'Mission'),
+        ('chapel', 'Chapel'),
+    ]
+
+    church = models.ForeignKey(Church, on_delete=models.CASCADE, related_name='parishes')
+    name = models.CharField(max_length=200)
+    parish_type = models.CharField(max_length=20, choices=PARISH_TYPES, default='parish')
+    location = models.CharField(max_length=300, help_text="Full address of the parish")
+    description = models.TextField(blank=True)
+    established_date = models.DateField(null=True, blank=True)
+    contact_number = models.CharField(max_length=20, blank=True)
+    email = models.EmailField(blank=True)
+    is_active = models.BooleanField(default=True)
+    date_created = models.DateField(auto_now_add=True)
+    date_updated = models.DateField(auto_now=True)
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = 'Parish'
+        verbose_name_plural = 'Parishes'
+
+    def __str__(self):
+        return f"{self.name} ({self.get_parish_type_display()})"
+
+    @property
+    def officer_count(self):
+        return self.parish_officers.filter(is_active=True).count()
+
+
+class ParishOfficerEP(models.Model):
+    """Officers assigned to a specific parish"""
+    OFFICER_POSITIONS = [
+        ('bishop', 'Bishop'),
+        ('priest', 'Priest'),
+        ('deacon', 'Deacon'),
+        ('senior_warden', 'Senior Warden'),
+        ('junior_warden', 'Junior Warden'),
+        ('treasurer', 'Treasurer'),
+        ('secretary', 'Secretary'),
+        ('vestry_member', 'Vestry Member'),
+    ]
+
+    parish = models.ForeignKey(Parish, on_delete=models.CASCADE, related_name='parish_officers')
+    first_name = models.CharField(max_length=100)
+    middle_name = models.CharField(max_length=100, blank=True)
+    last_name = models.CharField(max_length=100)
+    position = models.CharField(max_length=50, choices=OFFICER_POSITIONS)
+    date_assigned = models.DateField()
+    date_departed = models.DateField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    contact_number = models.CharField(max_length=20, blank=True)
+    email = models.EmailField(blank=True)
+    remarks = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ['position', 'last_name', 'first_name']
+        verbose_name = 'Parish Officer'
+        verbose_name_plural = 'Parish Officers'
+
+    def __str__(self):
+        status = "Active" if self.is_active else "Inactive"
+        return f"{self.full_name} - {self.get_position_display()} ({status})"
+
+    @property
+    def full_name(self):
+        parts = [self.first_name, self.middle_name, self.last_name]
+        return ' '.join(p for p in parts if p)

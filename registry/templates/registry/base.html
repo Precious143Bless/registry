@@ -321,23 +321,28 @@
             {% if user.is_superuser %}
             <li class="nav-section">Church Details</li>
             <li class="nav-item">
-                <a href="{% url 'priests_list' %}" class="nav-link {% if 'priests' in request.resolver_match.url_name %}active{% endif %}">
-                    <i class="bi bi-person-badge"></i> Parish Priest
+                <a href="{% url 'church_list' %}" class="nav-link {% if 'church' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="bi bi-house"></i> Churches
                 </a>
             </li>
             <li class="nav-item">
+                <a href="{% url 'priests_list' %}" class="nav-link {% if 'priests' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="bi bi-person-badge"></i> Church Priests
+                </a>
+            </li>
+            {% comment %} <li class="nav-item">
                 <a href="{% url 'officers_list' %}" class="nav-link {% if 'officer' in request.resolver_match.url_name or 'officers' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="bi bi-people-fill"></i> Parish Officers
                 </a>
-            </li>
+            </li> {% endcomment %}
             <li class="nav-item">
                 <a href="{% url 'parish_info' %}" class="nav-link {% if request.resolver_match.url_name == 'parish_info' %}active{% endif %}">
-                    <i class="bi bi-building"></i> Parish Info
+                    <i class="bi bi-building"></i> Church Info
                 </a>
             </li>
             <li class="nav-item">
                 <a href="{% url 'organization_list' %}" class="nav-link {% if 'organization' in request.resolver_match.url_name %}active{% endif %}">
-                    <i class="bi bi-building"></i> Parish Organizations
+                    <i class="bi bi-people"></i> Church Organizations
                 </a>
             </li>
             <li class="nav-section">Database Management</li>

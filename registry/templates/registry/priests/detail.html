@@ -74,6 +74,14 @@
                         <td class="small fw-semibold">{{ priest.priest_since|date:"F d, Y"|default:"—" }}</td>
                     </tr>
                     <tr>
+                        <td class="text-muted small">Assigned Church/Diocese:</td>
+                        <td class="small fw-semibold">{{ priest.church.name|default:"—" }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted small">Assigned Parish:</td>
+                        <td class="small fw-semibold">{{ priest.parish.name|default:"—" }}</td>
+                    </tr>
+                    <tr>
                         <td class="text-muted small">Date Assigned:</td>
                         <td class="small fw-semibold">{{ priest.date_assigned|date:"F d, Y"|default:"—" }}</td>
                     </tr>
@@ -132,7 +140,7 @@
 <script>
 function confirmPriestStatus() {
     const isActive = '{{ priest.status }}' === 'active';
-    const name = 'Fr. {{ priest.last_name }}';
+    const name = '{{ priest.full_name_with_title|escapejs }}';
     const msg = isActive
         ? `Are you sure you want to deactivate "${name}"? This action can be reversed later.`
         : `Are you sure you want to reactivate "${name}"?`;

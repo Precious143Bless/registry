@@ -29,16 +29,40 @@
             </div>
             <div class="card-footer bg-light border-0 px-4 pb-4">
                 <table class="table table-sm mb-0">
-                    <tr><td class="text-muted small">Birthday</td><td class="small fw-semibold">{{ member.birthday }}</td></tr>
-                    <tr><td class="text-muted small">Gender</td><td class="small fw-semibold">{{ member.get_gender_display }}</td></tr>
-                    <tr><td class="text-muted small">Civil Status</td><td class="small fw-semibold">{{ member.get_civil_status_display }}</td></tr>
-                    <tr><td class="text-muted small">Contact</td><td class="small fw-semibold">{{ member.contact_number|default:"—" }}</td></tr>
-                    <tr><td class="text-muted small">Email</td><td class="small fw-semibold">{{ member.email|default:"—" }}</td></tr>
-                    <tr><td class="text-muted small">Address</td><td class="small fw-semibold">{{ member.address }}</td></tr>
                     <tr>
-                        <td class="text-muted small">
-                            Organizations
-                        </td>
+                        <td class="text-muted small">Church/Diocese</td>
+                        <td class="small fw-semibold">{{ member.church.name|default:"—" }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted small">Parish</td>
+                        <td class="small fw-semibold">{{ member.parish.name|default:"—" }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted small">Birthday</td>
+                        <td class="small fw-semibold">{{ member.birthday }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted small">Gender</td>
+                        <td class="small fw-semibold">{{ member.get_gender_display }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted small">Civil Status</td>
+                        <td class="small fw-semibold">{{ member.get_civil_status_display }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted small">Contact</td>
+                        <td class="small fw-semibold">{{ member.contact_number|default:"—" }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted small">Email</td>
+                        <td class="small fw-semibold">{{ member.email|default:"—" }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted small">Address</td>
+                        <td class="small fw-semibold">{{ member.address }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted small">Organizations</td>
                         <td class="small fw-semibold">
                             {% with organizations=member.organization_memberships.select_related.all %}
                                 {% if organizations %}

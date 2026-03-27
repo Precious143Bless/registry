@@ -6,15 +6,41 @@
     <div class="card-header bg-white border-0 pt-3 px-4 d-flex flex-wrap gap-2 align-items-center justify-content-between">
         <h6 class="fw-bold mb-0" style="color:#4e2a1e;">
             <i class="bi bi-people-fill me-2" style="color:#c9a84c;"></i>Registered Members
+            {% if church_filter_name or parish_filter_name %}
+            <span class="badge ms-2" style="background: #c9a84c; color: #4e2a1e;">
+                {% if parish_filter_name %}
+                    {{ parish_filter_name }}
+                {% elif church_filter_name %}
+                    {{ church_filter_name }}
+                {% endif %}
+            </span>
+            {% endif %}
         </h6>
-        <div class="d-flex gap-2">
-            <form class="d-flex" method="get">
+        <div class="d-flex gap-2 flex-wrap">
+            <form class="d-flex gap-2" method="get">
                 <div class="input-group input-group-sm">
                     <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search by name...">
                     <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-search"></i></button>
                     {% if q %}<a href="{% url 'member_list' %}" class="btn btn-outline-danger"><i class="bi bi-x"></i></a>{% endif %}
                 </div>
             </form>
+            
+            <!-- Church Filter Dropdown -->
+            <select name="church_filter" class="form-select form-select-sm" style="width: auto;" onchange="filterByChurch(this.value)">
+                <option value="">All Churches/Dioceses</option>
+                {% for church in churches %}
+                <option value="{{ church.id }}" {% if church_filter == church.id|stringformat:"s" %}selected{% endif %}>{{ church.name }}</option>
+                {% endfor %}
+            </select>
+            
+            <!-- Parish Filter Dropdown (dependent on church) -->
+            <select name="parish_filter" class="form-select form-select-sm" style="width: auto;" id="parishFilterSelect" onchange="filterByParish(this.value)">
+                <option value="">All Parishes</option>
+                {% for parish in parishes %}
+                <option value="{{ parish.id }}" data-church="{{ parish.church_id }}" {% if parish_filter == parish.id|stringformat:"s" %}selected{% endif %}>{{ parish.name }}</option>
+                {% endfor %}
+            </select>
+            
             <a href="{% url 'member_list_print' %}" class="btn btn-sm btn-outline-secondary" target="_blank">
                 <i class="bi bi-printer me-1"></i>Print List
             </a>
@@ -24,6 +50,11 @@
             <a href="{% url 'member_create' %}" class="btn btn-sm btn-primary-church">
                 <i class="bi bi-plus-lg me-1"></i>Add Member
             </a>
+            {% if church_filter or parish_filter %}
+            <a href="{% url 'member_list' %}" class="btn btn-sm btn-outline-danger">
+                <i class="bi bi-x-circle me-1"></i>Clear Filters
+            </a>
+            {% endif %}
         </div>
     </div>
     <div class="card-body p-0">
@@ -33,14 +64,13 @@
                     <tr>
                         <th>#</th>
                         <th>Full Name</th>
+                        
                         <th>Birthday</th>
                         <th>Gender</th>
                         <th>Civil Status</th>
                         <th>Contact</th>
-                        <th>Registered</th>
                         <th>Actions</th>
-                    </tr>
-                </thead>
+                    </thead>
                 <tbody>
                     {% for member in members %}
                     <tr>
@@ -50,11 +80,11 @@
                                 {{ member.full_name }}
                             </a>
                         </td>
+                      
                         <td>{{ member.birthday }}</td>
                         <td>{{ member.get_gender_display }}</td>
                         <td>{{ member.get_civil_status_display }}</td>
                         <td>{{ member.contact_number|default:"—" }}</td>
-                        <td><small class="text-muted">{{ member.date_registered }}</small></td>
                         <td>
                             <div class="d-flex gap-1">
                                 <a href="{% url 'member_detail' member.pk %}" class="btn btn-sm" style="background:#f5ede8;color:#6b3a2a;" title="View">
@@ -75,9 +105,14 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="8" class="text-center text-muted py-5">
+                        <td colspan="10" class="text-center text-muted py-5">
                             <i class="bi bi-people fs-2 d-block mb-2"></i>
                             No members found{% if q %} for "{{ q }}"{% endif %}.
+                            {% if church_filter or parish_filter %}
+                            <div class="mt-2">
+                                <a href="{% url 'member_list' %}" class="btn btn-sm btn-outline-secondary">Clear Filters</a>
+                            </div>
+                            {% endif %}
                         </td>
                     </tr>
                     {% endfor %}
@@ -92,19 +127,19 @@
             <ul class="pagination pagination-sm mb-0">
                 {% if page_obj.has_previous %}
                 <li class="page-item">
-                    <a class="page-link" href="?{% if q %}q={{ q }}&{% endif %}page={{ page_obj.previous_page_number }}">&laquo;</a>
+                    <a class="page-link" href="?{% if q %}q={{ q }}&{% endif %}{% if church_filter %}church_filter={{ church_filter }}&{% endif %}{% if parish_filter %}parish_filter={{ parish_filter }}&{% endif %}page={{ page_obj.previous_page_number }}">&laquo;</a>
                 </li>
                 {% endif %}
                 {% for num in page_obj.paginator.page_range %}
                     {% if page_obj.number == num %}
                     <li class="page-item active"><span class="page-link" style="background:#6b3a2a;border-color:#6b3a2a;">{{ num }}</span></li>
                     {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                    <li class="page-item"><a class="page-link" href="?{% if q %}q={{ q }}&{% endif %}page={{ num }}">{{ num }}</a></li>
+                    <li class="page-item"><a class="page-link" href="?{% if q %}q={{ q }}&{% endif %}{% if church_filter %}church_filter={{ church_filter }}&{% endif %}{% if parish_filter %}parish_filter={{ parish_filter }}&{% endif %}page={{ num }}">{{ num }}</a></li>
                     {% endif %}
                 {% endfor %}
                 {% if page_obj.has_next %}
                 <li class="page-item">
-                    <a class="page-link" href="?{% if q %}q={{ q }}&{% endif %}page={{ page_obj.next_page_number }}">&raquo;</a>
+                    <a class="page-link" href="?{% if q %}q={{ q }}&{% endif %}{% if church_filter %}church_filter={{ church_filter }}&{% endif %}{% if parish_filter %}parish_filter={{ parish_filter }}&{% endif %}page={{ page_obj.next_page_number }}">&raquo;</a>
                 </li>
                 {% endif %}
             </ul>
@@ -112,6 +147,103 @@
         {% endif %}
     </div>
 </div>
+
+<script>
+    // Store all parish options for filtering
+    const allParishOptions = Array.from(document.querySelectorAll('#parishFilterSelect option'));
+    
+    function filterByChurch(churchId) {
+        const url = new URL(window.location.href);
+        if (churchId) {
+            url.searchParams.set('church_filter', churchId);
+            url.searchParams.delete('parish_filter'); // Clear parish filter when church changes
+        } else {
+            url.searchParams.delete('church_filter');
+        }
+        url.searchParams.delete('page');
+        window.location.href = url.toString();
+    }
+    
+    function filterByParish(parishId) {
+        const url = new URL(window.location.href);
+        if (parishId) {
+            url.searchParams.set('parish_filter', parishId);
+        } else {
+            url.searchParams.delete('parish_filter');
+        }
+        url.searchParams.delete('page');
+        window.location.href = url.toString();
+    }
+    
+    // Filter parish dropdown based on selected church
+    function filterParishDropdown() {
+        const churchSelect = document.querySelector('select[name="church_filter"]');
+        const parishSelect = document.getElementById('parishFilterSelect');
+        const selectedChurch = churchSelect ? churchSelect.value : '';
+        
+        // Store current selected parish value
+        const currentParishValue = parishSelect.value;
+        
+        // Filter parish options
+        allParishOptions.forEach(option => {
+            const optionChurch = option.getAttribute('data-church');
+            if (selectedChurch === '') {
+                // Show all parishes if no church selected
+                option.style.display = '';
+            } else {
+                // Show only parishes belonging to selected church
+                if (optionChurch === selectedChurch || option.value === '') {
+                    option.style.display = '';
+                } else {
+                    option.style.display = 'none';
+                }
+            }
+        });
+        
+        // Reset parish selection if selected parish is hidden
+        if (currentParishValue && parishSelect.value !== currentParishValue) {
+            // Clear the parish filter if the selected parish is no longer visible
+            const url = new URL(window.location.href);
+            url.searchParams.delete('parish_filter');
+            window.location.href = url.toString();
+        }
+    }
+    
+    // Run filter on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        filterParishDropdown();
+        
+        // Add change listener to church filter
+        const churchSelect = document.querySelector('select[name="church_filter"]');
+        if (churchSelect) {
+            churchSelect.addEventListener('change', filterParishDropdown);
+        }
+    });
+</script>
+
+<style>
+    .table > :not(caption) > * > * {
+        vertical-align: middle;
+        padding: 0.75rem 0.5rem;
+    }
+    
+    .table tbody tr:hover {
+        background: #fef9f5;
+    }
+    
+    .badge i {
+        font-size: 0.7rem;
+    }
+    
+    @media (max-width: 768px) {
+        .table-responsive {
+            overflow-x: auto;
+        }
+        .table {
+            min-width: 800px;
+        }
+    }
+</style>
 {% endblock %}
 
 {% block extra_js %}

@@ -1,0 +1,134 @@
+{% extends 'registry/base.html' %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm" style="border-radius:12px;">
+            <div class="card-header bg-white border-0 pt-4 px-4">
+                <h6 class="fw-bold mb-0" style="color:#4e2a1e;">
+                    <i class="bi bi-building me-2" style="color:#c9a84c;"></i>{{ title }}
+                </h6>
+            </div>
+            <div class="card-body px-4 pb-4">
+
+                {% if form.errors %}
+                <div class="alert alert-danger py-2 px-3 mb-3" style="border-radius:8px;">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <strong>Please fix the errors below before saving.</strong>
+                </div>
+                {% endif %}
+
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+                    <div class="row g-3">
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Church Name *</label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.name.errors.0 }}</div>
+                            {% endif %}
+                            <div class="text-muted small mt-1">Full name of the church (e.g., Cathedral of St. Mary and St. John)</div>
+                        </div>
+
+                        {% comment %} <div class="col-12">
+                            <label class="form-label fw-semibold small">Bishop</label>
+                            {{ form.bishop }}
+                            {% if form.bishop.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.bishop.errors.0 }}</div>
+                            {% endif %}
+                            <div class="text-muted small mt-1">Current bishop of the church (e.g., The Rt. Rev. John Smith)</div>
+                        </div> {% endcomment %}
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Location / Address *</label>
+                            {{ form.location }}
+                            {% if form.location.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.location.errors.0 }}</div>
+                            {% endif %}
+                            <div class="text-muted small mt-1">Full address including street, barangay, city/municipality.</div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Description</label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.description.errors.0 }}</div>
+                            {% endif %}
+                            <div class="text-muted small mt-1">Brief description of the church's history, mission, and activities.</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Established Date</label>
+                            {{ form.established_date }}
+                            {% if form.established_date.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.established_date.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Contact Number</label>
+                            {{ form.contact_number }}
+                            {% if form.contact_number.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.contact_number.errors.0 }}</div>
+                            {% endif %}
+                            <div class="text-muted small mt-1">Philippine mobile number (09XXXXXXXXX)</div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Email Address</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.email.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12">
+                            <div class="form-check">
+                                {{ form.is_active }}
+                                <label class="form-check-label fw-semibold small" for="{{ form.is_active.id_for_label }}">
+                                    Active Church
+                                </label>
+                            </div>
+                            {% if form.is_active.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.is_active.errors.0 }}</div>
+                            {% endif %}
+                            <div class="text-muted small mt-1">Inactive churches will not appear in public lists.</div>
+                        </div>
+
+                    </div>
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary-church px-4">
+                            <i class="bi bi-check-lg me-1"></i>Save Church
+                        </button>
+                        <a href="{% if church %}{% url 'church_detail' church.pk %}{% else %}{% url 'church_list' %}{% endif %}" 
+                           class="btn btn-outline-secondary px-4">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const contactInput = document.querySelector('input[name="contact_number"]');
+        if (contactInput) {
+            contactInput.addEventListener('input', function(e) {
+                this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11);
+            });
+        }
+        
+        document.querySelectorAll('.text-danger').forEach(function (el) {
+            const input = el.previousElementSibling;
+            if (input && (input.tagName === 'INPUT' || input.tagName === 'SELECT' || input.tagName === 'TEXTAREA')) {
+                input.classList.add('is-invalid');
+            }
+        });
+    });
+</script>
+{% endblock %}

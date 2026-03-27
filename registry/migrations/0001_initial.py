@@ -48,6 +48,26 @@ class Migration(migrations.Migration):
                 ('email', models.EmailField(blank=True, max_length=254)),
                 ('is_active', models.BooleanField(default=True)),
                 ('date_registered', models.DateField(auto_now_add=True)),
+                
+                # NEW: Church/Diocese Assignment
+                ('church', models.ForeignKey(
+                    blank=True, 
+                    null=True, 
+                    on_delete=django.db.models.deletion.SET_NULL, 
+                    related_name='members', 
+                    to='registry.church', 
+                    verbose_name='Assigned Church/Diocese'
+                )),
+                
+                # NEW: Parish Assignment
+                ('parish', models.ForeignKey(
+                    blank=True, 
+                    null=True, 
+                    on_delete=django.db.models.deletion.SET_NULL, 
+                    related_name='members', 
+                    to='registry.parish', 
+                    verbose_name='Assigned Parish'
+                )),
             ],
             options={
                 'ordering': ['last_name', 'first_name'],
@@ -139,6 +159,7 @@ class Migration(migrations.Migration):
                 ('member', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='baptism', to='registry.member')),
             ],
         ),
+
         migrations.CreateModel(
             name='ParishPriest',
             fields=[
@@ -150,6 +171,25 @@ class Migration(migrations.Migration):
                 ('email', models.EmailField(blank=True, max_length=254)),
                 ('ordination_date', models.DateField(blank=True, null=True)),
                 ('priest_since', models.DateField(blank=True, null=True)),
+                
+                # New fields - Church and Parish assignments
+                ('church', models.ForeignKey(
+                    blank=True, 
+                    null=True, 
+                    on_delete=django.db.models.deletion.SET_NULL, 
+                    related_name='priests', 
+                    to='registry.church', 
+                    verbose_name='Assigned Church/Diocese'
+                )),
+                ('parish', models.ForeignKey(
+                    blank=True, 
+                    null=True, 
+                    on_delete=django.db.models.deletion.SET_NULL, 
+                    related_name='priests', 
+                    to='registry.parish', 
+                    verbose_name='Assigned Parish'
+                )),
+                
                 ('date_assigned', models.DateField(blank=True, null=True)),
                 ('date_departed', models.DateField(blank=True, null=True)),
                 ('status', models.CharField(choices=[('active', 'Active'), ('inactive', 'Inactive')], default='active', max_length=10)),
@@ -295,5 +335,129 @@ class Migration(migrations.Migration):
         migrations.AddIndex(
             model_name='organizationmembership',
             index=models.Index(fields=['joined_date'], name='membership_joined_date_idx'),
+        ),
+
+        # Create Church model
+        migrations.CreateModel(
+            name='Church',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('name', models.CharField(max_length=200, verbose_name='Church Name')),
+                ('location', models.CharField(help_text='Full address of the church', max_length=300, verbose_name='Location')),
+                ('description', models.TextField(blank=True, verbose_name='Description')),
+                ('established_date', models.DateField(blank=True, null=True, verbose_name='Established Date')),
+                ('contact_number', models.CharField(blank=True, max_length=20, verbose_name='Contact Number')),
+                ('email', models.EmailField(blank=True, max_length=254, verbose_name='Email')),
+                ('bishop', models.CharField(blank=True, help_text='Current bishop of the church', max_length=200, verbose_name='Bishop')),
+                ('image', models.ImageField(blank=True, null=True, upload_to='churches/', verbose_name='Church Logo')),
+                ('is_active', models.BooleanField(default=True, verbose_name='Is Active')),
+                ('date_created', models.DateField(auto_now_add=True, verbose_name='Date Created')),
+                ('date_updated', models.DateField(auto_now=True, verbose_name='Date Updated')),
+            ],
+            options={
+                'verbose_name': 'Church',
+                'verbose_name_plural': 'Churches',
+                'ordering': ['name'],
+            },
+        ),
+        
+        
+        # Create Parish model
+        migrations.CreateModel(
+            name='Parish',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('name', models.CharField(max_length=200, verbose_name='Parish Name')),
+                ('parish_type', models.CharField(choices=[('cathedral', 'Cathedral'), ('parish', 'Parish'), ('mission', 'Mission'), ('chapel', 'Chapel')], default='parish', max_length=20, verbose_name='Parish Type')),
+                ('location', models.CharField(help_text='Full address of the parish', max_length=300, verbose_name='Location')),
+                ('description', models.TextField(blank=True, verbose_name='Description')),
+                ('established_date', models.DateField(blank=True, null=True, verbose_name='Established Date')),
+                ('contact_number', models.CharField(blank=True, max_length=20, verbose_name='Contact Number')),
+                ('email', models.EmailField(blank=True, max_length=254, verbose_name='Email')),
+                ('is_active', models.BooleanField(default=True, verbose_name='Is Active')),
+                ('date_created', models.DateField(auto_now_add=True, verbose_name='Date Created')),
+                ('date_updated', models.DateField(auto_now=True, verbose_name='Date Updated')),
+                ('church', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='parishes', to='registry.church', verbose_name='Church')),
+            ],
+            options={
+                'verbose_name': 'Parish',
+                'verbose_name_plural': 'Parishes',
+                'ordering': ['name'],
+            },
+        ),
+        
+        # Create Parish Officer model (EP - Episcopal)
+        migrations.CreateModel(
+            name='ParishOfficerEP',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('first_name', models.CharField(max_length=100, verbose_name='First Name')),
+                ('middle_name', models.CharField(blank=True, max_length=100, verbose_name='Middle Name')),
+                ('last_name', models.CharField(max_length=100, verbose_name='Last Name')),
+                ('position', models.CharField(choices=[
+                    ('bishop', 'Bishop'),
+                    ('priest', 'Priest'),
+                    ('deacon', 'Deacon'),
+                    ('senior_warden', 'Senior Warden'),
+                    ('junior_warden', 'Junior Warden'),
+                    ('treasurer', 'Treasurer'),
+                    ('secretary', 'Secretary'),
+                    ('vestry_member', 'Vestry Member'),
+                ], max_length=50, verbose_name='Position')),
+                ('date_assigned', models.DateField(verbose_name='Date Assigned')),
+                ('date_departed', models.DateField(blank=True, null=True, verbose_name='Date Departed')),
+                ('is_active', models.BooleanField(default=True, verbose_name='Is Active')),
+                ('contact_number', models.CharField(blank=True, max_length=20, verbose_name='Contact Number')),
+                ('email', models.EmailField(blank=True, max_length=254, verbose_name='Email')),
+                ('remarks', models.TextField(blank=True, verbose_name='Remarks')),
+                ('parish', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='parish_officers', to='registry.parish', verbose_name='Parish')),
+            ],
+            options={
+                'verbose_name': 'Parish Officer',
+                'verbose_name_plural': 'Parish Officers',
+                'ordering': ['position', 'last_name', 'first_name'],
+            },
+        ),
+        
+        # Add indexes for better performance
+        migrations.AddIndex(
+            model_name='church',
+            index=models.Index(fields=['name'], name='church_name_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='church',
+            index=models.Index(fields=['is_active'], name='church_active_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='parish',
+            index=models.Index(fields=['name'], name='parish_name_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='parish',
+            index=models.Index(fields=['church_id'], name='parish_church_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='parish',
+            index=models.Index(fields=['parish_type'], name='parish_type_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='parish',
+            index=models.Index(fields=['is_active'], name='parish_active_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='parishofficerep',
+            index=models.Index(fields=['parish_id'], name='officer_parish_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='parishofficerep',
+            index=models.Index(fields=['position'], name='officer_position_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='parishofficerep',
+            index=models.Index(fields=['is_active'], name='officer_active_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='parishofficerep',
+            index=models.Index(fields=['last_name', 'first_name'], name='officer_name_idx'),
         ),
     ]

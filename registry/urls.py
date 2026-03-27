@@ -91,6 +91,8 @@ urlpatterns = [
     path('priests/<int:pk>/', views.priest_detail, name='priest_detail'),
     path('priests/<int:pk>/edit/', views.priest_edit, name='priest_edit'),
     path('priests/<int:pk>/deactivate/', views.priest_deactivate, name='priest_deactivate'),
+    path('api/parishes/by-church/<int:church_id>/', views.get_parishes_by_church, name='get_parishes_by_church'),
+    path('api/parishes/all/', views.get_all_parishes, name='get_all_parishes'),
 
     # Parish Officers
     path('officers/', views.officers_list, name='officers_list'),
@@ -113,6 +115,30 @@ urlpatterns = [
     path('organizations/<int:org_pk>/add-member/', views.organization_add_member, name='organization_add_member'),
     path('memberships/<int:pk>/edit/', views.membership_edit, name='membership_edit'),
     path('memberships/<int:pk>/delete/', views.membership_delete, name='membership_delete'),
+
+    # Churches
+    path('churches/', views.church_list, name='church_list'),
+    path('churches/new/', views.church_create, name='church_create'),
+    path('churches/<int:pk>/', views.church_detail, name='church_detail'),
+    path('churches/<int:pk>/edit/', views.church_edit, name='church_edit'),
+    path('churches/<int:pk>/delete/', views.church_delete, name='church_delete'),
+
+    # Parishes
+    path('parishes/', views.parish_list, name='parish_list'),
+    path('churches/<int:church_pk>/parish/new/', views.parish_create, name='parish_create'),
+    path('parishes/<int:pk>/', views.parish_detail, name='parish_detail'),
+    path('parishes/<int:pk>/edit/', views.parish_edit, name='parish_edit'),
+    path('parishes/<int:pk>/delete/', views.parish_delete, name='parish_delete'),
+
+    # Parish Officers
+    path('parishes/<int:parish_pk>/officer/add/', views.parish_officer_add, name='parish_officer_add'),
+    path('parish-officers/<int:pk>/edit/', views.parish_officer_edit, name='parish_officer_edit'),
+    path('parish-officers/<int:pk>/delete/', views.parish_officer_delete, name='parish_officer_delete'),
+
+    # Parish Officer Chart
+    path('parishes/<int:pk>/officer-chart/', views.parish_officer_chart, name='parish_officer_chart'),
+    # Add this to your urlpatterns
+    path('parishes/<int:pk>/members/', views.parish_member, name='parish_member'),
 ]
 
 # Serve media files in development

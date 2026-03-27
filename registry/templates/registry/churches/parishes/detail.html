@@ -1,0 +1,246 @@
+{% extends 'registry/base.html' %}
+{% load static %}
+
+{% block page_title %}{{ parish.name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Parish Header -->
+        <div class="card border-0 shadow-sm mb-4" style="border-radius:12px;">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="bi bi-church" style="color: #c9a84c; font-size: 1.8rem;"></i>
+                            <h4 class="fw-bold mb-0" style="color:#4e2a1e;">{{ parish.name }}</h4>
+                            <span class="badge ms-2" style="background: #f5ede8; color: #6b3a2a;">
+                                {{ parish.get_parish_type_display }}
+                            </span>
+                            {% if parish.is_active %}
+                            <span class="badge badge-paid">Active</span>
+                            {% else %}
+                            <span class="badge badge-unpaid">Inactive</span>
+                            {% endif %}
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-building" style="color: #c9a84c;"></i>
+                            <span class="text-muted">{{ parish.church.name }}</span>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'parish_edit' parish.pk %}" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-pencil me-1"></i>Edit
+                        </a>
+                        <a href="{% url 'parish_member' parish.pk %}" class="btn btn-sm btn-primary-church">
+                            <i class="bi bi-eye me-1"></i>View Members
+                        </a>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteParish({{ parish.id }}, '{{ parish.name|escapejs }}')">
+                            <i class="bi bi-trash me-1"></i>Delete
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Parish Information Cards -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="p-3 rounded" style="background:#f5ede8;">
+                            <div class="small text-muted mb-1">Location</div>
+                            <div class="fw-semibold">{{ parish.location|default:"—" }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="p-3 rounded" style="background:#f5ede8;">
+                            <div class="small text-muted mb-1">Contact Number</div>
+                            <div class="fw-semibold">{{ parish.contact_number|default:"—" }}</div>
+                        </div>
+                    </div>
+                    {% if parish.email %}
+                    <div class="col-md-3">
+                        <div class="p-3 rounded" style="background:#f5ede8;">
+                            <div class="small text-muted mb-1">Mail Account</div>
+                            <div class="fw-semibold">{{ parish.email|default:"—" }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="col-md-2">
+                        <div class="p-3 rounded" style="background:#f5ede8;">
+                            <div class="small text-muted mb-1">Established</div>
+                            <div class="fw-semibold">{{ parish.established_date|date:"Y"|default:"—" }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                
+                {% if parish.description %}
+                <div class="mt-3 p-3" style="background: #f5ede8; border-radius: 12px;">
+                    <p class="mb-0 text-muted">{{ parish.description }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Officers Section -->
+        <div class="card border-0 shadow-sm" style="border-radius:12px;">
+            <div class="card-header bg-white border-0 pt-4 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <h6 class="fw-bold mb-0" style="color:#4e2a1e;">
+                    <i class="bi bi-person-standing me-2" style="color:#c9a84c;"></i>Parish Officers
+                    <span class="badge bg-secondary rounded-pill ms-2">{{ officers|length }}</span>
+                </h6>
+                <div class="d-flex gap-2">
+                    <form method="get" class="d-flex gap-2">
+                        <select name="officer_position" class="form-select form-select-sm" style="width: 180px;" onchange="this.form.submit()">
+                            <option value="">All Positions</option>
+                            <option value="bishop" {% if officer_position == 'bishop' %}selected{% endif %}>Bishop</option>
+                            <option value="priest" {% if officer_position == 'priest' %}selected{% endif %}>Priest</option>
+                            <option value="deacon" {% if officer_position == 'deacon' %}selected{% endif %}>Deacon</option>
+                            <option value="senior_warden" {% if officer_position == 'senior_warden' %}selected{% endif %}>Senior Warden</option>
+                            <option value="junior_warden" {% if officer_position == 'junior_warden' %}selected{% endif %}>Junior Warden</option>
+                            <option value="treasurer" {% if officer_position == 'treasurer' %}selected{% endif %}>Treasurer</option>
+                            <option value="secretary" {% if officer_position == 'secretary' %}selected{% endif %}>Secretary</option>
+                            <option value="vestry_member" {% if officer_position == 'vestry_member' %}selected{% endif %}>Vestry Member</option>
+                        </select>
+                        {% if officer_position %}<a href="{% url 'parish_detail' parish.pk %}" class="btn btn-sm btn-outline-danger">Clear</a>{% endif %}
+                    </form>
+                    <a href="{% url 'parish_officer_chart' parish.pk %}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-diagram-3 me-1"></i>View Chart
+                    </a>
+                    <a href="{% url 'parish_officer_add' parish.pk %}" class="btn btn-sm btn-primary-church">
+                        <i class="bi bi-person-plus me-1"></i>Add Officer
+                    </a>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-4">
+                    {% for officer in officers %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card border-0 shadow-sm h-100" style="border-radius:12px;">
+                            <div class="card-body p-3">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <h6 class="fw-bold mb-0" style="color:#4e2a1e;">
+                                            {{ officer.full_name }}
+                                        </h6>
+                                        <span class="badge mt-1" style="background: #f5ede8; color: #6b3a2a;">
+                                            {{ officer.get_position_display }}
+                                        </span>
+                                    </div>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary" style="border-radius: 8px;" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li>
+                                                <a class="dropdown-item" href="{% url 'parish_officer_edit' officer.pk %}">
+                                                    <i class="bi bi-pencil me-2"></i>Edit Officer
+                                                </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <button class="dropdown-item text-danger" onclick="deleteOfficer({{ officer.id }}, '{{ officer.full_name|escapejs }}')">
+                                                    <i class="bi bi-trash me-2"></i>Remove
+                                                </button>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="small text-muted mt-2">
+                                    <div><i class="bi bi-calendar me-1"></i> Assigned: {{ officer.date_assigned|date:"M d, Y" }}</div>
+                                    {% if officer.date_departed %}
+                                    <div><i class="bi bi-calendar-x me-1"></i> Departed: {{ officer.date_departed|date:"M d, Y" }}</div>
+                                    {% endif %}
+                                    {% if officer.contact_number %}
+                                    <div class="mt-1"><i class="bi bi-telephone me-1"></i> {{ officer.contact_number }}</div>
+                                    {% endif %}
+                                    {% if officer.email %}
+                                    <div><i class="bi bi-envelope me-1"></i> {{ officer.email }}</div>
+                                    {% endif %}
+                                </div>
+                                {% if officer.remarks %}
+                                <div class="mt-2 pt-2 border-top">
+                                    <small class="text-muted">{{ officer.remarks }}</small>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12">
+                        <div class="text-center py-5">
+                            <i class="bi bi-person-standing" style="font-size: 3rem; color: #c9a84c;"></i>
+                            <p class="text-muted mt-3">No officers assigned to this parish yet.</p>
+                            <a href="{% url 'parish_officer_add' parish.pk %}" class="btn btn-primary-church">
+                                <i class="bi bi-person-plus me-1"></i>Add First Officer
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Parish Modal -->
+<div class="modal fade" id="deleteParishModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0" style="border-radius:14px;">
+            <div class="modal-body text-center p-4">
+                <i class="bi bi-exclamation-triangle-fill" style="font-size: 2rem; color: #dc3545;"></i>
+                <h6 class="fw-bold mt-2">Delete Parish</h6>
+                <p class="small text-muted" id="deleteParishMessage">Are you sure you want to delete this parish?</p>
+                <div class="d-flex gap-2 justify-content-center mt-3">
+                    <button class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form method="post" id="deleteParishForm" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Officer Modal -->
+<div class="modal fade" id="deleteOfficerModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0" style="border-radius:14px;">
+            <div class="modal-body text-center p-4">
+                <i class="bi bi-exclamation-triangle-fill" style="font-size: 2rem; color: #dc3545;"></i>
+                <h6 class="fw-bold mt-2">Remove Officer</h6>
+                <p class="small text-muted" id="deleteOfficerMessage">Are you sure you want to remove this officer from the parish?</p>
+                <div class="d-flex gap-2 justify-content-center mt-3">
+                    <button class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form method="post" id="deleteOfficerForm" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let deleteParishUrl = '';
+    let deleteOfficerUrl = '';
+    
+    function deleteParish(id, name) {
+        document.getElementById('deleteParishMessage').innerHTML = `Are you sure you want to delete "<strong>${name}</strong>"? This will also remove all officers associated with this parish.`;
+        deleteParishUrl = `/churches/parishes/${id}/delete/`;
+        document.getElementById('deleteParishForm').action = deleteParishUrl;
+        new bootstrap.Modal(document.getElementById('deleteParishModal')).show();
+    }
+    
+    function deleteOfficer(id, name) {
+        document.getElementById('deleteOfficerMessage').innerHTML = `Are you sure you want to remove "<strong>${name}</strong>" as parish officer?`;
+        deleteOfficerUrl = `/churches/parish-officers/${id}/delete/`;
+        document.getElementById('deleteOfficerForm').action = deleteOfficerUrl;
+        new bootstrap.Modal(document.getElementById('deleteOfficerModal')).show();
+    }
+</script>
+{% endblock %}

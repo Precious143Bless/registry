@@ -19,9 +19,14 @@
                 </div>
                 {% endif %}
 
-                <form method="post" novalidate>
+                <form method="post" novalidate id="memberForm">
                     {% csrf_token %}
                     <div class="row g-3">
+
+                        <!-- Personal Information -->
+                        <h6 class="fw-bold mb-2 mt-2" style="color:#4e2a1e; border-bottom: 2px solid #c9a84c; padding-bottom: 5px;">
+                            <i class="bi bi-person-fill me-2"></i>Personal Information
+                        </h6>
 
                         <div class="col-md-4">
                             <label class="form-label fw-semibold small">First Name *</label>
@@ -83,6 +88,11 @@
                             {% endif %}
                         </div>
 
+                        <!-- Contact Information -->
+                        <h6 class="fw-bold mb-2 mt-3" style="color:#4e2a1e; border-bottom: 2px solid #c9a84c; padding-bottom: 5px;">
+                            <i class="bi bi-envelope-fill me-2"></i>Contact Information
+                        </h6>
+
                         <div class="col-md-6">
                             <label class="form-label fw-semibold small">Contact Number <span class="text-muted">(optional)</span></label>
                             {{ form.contact_number }}
@@ -99,6 +109,29 @@
                             {% if form.email.errors %}
                                 <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.email.errors.0 }}</div>
                             {% endif %}
+                        </div>
+
+                        <!-- Church Assignment -->
+                        <h6 class="fw-bold mb-2 mt-3" style="color:#4e2a1e; border-bottom: 2px solid #c9a84c; padding-bottom: 5px;">
+                            <i class="bi bi-building-fill me-2"></i>Church Assignment
+                        </h6>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Assigned Church/Diocese</label>
+                            {{ form.church }}
+                            {% if form.church.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.church.errors.0 }}</div>
+                            {% endif %}
+                            <div class="text-muted small mt-1">Select the church or diocese where the member belongs.</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Assigned Parish</label>
+                            {{ form.parish }}
+                            {% if form.parish.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.parish.errors.0 }}</div>
+                            {% endif %}
+                            <div class="text-muted small mt-1" id="memberParishHelpText">Select the specific parish (filtered by church above).</div>
                         </div>
 
                     </div>
@@ -123,6 +156,156 @@ document.addEventListener('DOMContentLoaded', function () {
     const birthdayInput = document.querySelector('input[name="birthday"]');
     if (birthdayInput) birthdayInput.setAttribute('max', today);
 
+    // Church and Parish dropdown filtering
+    const churchSelect = document.querySelector('select[name="church"]');
+    const parishSelect = document.querySelector('select[name="parish"]');
+    const parishHelpText = document.getElementById('memberParishHelpText');
+    
+    // Store current selected values for editing
+    const currentChurchId = churchSelect ? churchSelect.value : '';
+    const currentParishId = parishSelect ? parishSelect.value : '';
+    
+    // Store all parishes data for fallback
+    let allParishes = [];
+    
+    // Function to load parishes based on church ID
+    function loadParishes(churchId, selectedParishId = null) {
+        if (!churchId || churchId === '') {
+            // Show all parishes when no church selected
+            parishSelect.innerHTML = '<option value="">---------</option>';
+            if (allParishes.length > 0) {
+                allParishes.forEach(parish => {
+                    const option = document.createElement('option');
+                    option.value = parish.id;
+                    option.textContent = parish.name;
+                    parishSelect.appendChild(option);
+                });
+            }
+            parishSelect.disabled = false;
+            if (parishHelpText) {
+                parishHelpText.innerHTML = 'Select a parish (showing all parishes).';
+                parishHelpText.classList.remove('text-warning');
+                parishHelpText.classList.add('text-muted');
+            }
+            if (selectedParishId) {
+                parishSelect.value = selectedParishId;
+            }
+            return;
+        }
+        
+        // Show loading state
+        parishSelect.innerHTML = '<option value="">Loading parishes...</option>';
+        parishSelect.disabled = true;
+        
+        // Fetch parishes for selected church
+        fetch(`/api/parishes/by-church/${churchId}/`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Store all parishes data
+                allParishes = data.parishes || [];
+                
+                // Clear current options
+                parishSelect.innerHTML = '<option value="">---------</option>';
+                
+                if (data.parishes && data.parishes.length > 0) {
+                    // Add parishes to dropdown
+                    data.parishes.forEach(parish => {
+                        const option = document.createElement('option');
+                        option.value = parish.id;
+                        option.textContent = parish.name;
+                        parishSelect.appendChild(option);
+                    });
+                    parishSelect.disabled = false;
+                    if (parishHelpText) {
+                        parishHelpText.innerHTML = 'Select the specific parish (filtered by church above).';
+                        parishHelpText.classList.remove('text-warning');
+                        parishHelpText.classList.add('text-muted');
+                    }
+                    
+                    // If there's a selected parish ID, set it
+                    if (selectedParishId) {
+                        parishSelect.value = selectedParishId;
+                    }
+                } else {
+                    parishSelect.innerHTML = '<option value="">No parishes available for this church</option>';
+                    parishSelect.disabled = true;
+                    if (parishHelpText) {
+                        parishHelpText.innerHTML = 'No parishes found for this church. You can add parishes from the Churches section.';
+                        parishHelpText.classList.add('text-warning');
+                        parishHelpText.classList.remove('text-muted');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching parishes:', error);
+                parishSelect.innerHTML = '<option value="">Error loading parishes</option>';
+                parishSelect.disabled = true;
+                if (parishHelpText) {
+                    parishHelpText.innerHTML = 'Error loading parishes. Please try again.';
+                    parishHelpText.classList.add('text-danger');
+                    parishHelpText.classList.remove('text-muted');
+                }
+            });
+    }
+    
+    // Fetch all parishes initially for the dropdown options
+    function loadAllParishes() {
+        fetch('/api/parishes/all/')
+            .then(response => response.json())
+            .then(data => {
+                allParishes = data.parishes || [];
+                // Don't populate the dropdown yet, just store for later use
+            })
+            .catch(error => console.error('Error fetching all parishes:', error));
+    }
+    
+    // Initial load if editing and church is selected
+    if (currentChurchId && currentChurchId !== '') {
+        loadParishes(currentChurchId, currentParishId);
+    } else {
+        // Load all parishes for initial state
+        loadAllParishes();
+        if (parishSelect) {
+            // Populate parish dropdown with all parishes initially
+            fetch('/api/parishes/all/')
+                .then(response => response.json())
+                .then(data => {
+                    parishSelect.innerHTML = '<option value="">---------</option>';
+                    if (data.parishes && data.parishes.length > 0) {
+                        data.parishes.forEach(parish => {
+                            const option = document.createElement('option');
+                            option.value = parish.id;
+                            option.textContent = parish.name;
+                            parishSelect.appendChild(option);
+                        });
+                        parishSelect.disabled = false;
+                    }
+                    if (currentParishId) {
+                        parishSelect.value = currentParishId;
+                    }
+                })
+                .catch(error => console.error('Error loading parishes:', error));
+        }
+        if (parishHelpText) {
+            parishHelpText.innerHTML = 'Select a parish (showing all parishes).';
+            parishHelpText.classList.add('text-muted');
+            parishHelpText.classList.remove('text-warning');
+        }
+    }
+    
+    // Add change event listener to church select
+    if (churchSelect) {
+        churchSelect.addEventListener('change', function() {
+            const churchId = this.value;
+            loadParishes(churchId);
+        });
+    }
+
     // Highlight fields with errors
     document.querySelectorAll('.text-danger').forEach(function (el) {
         const input = el.previousElementSibling;
@@ -131,24 +314,33 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Form submission confirmation
-    const form = document.querySelector('form');
+    // Form submission - don't prevent default, let Django handle validation
+    const form = document.getElementById('memberForm');
     const saveButton = document.getElementById('saveButton');
     const isEdit = {% if member.pk %}true{% else %}false{% endif %};
 
     if (form && saveButton) {
-        form.addEventListener('submit', function(e) {
+        saveButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Check for any invalid fields
             const hasErrors = document.querySelectorAll('.is-invalid').length > 0;
-            if (!hasErrors) {
-                e.preventDefault();
-                const firstName = document.querySelector('input[name="first_name"]').value.trim();
-                const lastName = document.querySelector('input[name="last_name"]').value.trim();
-                const fullName = (firstName + ' ' + lastName).trim();
-                const msg = isEdit
-                    ? `Are you sure you want to edit "${fullName}"?`
-                    : `Are you sure you want to register "${fullName}" as a member?`;
-                showConfirmModal(msg, function() { form.submit(); });
+            if (hasErrors) {
+                showConfirmModal('Please fix the errors above before saving.', null);
+                return;
             }
+            
+            const firstName = document.querySelector('input[name="first_name"]').value.trim();
+            const lastName = document.querySelector('input[name="last_name"]').value.trim();
+            const fullName = (firstName + ' ' + lastName).trim();
+            const msg = isEdit
+                ? `Are you sure you want to edit "${fullName}"?`
+                : `Are you sure you want to register "${fullName}" as a member?`;
+            showConfirmModal(msg, function() { 
+                // Clear any disabled attributes before submitting
+                if (parishSelect) parishSelect.disabled = false;
+                form.submit(); 
+            });
         });
     }
 
