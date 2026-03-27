@@ -139,6 +139,32 @@ def member_deactivate(request, pk):
     return render(request, 'registry/confirm_delete.html', {'object': member, 'type': 'Member'})
 
 
+@login_required
+def member_archive(request):
+    from django.core.paginator import Paginator
+    q = request.GET.get('q', '')
+    members = Member.objects.filter(is_active=False)
+    if q:
+        members = members.filter(
+            Q(first_name__icontains=q) | Q(last_name__icontains=q) |
+            Q(middle_name__icontains=q) | Q(contact_number__icontains=q)
+        )
+    paginator = Paginator(members, 15)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'registry/members/archive.html', {'members': page_obj, 'page_obj': page_obj, 'q': q})
+
+
+@login_required
+def member_reactivate(request, pk):
+    member = get_object_or_404(Member, pk=pk)
+    if request.method == 'POST':
+        member.is_active = True
+        member.save()
+        messages.success(request, f'{member.full_name} has been reactivated.')
+        return redirect('member_archive')
+    return redirect('member_archive')
+
+
 # ─── SACRAMENTS ──────────────────────────────────────────────────────────────
 
 def _parish_ctx():
@@ -661,6 +687,20 @@ def priests_list_print(request):
     return render(request, 'registry/priests/print_priest_list.html', {'priests': priests})
 
 
+@login_required
+def priest_archive(request):
+    from django.core.paginator import Paginator
+    q = request.GET.get('q', '')
+    priests = ParishPriest.objects.filter(status='inactive')
+    if q:
+        priests = priests.filter(
+            Q(first_name__icontains=q) | Q(last_name__icontains=q) | Q(middle_name__icontains=q)
+        )
+    paginator = Paginator(priests, 15)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'registry/priests/archive.html', {'priests': page_obj, 'page_obj': page_obj, 'q': q})
+
+
 # ─── PARISH OFFICERS ─────────────────────────────────────────────────────────
 
 @login_required
@@ -740,6 +780,21 @@ def officer_deactivate(request, pk):
 def officers_list_print(request):
     officers = ParishOfficer.objects.all().order_by('last_name', 'first_name')
     return render(request, 'registry/officers/print_officer_list.html', {'officers': officers})
+
+
+@login_required
+def officer_archive(request):
+    from django.core.paginator import Paginator
+    q = request.GET.get('q', '')
+    officers = ParishOfficer.objects.filter(status='inactive')
+    if q:
+        officers = officers.filter(
+            Q(first_name__icontains=q) | Q(last_name__icontains=q) |
+            Q(middle_name__icontains=q) | Q(position__icontains=q)
+        )
+    paginator = Paginator(officers, 15)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'registry/officers/archive.html', {'officers': page_obj, 'page_obj': page_obj, 'q': q})
 
 @login_required
 def officers_chart(request):

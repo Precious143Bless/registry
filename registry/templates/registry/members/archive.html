@@ -1,28 +1,25 @@
 {% extends 'registry/base.html' %}
-{% block page_title %}Members{% endblock %}
+{% block page_title %}Member Archive{% endblock %}
 
 {% block content %}
 <div class="card table-card">
     <div class="card-header bg-white border-0 pt-3 px-4 d-flex flex-wrap gap-2 align-items-center justify-content-between">
-        <h6 class="fw-bold mb-0" style="color:#4e2a1e;">
-            <i class="bi bi-people-fill me-2" style="color:#c9a84c;"></i>Registered Members
-        </h6>
+        <div>
+            <h6 class="fw-bold mb-0" style="color:#4e2a1e;">
+                <i class="bi bi-archive me-2" style="color:#c9a84c;"></i>Member Archive
+            </h6>
+            <small class="text-muted">Deactivated members</small>
+        </div>
         <div class="d-flex gap-2">
             <form class="d-flex" method="get">
                 <div class="input-group input-group-sm">
                     <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search by name...">
                     <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-search"></i></button>
-                    {% if q %}<a href="{% url 'member_list' %}" class="btn btn-outline-danger"><i class="bi bi-x"></i></a>{% endif %}
+                    {% if q %}<a href="{% url 'member_archive' %}" class="btn btn-outline-danger"><i class="bi bi-x"></i></a>{% endif %}
                 </div>
             </form>
-            <a href="{% url 'member_list_print' %}" class="btn btn-sm btn-outline-secondary" target="_blank">
-                <i class="bi bi-printer me-1"></i>Print List
-            </a>
-            <a href="{% url 'member_archive' %}" class="btn btn-sm btn-outline-secondary">
-                <i class="bi bi-archive me-1"></i>Archive
-            </a>
-            <a href="{% url 'member_create' %}" class="btn btn-sm btn-primary-church">
-                <i class="bi bi-plus-lg me-1"></i>Add Member
+            <a href="{% url 'member_list' %}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Back to Members
             </a>
         </div>
     </div>
@@ -46,9 +43,7 @@
                     <tr>
                         <td class="text-muted small">{{ forloop.counter }}</td>
                         <td>
-                            <a href="{% url 'member_detail' member.pk %}" class="fw-semibold text-decoration-none" style="color:#4e2a1e;">
-                                {{ member.full_name }}
-                            </a>
+                            <span class="fw-semibold" style="color:#4e2a1e;">{{ member.full_name }}</span>
                         </td>
                         <td>{{ member.birthday }}</td>
                         <td>{{ member.get_gender_display }}</td>
@@ -57,17 +52,11 @@
                         <td><small class="text-muted">{{ member.date_registered }}</small></td>
                         <td>
                             <div class="d-flex gap-1">
-                                <a href="{% url 'member_detail' member.pk %}" class="btn btn-sm" style="background:#f5ede8;color:#6b3a2a;" title="View">
-                                    <i class="bi bi-eye"></i>
-                                </a>
-                                <a href="{% url 'member_edit' member.pk %}" class="btn btn-sm btn-outline-secondary" title="Edit">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <button class="btn btn-sm btn-outline-danger" title="Deactivate" 
-                                        onclick="confirmMemberDeactivate('{{ member.pk }}', '{{ member.full_name|escapejs }}')">
-                                    <i class="bi bi-person-x"></i>
+                                <button class="btn btn-sm btn-outline-success" title="Reactivate"
+                                        onclick="confirmReactivate('{{ member.pk }}', '{{ member.full_name|escapejs }}')">
+                                    <i class="bi bi-person-check"></i>
                                 </button>
-                                <form id="memberDeactivateForm-{{ member.pk }}" method="post" action="{% url 'member_deactivate' member.pk %}" class="d-none">
+                                <form id="reactivateForm-{{ member.pk }}" method="post" action="{% url 'member_reactivate' member.pk %}" class="d-none">
                                     {% csrf_token %}
                                 </form>
                             </div>
@@ -76,8 +65,8 @@
                     {% empty %}
                     <tr>
                         <td colspan="8" class="text-center text-muted py-5">
-                            <i class="bi bi-people fs-2 d-block mb-2"></i>
-                            No members found{% if q %} for "{{ q }}"{% endif %}.
+                            <i class="bi bi-archive fs-2 d-block mb-2"></i>
+                            No archived members{% if q %} for "{{ q }}"{% endif %}.
                         </td>
                     </tr>
                     {% endfor %}
@@ -86,7 +75,7 @@
         </div>
     </div>
     <div class="card-footer bg-white border-0 px-4 py-2 d-flex justify-content-between align-items-center">
-        <small class="text-muted">{{ page_obj.paginator.count }} member(s) found</small>
+        <small class="text-muted">{{ page_obj.paginator.count }} archived member(s)</small>
         {% if page_obj.has_other_pages %}
         <nav>
             <ul class="pagination pagination-sm mb-0">
@@ -116,11 +105,11 @@
 
 {% block extra_js %}
 <script>
-function confirmMemberDeactivate(pk, name) {
+function confirmReactivate(pk, name) {
     showConfirmModal(
-        `Are you sure you want to deactivate "${name}"? This action can be reversed later.`,
+        `Are you sure you want to reactivate "${name}"?`,
         function() {
-            document.getElementById('memberDeactivateForm-' + pk).submit();
+            document.getElementById('reactivateForm-' + pk).submit();
         }
     );
 }

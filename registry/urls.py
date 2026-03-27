@@ -25,6 +25,8 @@ urlpatterns = [
     path('members/<int:pk>/', views.member_detail, name='member_detail'),
     path('members/<int:pk>/edit/', views.member_edit, name='member_edit'),
     path('members/<int:pk>/deactivate/', views.member_deactivate, name='member_deactivate'),
+    path('members/<int:pk>/reactivate/', views.member_reactivate, name='member_reactivate'),
+    path('members/archive/', views.member_archive, name='member_archive'),
     path('members/<int:pk>/print/', views.member_print, name='member_print'),
 
     # Sacraments
@@ -78,6 +80,7 @@ urlpatterns = [
     # Parish Priests
     path('priests/', views.priests_list, name='priests_list'),
     path('priests/new/', views.priest_create, name='priest_create'),
+    path('priests/archive/', views.priest_archive, name='priest_archive'),
     path('priests/print/all/', views.priests_list_print, name='priests_list_print'),
     path('priests/<int:pk>/', views.priest_detail, name='priest_detail'),
     path('priests/<int:pk>/edit/', views.priest_edit, name='priest_edit'),
@@ -86,6 +89,7 @@ urlpatterns = [
     # Parish Officers
     path('officers/', views.officers_list, name='officers_list'),
     path('officers/new/', views.officer_create, name='officer_create'),
+    path('officers/archive/', views.officer_archive, name='officer_archive'),
     path('officers/print/all/', views.officers_list_print, name='officers_list_print'),
     path('officers/<int:pk>/', views.officer_detail, name='officer_detail'),
     path('officers/<int:pk>/edit/', views.officer_edit, name='officer_edit'),
