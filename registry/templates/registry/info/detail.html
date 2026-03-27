@@ -1,0 +1,139 @@
+{% extends 'registry/base.html' %}
+{% block page_title %}Parish Info{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h5 class="fw-bold mb-0" style="color:#4e2a1e;">
+            <i class="bi bi-building me-2" style="color:#c9a84c;"></i>Parish Information
+        </h5>
+        <small class="text-muted">Manage your parish's basic details and contact information.</small>
+    </div>
+    <button id="editBtn" class="btn btn-primary-church btn-sm" onclick="enableEdit()">
+        <i class="bi bi-pencil-fill me-1"></i> Edit
+    </button>
+</div>
+
+{% if info %}
+<!-- At a Glance Banner -->
+<div class="card table-card mb-4" id="glanceBanner">
+    <div class="card-body px-4 py-3">
+        <div class="row align-items-center g-3">
+            <div class="col-auto d-flex align-items-center justify-content-center rounded-circle flex-shrink-0"
+                 style="width:52px;height:52px;background:#f5ede8;">
+                <i class="bi bi-building fs-4" style="color:#c9a84c;"></i>
+            </div>
+            <div class="col-md-4">
+                <div class="fw-bold fs-5 mb-0" style="color:#4e2a1e;">{{ info.parish_name }}</div>
+                {% if info.diocese %}<div class="text-muted small">{{ info.diocese }}</div>{% endif %}
+            </div>
+            <div class="col-md-3 border-start ps-4">
+                <div class="text-muted small text-uppercase fw-semibold mb-1">
+                    <i class="bi bi-geo-alt-fill me-1" style="color:#c9a84c;"></i>Address
+                </div>
+                <div class="small" style="color:#2d2d2d;">
+                    {% if info.street_address %}{{ info.street_address }},{% endif %}
+                    {% if info.barangay %}Brgy. {{ info.barangay }},{% endif %}
+                    {% if info.municipality %}{{ info.municipality }},{% endif %}
+                    {% if info.province %}{{ info.province }}{% endif %}
+                    {% if info.zip_code %} {{ info.zip_code }}{% endif %}
+                    {% if not info.street_address and not info.barangay and not info.municipality %}
+                        <span class="text-muted fst-italic">No address set</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-3 border-start ps-4">
+                <div class="text-muted small text-uppercase fw-semibold mb-1">
+                    <i class="bi bi-telephone-fill me-1" style="color:#c9a84c;"></i>Contact
+                </div>
+                {% if info.contact_number %}
+                <div class="small mb-1" style="color:#2d2d2d;">
+                    <a href="tel:{{ info.contact_number }}" class="text-decoration-none" style="color:#2d2d2d;">{{ info.contact_number }}</a>
+                </div>
+                {% endif %}
+                {% if info.email %}
+                <div class="small" style="color:#2d2d2d;">
+                    <a href="mailto:{{ info.email }}" class="text-decoration-none" style="color:#2d2d2d;">{{ info.email }}</a>
+                </div>
+                {% endif %}
+                {% if not info.contact_number and not info.email %}
+                    <span class="text-muted small fst-italic">No contact set</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% include 'registry/info/form.html' %}
+
+{% if not info %}
+<div class="alert mt-3" style="background:#f5ede8;border-left:4px solid #c9a84c;color:#4e2a1e;" role="alert">
+    <i class="bi bi-info-circle me-2"></i>No parish information set yet. Click <strong>Edit</strong> to get started.
+</div>
+{% endif %}
+
+<style>
+    #parishTabs .nav-link {
+        color: #6c757d;
+        border: none;
+        border-bottom: 3px solid transparent;
+        border-radius: 0;
+        font-size: 0.88rem;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+    #parishTabs .nav-link:hover { color: #6b3a2a; border-bottom-color: #e8c99a; }
+    #parishTabs .nav-link.active { color: #6b3a2a; font-weight: 700; border-bottom: 3px solid #6b3a2a; background: transparent; }
+    #parishTabs .nav-link i { font-size: 0.9rem; }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function enableEdit() {
+    document.querySelectorAll('.view-field').forEach(el => el.classList.add('d-none'));
+    document.querySelectorAll('.edit-field').forEach(el => el.classList.remove('d-none'));
+    const actions = document.getElementById('formActions');
+    actions.classList.remove('d-none');
+    actions.classList.add('d-flex');
+    document.getElementById('editBtn').classList.add('d-none');
+    const banner = document.getElementById('glanceBanner');
+    if (banner) banner.classList.add('d-none');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('saveParishBtn').addEventListener('click', function() {
+        showConfirmModal('Are you sure you want to save the Parish Information changes?', function() {
+            document.getElementById('parishForm').submit();
+        });
+    });
+
+    document.querySelectorAll('.copy-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const text = this.dataset.copy;
+            navigator.clipboard.writeText(text).then(() => {
+                const icon = this.querySelector('i');
+                icon.classList.replace('bi-clipboard', 'bi-clipboard-check');
+                icon.style.color = '#c9a84c';
+                setTimeout(() => {
+                    icon.classList.replace('bi-clipboard-check', 'bi-clipboard');
+                    icon.style.color = '#aaa';
+                }, 1500);
+            });
+        });
+    });
+
+    {% if form.errors %}
+    enableEdit();
+    {% if form.parish_name.errors or form.diocese.errors or form.date_established.errors %}
+        document.getElementById('tab-basic').click();
+    {% elif form.street_address.errors or form.barangay.errors or form.municipality.errors or form.province.errors or form.zip_code.errors %}
+        document.getElementById('tab-location').click();
+    {% elif form.contact_number.errors or form.email.errors %}
+        document.getElementById('tab-contact').click();
+    {% endif %}
+    {% endif %}
+});
+</script>
+{% endblock %}

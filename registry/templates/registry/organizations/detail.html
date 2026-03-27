@@ -1,0 +1,115 @@
+{% extends 'registry/base.html' %}
+{% block page_title %}{{ organization.name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm mb-3" style="border-radius:12px;">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h4 class="fw-bold mb-1" style="color:#4e2a1e;">
+                            <i class="bi bi-people-fill me-2" style="color:#c9a84c;"></i>
+                            {{ organization.name }}
+                        </h4>
+                        {% if organization.description %}
+                        <p class="text-muted mb-2">{{ organization.description }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'organization_edit' organization.pk %}" class="btn btn-sm btn-primary-church">
+                            <i class="bi bi-pencil me-1"></i>Edit
+                        </a>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteOrganization({{ org.id }}, '{{ org.name|escapejs }}')">
+                                <i class="bi bi-trash"></i> Delete
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <div class="p-3 rounded" style="background:#f5ede8;">
+                            <div class="small text-muted mb-1">Meeting Schedule</div>
+                            <div class="fw-semibold">{{ organization.meeting_schedule|default:"—" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 rounded" style="background:#f5ede8;">
+                            <div class="small text-muted mb-1">Meeting Venue</div>
+                            <div class="fw-semibold">{{ organization.meeting_venue|default:"—" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 rounded" style="background:#f5ede8;">
+                            <div class="small text-muted mb-1">Contact Person</div>
+                            <div class="fw-semibold">{{ organization.contact_person|default:"—" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 rounded" style="background:#f5ede8;">
+                            <div class="small text-muted mb-1">Total Members</div>
+                            <div class="fw-semibold">{{ memberships.count }}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold mb-0">Members</h6>
+                    <a href="{% url 'organization_add_member' organization.pk %}" class="btn btn-sm btn-primary-church">
+                        <i class="bi bi-person-plus me-1"></i>Add Member
+                    </a>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Member</th>
+                                <th>Role</th>
+                                <th>Joined Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for membership in memberships %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'member_detail' membership.member.pk %}" class="text-decoration-none fw-semibold" style="color:#4e2a1e;">
+                                        {{ membership.member.full_name }}
+                                    </a>
+                                </td>
+                                <td>{{ membership.get_role_display }}</td>
+                                <td>{{ membership.joined_date|date:"M d, Y" }}</td>
+                                <td>
+                                    {% if membership.is_active %}
+                                    <span class="badge badge-paid">Active</span>
+                                    {% else %}
+                                    <span class="badge badge-unpaid">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'membership_edit' membership.pk %}" class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteMembership({{ membership.id }}, '{{ membership.member.full_name|escapejs }}', '{{ org.name|escapejs }}')">
+                                        <i class="bi bi-person-x"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">
+                                    No members in this organization yet.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

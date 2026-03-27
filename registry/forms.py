@@ -2,7 +2,7 @@ import re
 from datetime import date
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Member, Baptism, Confirmation, FirstHolyCommunion, Marriage, LastRites, Pledge, PledgePayment, ParishInfo, ParishPriest, ParishOfficer
+from .models import Member, Baptism, Confirmation, FirstHolyCommunion, Marriage, LastRites, Pledge, PledgePayment, ParishInfo, ParishPriest, ParishOfficer, OrganizationMembership, Organization
 
 
 # ─── REUSABLE VALIDATORS ─────────────────────────────────────────────────────
@@ -563,3 +563,46 @@ class ParishOfficerForm(forms.ModelForm):
         if value:
             validate_ph_contact(value)
         return value
+
+class OrganizationForm(forms.ModelForm):
+    class Meta:
+        model = Organization
+        fields = ['name', 'description', 'meeting_schedule', 'meeting_venue', 'contact_person', 'is_active']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Legion of Mary'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Brief description of the organization...'}),
+            'meeting_schedule': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Every Sunday, 9:00 AM'}),
+            'meeting_venue': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Parish Hall Room 2'}),
+            'contact_person': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Juan Dela Cruz (President)'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+    def clean_name(self):
+        name = self.cleaned_data['name'].strip()
+        if not name:
+            raise ValidationError('Organization name is required.')
+        if len(name) < 3:
+            raise ValidationError('Organization name must be at least 3 characters.')
+        return name
+
+
+class OrganizationMembershipForm(forms.ModelForm):
+    joined_date = forms.DateField(
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        initial=date.today
+    )
+
+    class Meta:
+        model = OrganizationMembership
+        fields = ['member', 'role', 'joined_date', 'is_active', 'remarks']
+        widgets = {
+            'member': forms.Select(attrs={'class': 'form-select'}),
+            'role': forms.Select(attrs={'class': 'form-select'}),
+            'remarks': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Optional remarks...'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Filter only active members
+        self.fields['member'].queryset = Member.objects.filter(is_active=True).order_by('last_name', 'first_name')

@@ -35,6 +35,27 @@
                     <tr><td class="text-muted small">Contact</td><td class="small fw-semibold">{{ member.contact_number|default:"—" }}</td></tr>
                     <tr><td class="text-muted small">Email</td><td class="small fw-semibold">{{ member.email|default:"—" }}</td></tr>
                     <tr><td class="text-muted small">Address</td><td class="small fw-semibold">{{ member.address }}</td></tr>
+                    <tr>
+                        <td class="text-muted small">
+                            Organizations
+                        </td>
+                        <td class="small fw-semibold">
+                            {% with organizations=member.organization_memberships.select_related.all %}
+                                {% if organizations %}
+                                    <div class="d-flex flex-wrap gap-1">
+                                        {% for membership in organizations %}
+                                            <span class="badge" style="background:#f5ede8; color:#6b3a2a; padding: 4px 8px; font-weight: 500;">
+                                                <i class="bi bi-building me-1" style="font-size: 0.7rem;"></i>
+                                                {{ membership.organization.name }}
+                                            </span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            {% endwith %}
+                        </td>
+                    </tr>
                 </table>
             </div>
         </div>

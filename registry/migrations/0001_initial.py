@@ -204,4 +204,76 @@ class Migration(migrations.Migration):
                 'ordering': ['-created_at'],
             },
         ),
+        # Create Organization Membership model
+        migrations.CreateModel(
+            name='OrganizationMembership',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('role', models.CharField(
+                    choices=[
+                        ('member', 'Member'),
+                        ('officer', 'Officer'),
+                        ('president', 'President'),
+                        ('vice_president', 'Vice President'),
+                        ('secretary', 'Secretary'),
+                        ('treasurer', 'Treasurer'),
+                        ('auditor', 'Auditor'),
+                        ('coordinator', 'Coordinator'),
+                        ('advisor', 'Advisor'),
+                    ],
+                    default='member',
+                    max_length=50,
+                    verbose_name='Role/Position'
+                )),
+                ('joined_date', models.DateField(verbose_name='Joined Date')),
+                ('is_active', models.BooleanField(default=True, verbose_name='Is Active')),
+                ('remarks', models.TextField(blank=True, verbose_name='Remarks')),
+                ('date_created', models.DateField(auto_now_add=True, verbose_name='Date Created')),
+                # Foreign keys
+                ('member', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE,
+                    related_name='organization_memberships',
+                    to='registry.member',
+                    verbose_name='Member'
+                )),
+                ('organization', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE,
+                    related_name='memberships',
+                    to='registry.organization',
+                    verbose_name='Organization'
+                )),
+            ],
+            options={
+                'verbose_name': 'Organization Membership',
+                'verbose_name_plural': 'Organization Memberships',
+                'ordering': ['-joined_date'],
+                'unique_together': {('member', 'organization')},
+            },
+        ),
+        
+        # Add indexes for better performance
+        migrations.AddIndex(
+            model_name='organization',
+            index=models.Index(fields=['name'], name='organization_name_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='organization',
+            index=models.Index(fields=['is_active'], name='organization_active_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='organizationmembership',
+            index=models.Index(fields=['member_id', 'organization_id'], name='membership_member_org_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='organizationmembership',
+            index=models.Index(fields=['role'], name='membership_role_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='organizationmembership',
+            index=models.Index(fields=['is_active'], name='membership_active_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='organizationmembership',
+            index=models.Index(fields=['joined_date'], name='membership_joined_date_idx'),
+        ),
     ]
