@@ -206,13 +206,18 @@
 
     <!-- Navbar -->
     <nav class="top-nav">
-        <a href="#" class="brand">
+        <a href="{% url 'login' %}" class="brand">
             <div class="brand-icon">&#x271D;</div>
             Parish Registry
         </a>
-        <a href="{% url 'login' %}" class="btn-login-nav">
-            <i class="bi bi-box-arrow-in-right"></i> Log In
-        </a>
+        <div class="d-flex gap-2">
+            <a href="{% url 'register' %}" class="btn-login-nav" style="background:transparent;border:1px solid rgba(201,168,76,0.6);color:#c9a84c;">
+                <i class="bi bi-person-plus"></i> Sign Up
+            </a>
+            <a href="{% url 'login' %}" class="btn-login-nav">
+                <i class="bi bi-box-arrow-in-right"></i> Log In
+            </a>
+        </div>
     </nav>
 
     <!-- Body -->
