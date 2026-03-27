@@ -776,7 +776,12 @@ def officer_create(request):
         form.save()
         messages.success(request, 'Parish officer added successfully.')
         return redirect('officers_list')
-    return render(request, 'registry/officers/form.html', {'form': form, 'title': 'Add Parish Officer'})
+    members = Member.objects.filter(is_active=True).order_by('last_name', 'first_name')
+    return render(request, 'registry/officers/form.html', {
+        'form': form,
+        'title': 'Add Parish Officer',
+        'members': members,
+    })
 
 
 @admin_required

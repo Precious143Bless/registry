@@ -22,6 +22,33 @@
                 <form method="post" novalidate enctype="multipart/form-data">
                     {% csrf_token %}
 
+                    {% if members %}
+                    <div class="mb-4 p-3 rounded" style="background:#f5ede8;border:1px solid #e8d5c8;">
+                        <label class="form-label fw-semibold small text-uppercase" style="color:#4e2a1e;">
+                            <i class="bi bi-person-check me-1" style="color:#c9a84c;"></i>Select Member *
+                        </label>
+                        <div class="position-relative">
+                            <input type="text" id="memberSearch" class="form-control" placeholder="Type to search member..." autocomplete="off">
+                            <ul id="memberDropdown" class="list-unstyled mb-0 position-absolute w-100 d-none"
+                                style="background:#fff;border:1px solid #dee2e6;border-radius:0 0 8px 8px;max-height:220px;overflow-y:auto;z-index:999;top:100%;left:0;box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+                                {% for m in members %}
+                                <li class="member-option px-3 py-2"
+                                    style="cursor:pointer;font-size:0.9rem;"
+                                    data-first="{{ m.first_name }}"
+                                    data-middle="{{ m.middle_name }}"
+                                    data-last="{{ m.last_name }}"
+                                    data-contact="{{ m.contact_number }}"
+                                    data-email="{{ m.email }}"
+                                    data-name="{{ m.full_name }}">
+                                    {{ m.full_name }}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <small class="text-muted mt-1 d-block">Only active registered members can be added as officers.</small>
+                    </div>
+                    {% endif %}
+
                     <h6 class="fw-bold mb-3 mt-2" style="color:#4e2a1e; border-bottom: 2px solid #c9a84c; padding-bottom: 5px;">
                         <i class="bi bi-person-fill me-2"></i>Personal Information
                     </h6>
@@ -145,6 +172,49 @@
                 input.classList.add('is-invalid');
             }
         });
+
+        // Searchable member picker
+        const searchInput = document.getElementById('memberSearch');
+        const dropdown = document.getElementById('memberDropdown');
+        const options = dropdown ? dropdown.querySelectorAll('.member-option') : [];
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function () {
+                const q = this.value.toLowerCase().trim();
+                let hasVisible = false;
+                options.forEach(opt => {
+                    const match = opt.dataset.name.toLowerCase().includes(q);
+                    opt.style.display = match ? '' : 'none';
+                    if (match) hasVisible = true;
+                });
+                dropdown.classList.toggle('d-none', !q || !hasVisible);
+            });
+
+            searchInput.addEventListener('focus', function () {
+                if (this.value.trim()) dropdown.classList.remove('d-none');
+            });
+
+            document.addEventListener('click', function (e) {
+                if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.classList.add('d-none');
+                }
+            });
+
+            options.forEach(opt => {
+                opt.addEventListener('mouseenter', () => opt.style.background = '#f5ede8');
+                opt.addEventListener('mouseleave', () => opt.style.background = '');
+                opt.addEventListener('click', function () {
+                    // Fill name fields
+                    document.querySelector('[name="first_name"]').value = this.dataset.first;
+                    document.querySelector('[name="middle_name"]').value = this.dataset.middle;
+                    document.querySelector('[name="last_name"]').value = this.dataset.last;
+                    document.querySelector('[name="contact_number"]').value = this.dataset.contact;
+                    document.querySelector('[name="email"]').value = this.dataset.email;
+                    searchInput.value = this.dataset.name;
+                    dropdown.classList.add('d-none');
+                });
+            });
+        }
 
         const officerForm = document.querySelector('form');
         const isEdit = {% if officer.pk %}true{% else %}false{% endif %};
