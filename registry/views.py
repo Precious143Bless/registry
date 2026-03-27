@@ -549,8 +549,7 @@ def payment_edit(request, pk):
 def priests_list(request):
     from django.core.paginator import Paginator
     q = request.GET.get('q', '')
-    status_filter = request.GET.get('status', '')
-    priests = ParishPriest.objects.all()
+    priests = ParishPriest.objects.filter(status='active')
     if q:
         priests = priests.filter(
             Q(first_name__icontains=q) |
@@ -559,15 +558,12 @@ def priests_list(request):
             Q(email__icontains=q) |
             Q(contact_number__icontains=q)
         )
-    if status_filter:
-        priests = priests.filter(status=status_filter)
     paginator = Paginator(priests, 15)
     page_obj = paginator.get_page(request.GET.get('page'))
     return render(request, 'registry/priests/list.html', {
         'priests': page_obj,
         'page_obj': page_obj,
         'q': q,
-        'status_filter': status_filter
     })
 
 
@@ -707,8 +703,7 @@ def priest_archive(request):
 def officers_list(request):
     from django.core.paginator import Paginator
     q = request.GET.get('q', '')
-    status_filter = request.GET.get('status', '')
-    officers = ParishOfficer.objects.all()
+    officers = ParishOfficer.objects.filter(status='active')
     if q:
         officers = officers.filter(
             Q(first_name__icontains=q) |
@@ -718,15 +713,12 @@ def officers_list(request):
             Q(email__icontains=q) |
             Q(contact_number__icontains=q)
         )
-    if status_filter:
-        officers = officers.filter(status=status_filter)
     paginator = Paginator(officers, 15)
     page_obj = paginator.get_page(request.GET.get('page'))
     return render(request, 'registry/officers/list.html', {
         'officers': page_obj,
         'page_obj': page_obj,
         'q': q,
-        'status_filter': status_filter
     })
 
 

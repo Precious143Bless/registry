@@ -37,7 +37,6 @@
                         <th>Contact</th>
                         <th>Email</th>
                         <th>Ordination Date</th>
-                        <th>Status</th>
                         <th style="width: 120px;">Actions</th>
                     </tr>
                 </thead>
@@ -67,13 +66,6 @@
                         <td>{{ priest.email|default:"—" }}</td>
                         <td>{{ priest.ordination_date|date:"M d, Y"|default:"—" }}</td>
                         <td>
-                            {% if priest.status == 'active' %}
-                                <span class="badge bg-success">Active</span>
-                            {% else %}
-                                <span class="badge bg-secondary">Inactive</span>
-                            {% endif %}
-                        </td>
-                        <td>
                             <div class="d-flex gap-1">
                                 <a href="{% url 'priest_detail' priest.pk %}" class="btn btn-sm" style="background:#f5ede8;color:#6b3a2a;" title="View">
                                     <i class="bi bi-eye"></i>
@@ -81,19 +73,10 @@
                                 <a href="{% url 'priest_edit' priest.pk %}" class="btn btn-sm btn-outline-secondary" title="Edit">
                                     <i class="bi bi-pencil"></i>
                                 </a>
-                                {% if priest.status == 'active' %}
-                                    <button type="button" class="btn btn-sm btn-outline-secondary"
-                                        title="Deactivate"
-                                        onclick="confirmPriestStatus('{{ priest.pk }}', '{{ priest.full_name_with_title|escapejs }}', true)">
-                                        <i class="bi bi-person-dash"></i>
-                                    </button>
-                                {% else %}
-                                    <button type="button" class="btn btn-sm btn-outline-success"
-                                        title="Reactivate"
-                                        onclick="confirmPriestStatus('{{ priest.pk }}', '{{ priest.full_name_with_title|escapejs }}', false)">
-                                        <i class="bi bi-person-check"></i>
-                                    </button>
-                                {% endif %}
+                                <button type="button" class="btn btn-sm btn-outline-secondary" title="Deactivate"
+                                    onclick="confirmPriestStatus('{{ priest.pk }}', '{{ priest.full_name_with_title|escapejs }}', true)">
+                                    <i class="bi bi-person-dash"></i>
+                                </button>
                                 <form id="priestStatusForm-{{ priest.pk }}" method="post" action="{% url 'priest_deactivate' priest.pk %}" class="d-none">
                                     {% csrf_token %}
                                 </form>
@@ -102,7 +85,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="8" class="text-center text-muted py-5">
+                        <td colspan="7" class="text-center text-muted py-5">
                             <i class="bi bi-person-badge fs-2 d-block mb-2"></i>
                             No parish priests found{% if q %} for "{{ q }}"{% endif %}.
                         </td>
@@ -163,11 +146,8 @@
 
 {% block extra_js %}
 <script>
-function confirmPriestStatus(pk, name, isActive) {
-    const msg = isActive
-        ? `Are you sure you want to deactivate "${name}"? This action can be reversed later.`
-        : `Are you sure you want to reactivate "${name}"?`;
-    showConfirmModal(msg, function() {
+function confirmPriestStatus(pk, name) {
+    showConfirmModal(`Are you sure you want to deactivate "${name}"? They will be moved to the archive.`, function() {
         document.getElementById('priestStatusForm-' + pk).submit();
     });
 }
