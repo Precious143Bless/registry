@@ -42,7 +42,7 @@
                 <tbody>
                     {% for pledge in pledges %}
                     <tr>
-                        <td class="text-muted small">{{ forloop.counter }}</td>
+                        <td class="text-muted small">{{ page_obj.start_index|add:forloop.counter0 }}</td>
                         <td>
                             <a href="{% url 'member_detail' pledge.member.pk %}" class="text-decoration-none fw-semibold" style="color:#4e2a1e;">
                                 {{ pledge.member.full_name }}
