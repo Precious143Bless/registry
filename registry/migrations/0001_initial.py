@@ -33,6 +33,56 @@ class Migration(migrations.Migration):
                 'verbose_name': 'Parish Info',
             },
         ),
+        
+        # Create Church model first
+        migrations.CreateModel(
+            name='Church',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('name', models.CharField(max_length=200, verbose_name='Church Name')),
+                ('location', models.CharField(help_text='Full address of the church', max_length=300, verbose_name='Location')),
+                ('description', models.TextField(blank=True, verbose_name='Description')),
+                ('established_date', models.DateField(blank=True, null=True, verbose_name='Established Date')),
+                ('contact_number', models.CharField(blank=True, max_length=20, verbose_name='Contact Number')),
+                ('email', models.EmailField(blank=True, max_length=254, verbose_name='Email')),
+                ('bishop', models.CharField(blank=True, help_text='Current bishop of the church', max_length=200, verbose_name='Bishop')),
+                ('image', models.ImageField(blank=True, null=True, upload_to='churches/', verbose_name='Church Logo')),
+                ('is_active', models.BooleanField(default=True, verbose_name='Is Active')),
+                ('date_created', models.DateField(auto_now_add=True, verbose_name='Date Created')),
+                ('date_updated', models.DateField(auto_now=True, verbose_name='Date Updated')),
+            ],
+            options={
+                'verbose_name': 'Church',
+                'verbose_name_plural': 'Churches',
+                'ordering': ['name'],
+            },
+        ),
+        
+        # Create Parish model (depends on Church)
+        migrations.CreateModel(
+            name='Parish',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('name', models.CharField(max_length=200, verbose_name='Parish Name')),
+                ('parish_type', models.CharField(choices=[('cathedral', 'Cathedral'), ('parish', 'Parish'), ('mission', 'Mission'), ('chapel', 'Chapel')], default='parish', max_length=20, verbose_name='Parish Type')),
+                ('location', models.CharField(help_text='Full address of the parish', max_length=300, verbose_name='Location')),
+                ('description', models.TextField(blank=True, verbose_name='Description')),
+                ('established_date', models.DateField(blank=True, null=True, verbose_name='Established Date')),
+                ('contact_number', models.CharField(blank=True, max_length=20, verbose_name='Contact Number')),
+                ('email', models.EmailField(blank=True, max_length=254, verbose_name='Email')),
+                ('is_active', models.BooleanField(default=True, verbose_name='Is Active')),
+                ('date_created', models.DateField(auto_now_add=True, verbose_name='Date Created')),
+                ('date_updated', models.DateField(auto_now=True, verbose_name='Date Updated')),
+                ('church', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='parishes', to='registry.church', verbose_name='Church')),
+            ],
+            options={
+                'verbose_name': 'Parish',
+                'verbose_name_plural': 'Parishes',
+                'ordering': ['name'],
+            },
+        ),
+        
+        # Create Member model (depends on Church and Parish)
         migrations.CreateModel(
             name='Member',
             fields=[
@@ -48,8 +98,6 @@ class Migration(migrations.Migration):
                 ('email', models.EmailField(blank=True, max_length=254)),
                 ('is_active', models.BooleanField(default=True)),
                 ('date_registered', models.DateField(auto_now_add=True)),
-                
-                # NEW: Church/Diocese Assignment
                 ('church', models.ForeignKey(
                     blank=True, 
                     null=True, 
@@ -58,8 +106,6 @@ class Migration(migrations.Migration):
                     to='registry.church', 
                     verbose_name='Assigned Church/Diocese'
                 )),
-                
-                # NEW: Parish Assignment
                 ('parish', models.ForeignKey(
                     blank=True, 
                     null=True, 
@@ -73,178 +119,8 @@ class Migration(migrations.Migration):
                 'ordering': ['last_name', 'first_name'],
             },
         ),
-        migrations.CreateModel(
-            name='Pledge',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('description', models.CharField(max_length=255)),
-                ('amount_pledged', models.DecimalField(decimal_places=2, max_digits=10)),
-                ('due_date', models.DateField()),
-                ('status', models.CharField(choices=[('unpaid', 'Unpaid'), ('partial', 'Partially Paid'), ('paid', 'Fully Paid')], default='unpaid', max_length=10)),
-                ('date_created', models.DateField(auto_now_add=True)),
-                ('member', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='pledges', to='registry.member')),
-            ],
-            options={
-                'ordering': ['-date_created'],
-            },
-        ),
-        migrations.CreateModel(
-            name='PledgePayment',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('amount', models.DecimalField(decimal_places=2, max_digits=10)),
-                ('date_paid', models.DateField()),
-                ('notes', models.CharField(blank=True, max_length=255)),
-                ('pledge', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='payments', to='registry.pledge')),
-            ],
-            options={
-                'ordering': ['-date_paid'],
-            },
-        ),
-        migrations.CreateModel(
-            name='Marriage',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('spouse_name', models.CharField(max_length=200)),
-                ('date_married', models.DateField()),
-                ('priest', models.CharField(max_length=150)),
-                ('principal_sponsor', models.CharField(blank=True, max_length=150)),
-                ('secondary_sponsor', models.CharField(blank=True, max_length=150)),
-                ('remarks', models.TextField(blank=True)),
-                ('member', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='marriages', to='registry.member')),
-            ],
-        ),
-        migrations.CreateModel(
-            name='LastRites',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('date_administered', models.DateField()),
-                ('priest', models.CharField(max_length=150)),
-                ('remarks', models.TextField(blank=True)),
-                ('member', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='last_rites', to='registry.member')),
-            ],
-        ),
-        migrations.CreateModel(
-            name='FirstHolyCommunion',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('date_received', models.DateField()),
-                ('priest', models.CharField(max_length=150)),
-                ('remarks', models.TextField(blank=True)),
-                ('member', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='communion', to='registry.member')),
-            ],
-        ),
-        migrations.CreateModel(
-            name='Confirmation',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('date_confirmed', models.DateField()),
-                ('bishop', models.CharField(max_length=150)),
-                ('confirmation_name', models.CharField(max_length=100)),
-                ('sponsor', models.CharField(blank=True, max_length=150)),
-                ('remarks', models.TextField(blank=True)),
-                ('member', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='confirmation', to='registry.member')),
-            ],
-        ),
-        migrations.CreateModel(
-            name='Baptism',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('date_baptized', models.DateField()),
-                ('priest', models.CharField(max_length=150)),
-                ('godfathers', models.TextField(blank=True, default='', help_text='Comma-separated list of godfathers')),
-                ('godmothers', models.TextField(blank=True, default='', help_text='Comma-separated list of godmothers')),
-                ('birth_certificate_no', models.CharField(blank=True, max_length=100)),
-                ('remarks', models.TextField(blank=True)),
-                ('member', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='baptism', to='registry.member')),
-            ],
-        ),
-
-        migrations.CreateModel(
-            name='ParishPriest',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('first_name', models.CharField(max_length=100)),
-                ('middle_name', models.CharField(blank=True, max_length=100)),
-                ('last_name', models.CharField(max_length=100)),
-                ('contact_number', models.CharField(blank=True, max_length=20)),
-                ('email', models.EmailField(blank=True, max_length=254)),
-                ('ordination_date', models.DateField(blank=True, null=True)),
-                ('priest_since', models.DateField(blank=True, null=True)),
-                
-                # New fields - Church and Parish assignments
-                ('church', models.ForeignKey(
-                    blank=True, 
-                    null=True, 
-                    on_delete=django.db.models.deletion.SET_NULL, 
-                    related_name='priests', 
-                    to='registry.church', 
-                    verbose_name='Assigned Church/Diocese'
-                )),
-                ('parish', models.ForeignKey(
-                    blank=True, 
-                    null=True, 
-                    on_delete=django.db.models.deletion.SET_NULL, 
-                    related_name='priests', 
-                    to='registry.parish', 
-                    verbose_name='Assigned Parish'
-                )),
-                
-                ('date_assigned', models.DateField(blank=True, null=True)),
-                ('date_departed', models.DateField(blank=True, null=True)),
-                ('status', models.CharField(choices=[('active', 'Active'), ('inactive', 'Inactive')], default='active', max_length=10)),
-                ('biography', models.TextField(blank=True)),
-                ('remarks', models.TextField(blank=True)),
-                ('date_added', models.DateField(auto_now_add=True)),
-                ('date_updated', models.DateField(auto_now=True)),
-                ('image', models.ImageField(blank=True, null=True, upload_to='priests/', verbose_name='Profile Image')),
-            ],
-            options={
-                'verbose_name_plural': 'Parish Priests',
-                'ordering': ['last_name', 'first_name'],
-            },
-        ),
-        migrations.CreateModel(
-            name='ParishOfficer',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('first_name', models.CharField(max_length=100)),
-                ('middle_name', models.CharField(blank=True, max_length=100)),
-                ('last_name', models.CharField(max_length=100)),
-                ('position', models.CharField(blank=True, max_length=150, choices=[('parish_priest', 'Parish Priest (Pastor)'), ('parochial_vicar', 'Parochial Vicar / Assistant Priest'), ('ppc_president', 'PPC President / Chairperson'), ('ppc_vice_president', 'PPC Vice President'), ('ppc_secretary', 'PPC Secretary'), ('ppc_treasurer', 'PPC Treasurer'), ('ppc_auditor', 'PPC Auditor'), ('finance_council', 'Parish Finance Council'), ('lector', 'Lector (Readers)'), ('commentator', 'Commentator'), ('altar_servers', 'Altar Servers'), ('choir', 'Choir / Music Ministry'), ('extraordinary_ministers', 'Extraordinary Ministers of Holy Communion'), ('ushers', 'Ushers / Greeters'), ('collectors', 'Collectors'), ('sacristan', 'Sacristan'), ('church_decorators', 'Church Decorators'), ('youth_ministry', 'Youth Ministry'), ('family_ministry', 'Family Ministry'), ('womens_ministry', "Women's Ministry"), ('mens_ministry', "Men's Ministry"), ('catechists', 'Catechists (Religious Teachers)'), ('parish_secretary', 'Parish Secretary'), ('parish_administrator', 'Parish Administrator'), ('social_communications', 'Social Communications Officer'), ('ministry_coordinators', 'Ministry Coordinators'), ('religious_education', 'Religious Education Coordinator')])),
-                ('contact_number', models.CharField(blank=True, max_length=20)),
-                ('email', models.EmailField(blank=True, max_length=254)),
-                ('date_assigned', models.DateField(blank=True, null=True)),
-                ('date_departed', models.DateField(blank=True, null=True)),
-                ('status', models.CharField(choices=[('active', 'Active'), ('inactive', 'Inactive')], default='active', max_length=10)),
-                ('biography', models.TextField(blank=True)),
-                ('remarks', models.TextField(blank=True)),
-                ('date_added', models.DateField(auto_now_add=True)),
-                ('date_updated', models.DateField(auto_now=True)),
-                ('image', models.ImageField(blank=True, null=True, upload_to='officers/', verbose_name='Profile Image')),
-            ],
-            options={
-                'verbose_name_plural': 'Parish Officers',
-                'ordering': ['last_name', 'first_name'],
-            },
-        ),
-        migrations.CreateModel(
-            name='Notification',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('notification_type', models.CharField(choices=[('pledge_due', 'Pledge Payment Due'), ('pledge_overdue', 'Pledge Payment Overdue')], max_length=20)),
-                ('title', models.CharField(max_length=200)),
-                ('message', models.TextField()),
-                ('is_read', models.BooleanField(default=False)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('related_pledge', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='registry.pledge')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='notifications', to=settings.AUTH_USER_MODEL)),
-            ],
-            options={
-                'ordering': ['-created_at'],
-            },
-        ),
-
+        
+        # Create other models that don't depend on Church/Parish or only depend on Member
         migrations.CreateModel(
             name='Organization',
             fields=[
@@ -264,7 +140,70 @@ class Migration(migrations.Migration):
                 'ordering': ['name'],
             },
         ),
-
+        
+        migrations.CreateModel(
+            name='Baptism',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('date_baptized', models.DateField()),
+                ('priest', models.CharField(max_length=150)),
+                ('godfathers', models.TextField(blank=True, default='', help_text='Comma-separated list of godfathers')),
+                ('godmothers', models.TextField(blank=True, default='', help_text='Comma-separated list of godmothers')),
+                ('birth_certificate_no', models.CharField(blank=True, max_length=100)),
+                ('remarks', models.TextField(blank=True)),
+                ('member', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='baptism', to='registry.member')),
+            ],
+        ),
+        
+        migrations.CreateModel(
+            name='Confirmation',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('date_confirmed', models.DateField()),
+                ('bishop', models.CharField(max_length=150)),
+                ('confirmation_name', models.CharField(max_length=100)),
+                ('sponsor', models.CharField(blank=True, max_length=150)),
+                ('remarks', models.TextField(blank=True)),
+                ('member', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='confirmation', to='registry.member')),
+            ],
+        ),
+        
+        migrations.CreateModel(
+            name='FirstHolyCommunion',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('date_received', models.DateField()),
+                ('priest', models.CharField(max_length=150)),
+                ('remarks', models.TextField(blank=True)),
+                ('member', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='communion', to='registry.member')),
+            ],
+        ),
+        
+        migrations.CreateModel(
+            name='LastRites',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('date_administered', models.DateField()),
+                ('priest', models.CharField(max_length=150)),
+                ('remarks', models.TextField(blank=True)),
+                ('member', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='last_rites', to='registry.member')),
+            ],
+        ),
+        
+        migrations.CreateModel(
+            name='Marriage',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('spouse_name', models.CharField(max_length=200)),
+                ('date_married', models.DateField()),
+                ('priest', models.CharField(max_length=150)),
+                ('principal_sponsor', models.CharField(blank=True, max_length=150)),
+                ('secondary_sponsor', models.CharField(blank=True, max_length=150)),
+                ('remarks', models.TextField(blank=True)),
+                ('member', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='marriages', to='registry.member')),
+            ],
+        ),
+        
         migrations.CreateModel(
             name='OrganizationMembership',
             fields=[
@@ -289,7 +228,6 @@ class Migration(migrations.Migration):
                 ('is_active', models.BooleanField(default=True, verbose_name='Is Active')),
                 ('remarks', models.TextField(blank=True, verbose_name='Remarks')),
                 ('date_created', models.DateField(auto_now_add=True, verbose_name='Date Created')),
-                # Foreign keys
                 ('member', models.ForeignKey(
                     on_delete=django.db.models.deletion.CASCADE,
                     related_name='organization_memberships',
@@ -311,82 +249,89 @@ class Migration(migrations.Migration):
             },
         ),
         
-        # Add indexes for better performance
-        migrations.AddIndex(
-            model_name='organization',
-            index=models.Index(fields=['name'], name='organization_name_idx'),
-        ),
-        migrations.AddIndex(
-            model_name='organization',
-            index=models.Index(fields=['is_active'], name='organization_active_idx'),
-        ),
-        migrations.AddIndex(
-            model_name='organizationmembership',
-            index=models.Index(fields=['member_id', 'organization_id'], name='membership_member_org_idx'),
-        ),
-        migrations.AddIndex(
-            model_name='organizationmembership',
-            index=models.Index(fields=['role'], name='membership_role_idx'),
-        ),
-        migrations.AddIndex(
-            model_name='organizationmembership',
-            index=models.Index(fields=['is_active'], name='membership_active_idx'),
-        ),
-        migrations.AddIndex(
-            model_name='organizationmembership',
-            index=models.Index(fields=['joined_date'], name='membership_joined_date_idx'),
-        ),
-
-        # Create Church model
         migrations.CreateModel(
-            name='Church',
+            name='ParishOfficer',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=200, verbose_name='Church Name')),
-                ('location', models.CharField(help_text='Full address of the church', max_length=300, verbose_name='Location')),
-                ('description', models.TextField(blank=True, verbose_name='Description')),
-                ('established_date', models.DateField(blank=True, null=True, verbose_name='Established Date')),
-                ('contact_number', models.CharField(blank=True, max_length=20, verbose_name='Contact Number')),
-                ('email', models.EmailField(blank=True, max_length=254, verbose_name='Email')),
-                ('bishop', models.CharField(blank=True, help_text='Current bishop of the church', max_length=200, verbose_name='Bishop')),
-                ('image', models.ImageField(blank=True, null=True, upload_to='churches/', verbose_name='Church Logo')),
-                ('is_active', models.BooleanField(default=True, verbose_name='Is Active')),
-                ('date_created', models.DateField(auto_now_add=True, verbose_name='Date Created')),
-                ('date_updated', models.DateField(auto_now=True, verbose_name='Date Updated')),
+                ('first_name', models.CharField(max_length=100)),
+                ('middle_name', models.CharField(blank=True, max_length=100)),
+                ('last_name', models.CharField(max_length=100)),
+                ('position', models.CharField(blank=True, max_length=150, choices=[('parish_priest', 'Parish Priest (Pastor)'), ('parochial_vicar', 'Parochial Vicar / Assistant Priest'), ('ppc_president', 'PPC President / Chairperson'), ('ppc_vice_president', 'PPC Vice President'), ('ppc_secretary', 'PPC Secretary'), ('ppc_treasurer', 'PPC Treasurer'), ('ppc_auditor', 'PPC Auditor'), ('finance_council', 'Parish Finance Council'), ('lector', 'Lector (Readers)'), ('commentator', 'Commentator'), ('altar_servers', 'Altar Servers'), ('choir', 'Choir / Music Ministry'), ('extraordinary_ministers', 'Extraordinary Ministers of Holy Communion'), ('ushers', 'Ushers / Greeters'), ('collectors', 'Collectors'), ('sacristan', 'Sacristan'), ('church_decorators', 'Church Decorators'), ('youth_ministry', 'Youth Ministry'), ('family_ministry', 'Family Ministry'), ('womens_ministry', "Women's Ministry"), ('mens_ministry', "Men's Ministry"), ('catechists', 'Catechists (Religious Teachers)'), ('parish_secretary', 'Parish Secretary'), ('parish_administrator', 'Parish Administrator'), ('social_communications', 'Social Communications Officer'), ('ministry_coordinators', 'Ministry Coordinators'), ('religious_education', 'Religious Education Coordinator')])),
+                ('contact_number', models.CharField(blank=True, max_length=20)),
+                ('email', models.EmailField(blank=True, max_length=254)),
+                ('date_assigned', models.DateField(blank=True, null=True)),
+                ('date_departed', models.DateField(blank=True, null=True)),
+                ('status', models.CharField(choices=[('active', 'Active'), ('inactive', 'Inactive')], default='active', max_length=10)),
+                ('biography', models.TextField(blank=True)),
+                ('remarks', models.TextField(blank=True)),
+                ('date_added', models.DateField(auto_now_add=True)),
+                ('date_updated', models.DateField(auto_now=True)),
+                ('image', models.ImageField(blank=True, null=True, upload_to='officers/', verbose_name='Profile Image')),
+                ('church', models.ForeignKey(
+                    blank=True, 
+                    null=True, 
+                    on_delete=django.db.models.deletion.SET_NULL, 
+                    related_name='officers', 
+                    to='registry.church', 
+                    verbose_name='Assigned Church/Diocese'
+                )),
+                ('parish', models.ForeignKey(
+                    blank=True, 
+                    null=True, 
+                    on_delete=django.db.models.deletion.SET_NULL, 
+                    related_name='officers', 
+                    to='registry.parish', 
+                    verbose_name='Assigned Parish'
+                )),
             ],
             options={
-                'verbose_name': 'Church',
-                'verbose_name_plural': 'Churches',
-                'ordering': ['name'],
+                'verbose_name_plural': 'Parish Officers',
+                'ordering': ['last_name', 'first_name'],
             },
         ),
         
-        
-        # Create Parish model
         migrations.CreateModel(
-            name='Parish',
+            name='ParishPriest',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=200, verbose_name='Parish Name')),
-                ('parish_type', models.CharField(choices=[('cathedral', 'Cathedral'), ('parish', 'Parish'), ('mission', 'Mission'), ('chapel', 'Chapel')], default='parish', max_length=20, verbose_name='Parish Type')),
-                ('location', models.CharField(help_text='Full address of the parish', max_length=300, verbose_name='Location')),
-                ('description', models.TextField(blank=True, verbose_name='Description')),
-                ('established_date', models.DateField(blank=True, null=True, verbose_name='Established Date')),
-                ('contact_number', models.CharField(blank=True, max_length=20, verbose_name='Contact Number')),
-                ('email', models.EmailField(blank=True, max_length=254, verbose_name='Email')),
-                ('is_active', models.BooleanField(default=True, verbose_name='Is Active')),
-                ('date_created', models.DateField(auto_now_add=True, verbose_name='Date Created')),
-                ('date_updated', models.DateField(auto_now=True, verbose_name='Date Updated')),
-                ('church', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='parishes', to='registry.church', verbose_name='Church')),
+                ('first_name', models.CharField(max_length=100)),
+                ('middle_name', models.CharField(blank=True, max_length=100)),
+                ('last_name', models.CharField(max_length=100)),
+                ('contact_number', models.CharField(blank=True, max_length=20)),
+                ('email', models.EmailField(blank=True, max_length=254)),
+                ('ordination_date', models.DateField(blank=True, null=True)),
+                ('priest_since', models.DateField(blank=True, null=True)),
+                ('date_assigned', models.DateField(blank=True, null=True)),
+                ('date_departed', models.DateField(blank=True, null=True)),
+                ('status', models.CharField(choices=[('active', 'Active'), ('inactive', 'Inactive')], default='active', max_length=10)),
+                ('biography', models.TextField(blank=True)),
+                ('remarks', models.TextField(blank=True)),
+                ('date_added', models.DateField(auto_now_add=True)),
+                ('date_updated', models.DateField(auto_now=True)),
+                ('image', models.ImageField(blank=True, null=True, upload_to='priests/', verbose_name='Profile Image')),
+                ('church', models.ForeignKey(
+                    blank=True, 
+                    null=True, 
+                    on_delete=django.db.models.deletion.SET_NULL, 
+                    related_name='priests', 
+                    to='registry.church', 
+                    verbose_name='Assigned Church/Diocese'
+                )),
+                ('parish', models.ForeignKey(
+                    blank=True, 
+                    null=True, 
+                    on_delete=django.db.models.deletion.SET_NULL, 
+                    related_name='priests', 
+                    to='registry.parish', 
+                    verbose_name='Assigned Parish'
+                )),
             ],
             options={
-                'verbose_name': 'Parish',
-                'verbose_name_plural': 'Parishes',
-                'ordering': ['name'],
+                'verbose_name_plural': 'Parish Priests',
+                'ordering': ['last_name', 'first_name'],
             },
         ),
         
-        # Create Parish Officer model (EP - Episcopal)
         migrations.CreateModel(
             name='ParishOfficerEP',
             fields=[
@@ -419,7 +364,78 @@ class Migration(migrations.Migration):
             },
         ),
         
+        migrations.CreateModel(
+            name='Pledge',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('description', models.CharField(max_length=255)),
+                ('amount_pledged', models.DecimalField(decimal_places=2, max_digits=10)),
+                ('due_date', models.DateField()),
+                ('status', models.CharField(choices=[('unpaid', 'Unpaid'), ('partial', 'Partially Paid'), ('paid', 'Fully Paid')], default='unpaid', max_length=10)),
+                ('date_created', models.DateField(auto_now_add=True)),
+                ('member', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='pledges', to='registry.member')),
+            ],
+            options={
+                'ordering': ['-date_created'],
+            },
+        ),
+        
+        migrations.CreateModel(
+            name='PledgePayment',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('amount', models.DecimalField(decimal_places=2, max_digits=10)),
+                ('date_paid', models.DateField()),
+                ('notes', models.CharField(blank=True, max_length=255)),
+                ('pledge', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='payments', to='registry.pledge')),
+            ],
+            options={
+                'ordering': ['-date_paid'],
+            },
+        ),
+        
+        migrations.CreateModel(
+            name='Notification',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('notification_type', models.CharField(choices=[('pledge_due', 'Pledge Payment Due'), ('pledge_overdue', 'Pledge Payment Overdue')], max_length=20)),
+                ('title', models.CharField(max_length=200)),
+                ('message', models.TextField()),
+                ('is_read', models.BooleanField(default=False)),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ('related_pledge', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='registry.pledge')),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='notifications', to=settings.AUTH_USER_MODEL)),
+            ],
+            options={
+                'ordering': ['-created_at'],
+            },
+        ),
+        
         # Add indexes for better performance
+        migrations.AddIndex(
+            model_name='organization',
+            index=models.Index(fields=['name'], name='organization_name_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='organization',
+            index=models.Index(fields=['is_active'], name='organization_active_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='organizationmembership',
+            index=models.Index(fields=['member_id', 'organization_id'], name='membership_member_org_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='organizationmembership',
+            index=models.Index(fields=['role'], name='membership_role_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='organizationmembership',
+            index=models.Index(fields=['is_active'], name='membership_active_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='organizationmembership',
+            index=models.Index(fields=['joined_date'], name='membership_joined_date_idx'),
+        ),
         migrations.AddIndex(
             model_name='church',
             index=models.Index(fields=['name'], name='church_name_idx'),
