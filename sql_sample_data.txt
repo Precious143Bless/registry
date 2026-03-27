@@ -1,0 +1,368 @@
+
+-- =====================================================
+-- 1. INSERT CHURCHES (Dioceses)
+-- =====================================================
+INSERT INTO `registry_church` (`id`, `name`, `location`, `description`, `established_date`, `contact_number`, `email`, `bishop`, `image`, `is_active`, `date_created`, `date_updated`) VALUES
+(1, 'Diocese of Central Philippines', 'Central Philippines Region', 'The Diocese of Central Philippines serves the Episcopal Church in the Central Philippines area.', '1967-01-01', '0285278010', 'central@episcopalchurch.ph', 'The Rt. Rev. Brent Harry Alawas', NULL, 1, CURDATE(), CURDATE()),
+(2, 'Diocese of Southern Philippines', 'Southern Philippines Region', 'The Diocese of Southern Philippines serves the Episcopal Church in Mindanao and surrounding areas.', '1967-01-01', '0285278011', 'southern@episcopalchurch.ph', 'The Rt. Rev. Daniel B. Lumabao', NULL, 1, CURDATE(), CURDATE()),
+(3, 'Diocese of Northern Philippines', 'Northern Philippines Region', 'The Diocese of Northern Philippines serves the Episcopal Church in Northern Luzon.', '1967-01-01', '0285278012', 'northern@episcopalchurch.ph', 'The Rt. Rev. Edward P. Malecdan', NULL, 1, CURDATE(), CURDATE()),
+(4, 'Diocese of North Central Philippines', 'North Central Philippines Region', 'The Diocese of North Central Philippines serves the Episcopal Church in the North Central area.', '2000-01-01', '0285278013', 'northcentral@episcopalchurch.ph', 'The Rt. Rev. Hilary M. Pascua', NULL, 1, CURDATE(), CURDATE()),
+(5, 'Diocese of Northern Luzon', 'Northern Luzon Region', 'The Diocese of Northern Luzon serves the Episcopal Church in Northern Luzon provinces.', '1990-01-01', '0285278014', 'northernluzon@episcopalchurch.ph', 'The Rt. Rev. David L. Bacani', NULL, 1, CURDATE(), CURDATE()),
+(6, 'Diocese of Santiago', 'Santiago City, Isabela', 'The Diocese of Santiago serves the Episcopal Church in Isabela and surrounding areas.', '1995-01-01', '0285278015', 'santiago@episcopalchurch.ph', 'The Rt. Rev. Alexander A. Wandag', NULL, 1, CURDATE(), CURDATE()),
+(7, 'Diocese of Davao', 'Davao Region', 'The Diocese of Davao serves the Episcopal Church in Davao and surrounding areas.', '1995-01-01', '0285278016', 'davao@episcopalchurch.ph', 'The Rt. Rev. Felixberto L. Calang', NULL, 1, CURDATE(), CURDATE()),
+(8, 'Visayas Missionary Diocese', 'Visayas Region', 'The Visayas Missionary Diocese serves the Episcopal Church in the Visayas islands.', '2005-01-01', '0285278017', 'visayas@episcopalchurch.ph', 'The Rt. Rev. Benito P. Caballero', NULL, 1, CURDATE(), CURDATE());
+
+-- =====================================================
+-- 2. INSERT PARISHES (registry_parish)
+-- =====================================================
+
+-- Diocese of Central Philippines (Church ID: 1)
+INSERT INTO `registry_parish` (`id`, `church_id`, `name`, `parish_type`, `location`, `description`, `established_date`, `contact_number`, `email`, `is_active`, `date_created`, `date_updated`) VALUES
+(1, 1, 'Cathedral of St. Mary and St. John', 'cathedral', '277 E. Rodriguez Sr. Ave, Quezon City', 'The main cathedral of the Diocese of Central Philippines.', '1950-05-15', '09171234567', 'cathedral@central.diocese.ph', 1, CURDATE(), CURDATE()),
+(2, 1, 'Church of the Holy Trinity', 'parish', '48 McKinley Rd, Forbes Park, Makati City', 'A historic church serving the Forbes Park community.', '1965-08-20', '09172345678', 'holytrinity@central.diocese.ph', 1, CURDATE(), CURDATE()),
+(3, 1, 'St. Stephen\'s Parish', 'parish', '1267 Masangkay St, Santa Cruz, Manila', 'A vibrant parish in the heart of Manila.', '1970-03-10', '09173456789', 'ststephens@central.diocese.ph', 1, CURDATE(), CURDATE()),
+(4, 1, 'St. Peter Episcopal Parish', 'parish', '1018 Reina Regente St, Binondo, Manila', 'A historic parish serving the Binondo community.', '1980-06-12', '09174567890', 'stpeter@central.diocese.ph', 1, CURDATE(), CURDATE()),
+(5, 1, 'Holy Faith Parish', 'mission', 'Igorot Village, Cainta, Rizal', 'Serving the Igorot community in Cainta.', '1995-09-01', '09175678901', 'holyfaith@central.diocese.ph', 1, CURDATE(), CURDATE()),
+(6, 1, 'Fairview Episcopal Resurrection Church', 'parish', 'Republic Ave, West Fairview, Quezon City', 'A growing parish in Fairview.', '1988-04-25', '09176789012', 'fairview@central.diocese.ph', 1, CURDATE(), CURDATE()),
+(7, 1, 'St. Luke\'s Episcopal Church', 'parish', 'Quirino Highway, Novaliches, Quezon City', 'Serving the Novaliches community.', '1985-10-18', '09177890123', 'stlukes@central.diocese.ph', 1, CURDATE(), CURDATE()),
+(8, 1, 'Episcopal Church of the Holy Spirit', 'parish', 'Resma St. cor. Sto Niño St., Taguig', 'A vibrant parish in Taguig City.', '1992-02-14', '09178901234', 'holyspirit@central.diocese.ph', 1, CURDATE(), CURDATE()),
+(9, 1, 'St. David of Wales Episcopal Church', 'mission', 'General Tinio, Nueva Ecija', 'Serving the community in Nueva Ecija.', '2000-03-01', '09179012345', 'stdavid@central.diocese.ph', 1, CURDATE(), CURDATE()),
+(10, 1, 'St. Joseph\'s Episcopal Church', 'parish', 'San Isidro, Laur, Nueva Ecija', 'A parish serving the Laur community.', '2002-11-19', '09180123456', 'stjoseph@central.diocese.ph', 1, CURDATE(), CURDATE()),
+(11, 1, 'St. Barnabas Episcopal Church', 'parish', 'Crossing Mendez West, Tagaytay City', 'A parish in the cool highlands of Tagaytay.', '1998-06-11', '09181234567', 'stbarnabas@central.diocese.ph', 1, CURDATE(), CURDATE()),
+(12, 1, 'Holy Family Episcopal Church', 'parish', 'Brentville Subd., Laguna', 'Serving the Brentville community in Laguna.', '2005-01-15', '09182345678', 'holyfamily@central.diocese.ph', 1, CURDATE(), CURDATE());
+
+-- Diocese of Southern Philippines (Church ID: 2)
+INSERT INTO `registry_parish` (`id`, `church_id`, `name`, `parish_type`, `location`, `description`, `established_date`, `contact_number`, `email`, `is_active`, `date_created`, `date_updated`) VALUES
+(13, 2, 'Cathedral of St. Peter and St. Paul', 'cathedral', 'Sinsuat Avenue, Cotabato City', 'The main cathedral of the Diocese of Southern Philippines.', '1967-01-01', '09183456789', 'cathedral@southern.diocese.ph', 1, CURDATE(), CURDATE()),
+(14, 2, 'Holy Trinity Parish', 'parish', 'Justice R.T. Lim Blvd, Zamboanga City', 'A historic parish in Zamboanga City.', '1970-03-20', '09184567890', 'holytrinity@southern.diocese.ph', 1, CURDATE(), CURDATE()),
+(15, 2, 'St. Francis Parish', 'parish', 'Nuro, Upi, Maguindanao', 'Serving the Upi community in Maguindanao.', '1980-10-04', '09185678901', 'stfrancis@southern.diocese.ph', 1, CURDATE(), CURDATE()),
+(16, 2, 'Good Shepherd Parish', 'parish', 'Calarian, Zamboanga City', 'A parish in Calarian, Zamboanga City.', '1985-05-15', '09186789012', 'goodshepherd@southern.diocese.ph', 1, CURDATE(), CURDATE()),
+(17, 2, 'St. Andrew Parish', 'mission', 'Nangi, Upi, Maguindanao', 'Serving the Nangi community.', '1990-11-30', '09187890123', 'standrew@southern.diocese.ph', 1, CURDATE(), CURDATE()),
+(18, 2, 'St. Martin of Tours Parish', 'parish', 'Mirab, Upi, Maguindanao', 'A parish in Mirab, Upi.', '1995-11-11', '09188901234', 'stmartin@southern.diocese.ph', 1, CURDATE(), CURDATE()),
+(19, 2, 'St. Thomas Parish', 'mission', 'Kabutuyen, Upi, Maguindanao', 'Serving the Kabutuyen community.', '2000-12-21', '09189012345', 'stthomas@southern.diocese.ph', 1, CURDATE(), CURDATE()),
+(20, 2, 'All Saints Parish', 'parish', 'Timanan, South Upi, Maguindanao', 'A parish in South Upi.', '2002-11-01', '09190123456', 'allsaints@southern.diocese.ph', 1, CURDATE(), CURDATE()),
+(21, 2, 'St. John the Evangelist Parish', 'parish', 'Tenorio, Awang, Maguindanao', 'Serving the Awang community.', '2005-12-27', '09191234567', 'stjohn@southern.diocese.ph', 1, CURDATE(), CURDATE()),
+(22, 2, 'Holy Child Parish', 'mission', 'Kalamansig, Sultan Kudarat', 'Serving the Kalamansig community.', '2010-01-20', '09192345678', 'holychild@southern.diocese.ph', 1, CURDATE(), CURDATE()),
+(23, 2, 'St. Paul Parish', 'mission', 'Pandan, South Upi, Maguindanao', 'A mission parish in Pandan.', '2012-01-25', '09193456789', 'stpaul@southern.diocese.ph', 1, CURDATE(), CURDATE()),
+(24, 2, 'St. Luke Parish', 'mission', 'KM 20 DOS, Maguindanao', 'Serving the KM 20 DOS community.', '2015-10-18', '09194567890', 'stluke@southern.diocese.ph', 1, CURDATE(), CURDATE()),
+(25, 2, 'St. Margaret Parish', 'mission', 'Nalkan, Maguindanao', 'A mission parish in Nalkan.', '2018-07-20', '09195678901', 'stmargaret@southern.diocese.ph', 1, CURDATE(), CURDATE()),
+(26, 2, 'St. Bartholomew Parish', 'mission', 'Kiga, Upi, Maguindanao', 'Serving the Kiga community.', '2020-08-24', '09196789012', 'stbartholomew@southern.diocese.ph', 1, CURDATE(), CURDATE()),
+(27, 2, 'St. James of Jerusalem Parish', 'mission', 'Tudok Mamot, Upi, Maguindanao', 'A mission parish in Tudok Mamot.', '2022-07-25', '09197890123', 'stjames@southern.diocese.ph', 1, CURDATE(), CURDATE());
+
+-- Diocese of Northern Philippines (Church ID: 3)
+INSERT INTO `registry_parish` (`id`, `church_id`, `name`, `parish_type`, `location`, `description`, `established_date`, `contact_number`, `email`, `is_active`, `date_created`, `date_updated`) VALUES
+(28, 3, 'Cathedral of the Resurrection', 'cathedral', 'Baguio City', 'The main cathedral of the Diocese of Northern Philippines.', '1967-01-01', '09198901234', 'cathedral@northern.diocese.ph', 1, CURDATE(), CURDATE()),
+(29, 3, 'St. Mary\'s Episcopal Church', 'parish', 'Mission Road, Sagada, Mountain Province', 'A historic church in the mountain province.', '1904-06-01', '09199012345', 'stmary@northern.diocese.ph', 1, CURDATE(), CURDATE()),
+(30, 3, 'Episcopal Church of the Epiphany', 'parish', 'La Trinidad, Benguet', 'Serving the La Trinidad community.', '1980-01-06', '09200123456', 'epiphany@northern.diocese.ph', 1, CURDATE(), CURDATE());
+
+-- Diocese of Davao (Church ID: 7)
+INSERT INTO `registry_parish` (`id`, `church_id`, `name`, `parish_type`, `location`, `description`, `established_date`, `contact_number`, `email`, `is_active`, `date_created`, `date_updated`) VALUES
+(31, 7, 'Episcopal Church in the Philippines Davao', 'cathedral', 'Matina Pangi Rd, Talomo, Davao City', 'The main church of the Diocese of Davao.', '1995-01-01', '09201234567', 'davao@davao.diocese.ph', 1, CURDATE(), CURDATE());
+
+-- Visayas Missionary Diocese (Church ID: 8)
+INSERT INTO `registry_parish` (`id`, `church_id`, `name`, `parish_type`, `location`, `description`, `established_date`, `contact_number`, `email`, `is_active`, `date_created`, `date_updated`) VALUES
+(32, 8, 'The Episcopal Church (Talisay, Cebu)', 'parish', 'Ramona 1, Purok Batong, Cebu South Coastal Road, Talisay City', 'The main church of the Visayas Missionary Diocese.', '2005-01-01', '09202345678', 'talisay@visayas.diocese.ph', 1, CURDATE(), CURDATE());
+
+-- =====================================================
+-- 3. INSERT MEMBERS (registry_member)
+-- =====================================================
+INSERT INTO `registry_member` (`id`, `first_name`, `middle_name`, `last_name`, `birthday`, `gender`, `civil_status`, `address`, `contact_number`, `email`, `is_active`, `date_registered`, `church_id`, `parish_id`) VALUES
+-- Diocese of Central Philippines Members (Parishes 1-12)
+(1, 'Juan', 'Santos', 'Dela Cruz', '1990-05-15', 'M', 'married', '123 Rizal St., Quezon City', '09171234567', 'juan.delacruz@email.com', 1, CURDATE(), 1, 1),
+(2, 'Maria', 'Reyes', 'Dela Cruz', '1992-08-22', 'F', 'married', '123 Rizal St., Quezon City', '09172345678', 'maria.delacruz@email.com', 1, CURDATE(), 1, 1),
+(3, 'Jose', 'Manuel', 'Rizal', '1985-06-19', 'M', 'single', '456 Mabini St., Makati City', '09173456789', 'jose.rizal@email.com', 1, CURDATE(), 1, 2),
+(4, 'Ana', 'Cruz', 'Santos', '1995-11-10', 'F', 'single', '789 Katipunan Ave., Quezon City', '09174567890', 'ana.santos@email.com', 1, CURDATE(), 1, 3),
+(5, 'Pedro', 'Gomez', 'Calungsod', '1988-03-25', 'M', 'widowed', '321 Aurora Blvd., Quezon City', '09175678901', 'pedro.calungsod@email.com', 1, CURDATE(), 1, 4),
+(6, 'Clara', 'Maria', 'Delos Santos', '1998-07-14', 'F', 'single', '555 Taft Ave., Manila', '09176789012', 'clara.delossantos@email.com', 1, CURDATE(), 1, 5),
+(7, 'Andres', 'Bonifacio', 'Gat', '1980-11-30', 'M', 'married', '444 Kalayaan St., Quezon City', '09177890123', 'andres.bonifacio@email.com', 1, CURDATE(), 1, 6),
+(8, 'Gregoria', 'De Jesus', 'Gat', '1985-05-09', 'F', 'married', '444 Kalayaan St., Quezon City', '09178901234', 'gregoria.gat@email.com', 1, CURDATE(), 1, 6),
+(9, 'Emilio', 'Jacinto', 'Aguinaldo', '1975-01-22', 'M', 'married', '123 Bonifacio St., Novaliches', '09179012345', 'emilio.aguinaldo@email.com', 1, CURDATE(), 1, 7),
+(10, 'Melchora', 'Aquino', 'Ramos', '1978-12-05', 'F', 'married', '456 Taguig City', '09180123456', 'melchora.ramos@email.com', 1, CURDATE(), 1, 8),
+(11, 'Gabriela', 'Silang', 'Luna', '1982-03-18', 'F', 'single', '789 General Tinio, Nueva Ecija', '09181234567', 'gabriela.luna@email.com', 1, CURDATE(), 1, 9),
+(12, 'Antonio', 'Luna', 'Roxas', '1983-10-22', 'M', 'married', '321 San Isidro, Laur, Nueva Ecija', '09182345678', 'antonio.roxas@email.com', 1, CURDATE(), 1, 10),
+(13, 'Gregorio', 'Del Pilar', 'Villanueva', '1986-11-14', 'M', 'single', '555 Tagaytay City', '09183456789', 'gregorio.villanueva@email.com', 1, CURDATE(), 1, 11),
+(14, 'Teresa', 'Magbanua', 'Fernandez', '1990-05-09', 'F', 'single', '888 Brentville Subd., Laguna', '09184567890', 'teresa.fernandez@email.com', 1, CURDATE(), 1, 12),
+
+-- Diocese of Southern Philippines Members (Parishes 13-27)
+(15, 'Sultan', 'Muhammad', 'Kudarat', '1970-08-15', 'M', 'married', '123 Cotabato City', '09185678901', 'sultan.kudarat@email.com', 1, CURDATE(), 2, 13),
+(16, 'Lapu-Lapu', 'Mactan', 'Cebu', '1965-04-27', 'M', 'married', '456 Zamboanga City', '09186789012', 'lapulapu@email.com', 1, CURDATE(), 2, 14),
+(17, 'Datu', 'Piang', 'Maguindanao', '1975-02-28', 'M', 'widowed', '789 Nuro, Upi, Maguindanao', '09187890123', 'datu.piang@email.com', 1, CURDATE(), 2, 15),
+(18, 'Shariff', 'Kabunsuan', 'Mindanao', '1978-07-12', 'M', 'married', '321 Calarian, Zamboanga City', '09188901234', 'shariff@email.com', 1, CURDATE(), 2, 16),
+(19, 'Princess', 'Tarhata', 'Alonto', '1985-09-23', 'F', 'single', '555 Nangi, Upi, Maguindanao', '09189012345', 'princess.alonto@email.com', 1, CURDATE(), 2, 17),
+(20, 'Datu', 'Utto', 'Maguindanao', '1982-03-11', 'M', 'married', '888 Mirab, Upi, Maguindanao', '09190123456', 'datu.utto@email.com', 1, CURDATE(), 2, 18),
+(21, 'Bai', 'Laban', 'Maguindanao', '1987-06-18', 'F', 'married', '999 Kabutuyen, Upi, Maguindanao', '09191234567', 'bai.laban@email.com', 1, CURDATE(), 2, 19),
+(22, 'Moro', 'Muhammad', 'Ali', '1990-12-01', 'M', 'single', '123 Timanan, South Upi', '09192345678', 'moro.ali@email.com', 1, CURDATE(), 2, 20),
+(23, 'Fatima', 'Sulu', 'Rahman', '1992-05-15', 'F', 'married', '456 Tenorio, Awang, Maguindanao', '09193456789', 'fatima.rahman@email.com', 1, CURDATE(), 2, 21),
+(24, 'Abdurahman', 'Sangkil', 'Maguid', '1988-10-10', 'M', 'married', '789 Kalamansig, Sultan Kudarat', '09194567890', 'abdurahman@email.com', 1, CURDATE(), 2, 22),
+(25, 'Nur', 'Misuari', 'Moro', '1979-03-15', 'M', 'widowed', '321 Pandan, South Upi', '09195678901', 'nur.misuari@email.com', 1, CURDATE(), 2, 23),
+(26, 'Hadja', 'Putri', 'Moro', '1983-07-20', 'F', 'married', '555 KM 20 DOS, Maguindanao', '09196789012', 'hadja.putri@email.com', 1, CURDATE(), 2, 24),
+(27, 'Salipada', 'Pendatun', 'Maguindanao', '1976-09-09', 'M', 'married', '888 Nalkan, Maguindanao', '09197890123', 'salipada@email.com', 1, CURDATE(), 2, 25),
+(28, 'Aleem', 'Abdul', 'Mansur', '1980-04-04', 'M', 'married', '999 Kiga, Upi, Maguindanao', '09198901234', 'aleem.abdul@email.com', 1, CURDATE(), 2, 26),
+(29, 'Ustadz', 'Abdullah', 'Makmod', '1985-11-11', 'M', 'married', '123 Tudok Mamot, Upi', '09199012345', 'ustadz.abdullah@email.com', 1, CURDATE(), 2, 27),
+
+-- Diocese of Northern Philippines Members (Parishes 28-30)
+(30, 'Bago', 'Mountain', 'Cordillera', '1975-06-10', 'M', 'married', '123 Baguio City', '09200123456', 'bago.cordillera@email.com', 1, CURDATE(), 3, 28),
+(31, 'Apo', 'Whang-od', 'Oggay', '1917-02-17', 'F', 'widowed', '456 Sagada, Mountain Province', '09201234567', 'apo.whangod@email.com', 1, CURDATE(), 3, 29),
+(32, 'Lumawig', 'Bontoc', 'Cordillera', '1980-01-01', 'M', 'married', '789 La Trinidad, Benguet', '09202345678', 'lumawig@email.com', 1, CURDATE(), 3, 30),
+
+-- Diocese of Davao Members (Parish 31)
+(33, 'Apo', 'Datu', 'Davao', '1970-03-21', 'M', 'married', '123 Matina Pangi, Davao City', '09203456789', 'apo.datu@email.com', 1, CURDATE(), 7, 31),
+(34, 'Bagobo', 'Datu', 'Maboloc', '1975-07-15', 'M', 'married', '456 Talomo, Davao City', '09204567890', 'bagobo.maboloc@email.com', 1, CURDATE(), 7, 31),
+(35, 'Mandy', 'Tiburon', 'Sawadjaan', '1985-09-25', 'F', 'single', '789 Davao City', '09205678901', 'mandy.sawadjaan@email.com', 1, CURDATE(), 7, 31),
+
+-- Visayas Missionary Diocese Members (Parish 32)
+(36, 'Datu', 'Visayas', 'Cebuano', '1980-11-15', 'M', 'married', '123 Talisay City, Cebu', '09206789012', 'datu.visayas@email.com', 1, CURDATE(), 8, 32),
+(37, 'Rajah', 'Humabon', 'Cebu', '1975-04-15', 'M', 'married', '456 Cebu City', '09207890123', 'rajah.humabon@email.com', 1, CURDATE(), 8, 32),
+(38, 'Maria', 'Josefina', 'Sikatuna', '1990-08-22', 'F', 'single', '789 Bohol', '09208901234', 'maria.sikatuna@email.com', 1, CURDATE(), 8, 32);
+
+-- =====================================================
+-- 4. INSERT PARISH PRIESTS (registry_parishpriest)
+-- =====================================================
+INSERT INTO `registry_parishpriest` (`id`, `first_name`, `middle_name`, `last_name`, `contact_number`, `email`, `ordination_date`, `priest_since`, `church_id`, `parish_id`, `date_assigned`, `date_departed`, `status`, `biography`, `remarks`, `date_added`, `date_updated`, `image`) VALUES
+-- Diocese of Central Philippines Priests
+(1, 'Reynaldo', 'Cruz', 'Evangelista', '09171234567', 'fr.reynaldo@episcopalchurch.ph', '1995-06-10', '1995-06-10', 1, 1, '2010-01-15', NULL, 'active', 'Fr. Reynaldo has been serving the Cathedral of St. Mary and St. John for over a decade. He is known for his inspiring sermons and pastoral care.', 'Main celebrant for major feasts', CURDATE(), CURDATE(), NULL),
+(2, 'Antonio', 'M', 'Ledesma', '09172345678', 'fr.antonio@episcopalchurch.ph', '2000-04-25', '2000-04-25', 1, 2, '2015-03-01', NULL, 'active', 'Fr. Antonio is known for his dynamic preaching and community outreach programs.', 'Excellent preacher', CURDATE(), CURDATE(), NULL),
+(3, 'Michael', 'S', 'Rodriguez', '09173456789', 'fr.michael@episcopalchurch.ph', '2005-12-12', '2005-12-12', 1, 3, '2018-07-20', NULL, 'active', 'Fr. Michael specializes in youth ministry and has developed strong programs for young people.', 'Young and dynamic leader', CURDATE(), CURDATE(), NULL),
+(4, 'Francisco', 'P', 'Gonzales', '09174567890', 'fr.francisco@episcopalchurch.ph', '1988-03-19', '1988-03-19', 1, 4, '2012-11-11', NULL, 'active', 'Fr. Francisco has served in various parishes before this assignment. Expert in church history.', 'Historian and author', CURDATE(), CURDATE(), NULL),
+(5, 'Gregorio', 'B', 'Fernandez', '09175678901', 'fr.gregorio@episcopalchurch.ph', '1992-08-15', '1992-08-15', 1, 5, '2016-05-10', NULL, 'active', 'Fr. Gregorio is dedicated to serving indigenous communities.', 'Missionary work expert', CURDATE(), CURDATE(), NULL),
+(6, 'Ramon', 'D', 'Mercado', '09176789012', 'fr.ramon@episcopalchurch.ph', '1998-10-22', '1998-10-22', 1, 6, '2019-01-15', NULL, 'active', 'Fr. Ramon focuses on social justice and community development.', 'Community organizer', CURDATE(), CURDATE(), NULL),
+(7, 'Luis', 'C', 'Tagle', '09177890123', 'fr.luis@episcopalchurch.ph', '2001-06-05', '2001-06-05', 1, 7, '2020-02-20', NULL, 'active', 'Fr. Luis is known for his work with the youth and young adults.', 'Youth ministry specialist', CURDATE(), CURDATE(), NULL),
+(8, 'Jaime', 'L', 'David', '09178901234', 'fr.jaime@episcopalchurch.ph', '2003-11-18', '2003-11-18', 1, 8, '2021-03-01', NULL, 'active', 'Fr. Jaime is a talented musician and leads the music ministry.', 'Music director', CURDATE(), CURDATE(), NULL),
+(9, 'Teodoro', 'M', 'Bacani', '09179012345', 'fr.teodoro@episcopalchurch.ph', '1996-07-12', '1996-07-12', 1, 9, '2017-09-15', NULL, 'active', 'Fr. Teodoro works with rural communities and farmers.', 'Rural development', CURDATE(), CURDATE(), NULL),
+(10, 'Emmanuel', 'R', 'Villanueva', '09180123456', 'fr.emmanuel@episcopalchurch.ph', '2002-04-23', '2002-04-23', 1, 10, '2018-12-01', NULL, 'active', 'Fr. Emmanuel is an educator and runs the parish school.', 'Education advocate', CURDATE(), CURDATE(), NULL),
+(11, 'Vicente', 'S', 'Domingo', '09181234567', 'fr.vicente@episcopalchurch.ph', '1994-02-14', '1994-02-14', 1, 11, '2015-08-20', NULL, 'active', 'Fr. Vicente is a retreat master and spiritual director.', 'Spiritual director', CURDATE(), CURDATE(), NULL),
+(12, 'Ricardo', 'A', 'Puno', '09182345678', 'fr.ricardo@episcopalchurch.ph', '2000-09-09', '2000-09-09', 1, 12, '2020-06-15', NULL, 'active', 'Fr. Ricardo focuses on family ministry and marriage preparation.', 'Family ministry', CURDATE(), CURDATE(), NULL),
+
+-- Diocese of Southern Philippines Priests
+(13, 'Abdul', 'M', 'Rahman', '09183456789', 'fr.abdul@episcopalchurch.ph', '1995-03-20', '1995-03-20', 2, 13, '2010-01-01', NULL, 'active', 'Fr. Abdul bridges Christian and Muslim communities.', 'Interfaith dialogue', CURDATE(), CURDATE(), NULL),
+(14, 'Muhammad', 'A', 'Jamil', '09184567890', 'fr.muhammad@episcopalchurch.ph', '1998-08-15', '1998-08-15', 2, 14, '2014-02-01', NULL, 'active', 'Fr. Muhammad serves the multi-cultural community of Zamboanga.', 'Cultural sensitivity', CURDATE(), CURDATE(), NULL),
+(15, 'Ibrahim', 'B', 'Hassan', '09185678901', 'fr.ibrahim@episcopalchurch.ph', '2001-12-10', '2001-12-10', 2, 15, '2016-06-01', NULL, 'active', 'Fr. Ibrahim works with indigenous communities in Upi.', 'Indigenous ministry', CURDATE(), CURDATE(), NULL),
+(16, 'Omar', 'C', 'Mansur', '09186789012', 'fr.omar@episcopalchurch.ph', '2004-05-05', '2004-05-05', 2, 16, '2019-03-15', NULL, 'active', 'Fr. Omar focuses on youth and education.', 'Youth advocate', CURDATE(), CURDATE(), NULL),
+(17, 'Ali', 'D', 'Hussein', '09187890123', 'fr.ali@episcopalchurch.ph', '2006-10-18', '2006-10-18', 2, 17, '2021-01-10', NULL, 'active', 'Fr. Ali serves the remote mountain communities.', 'Mountain ministry', CURDATE(), CURDATE(), NULL),
+
+-- Diocese of Northern Philippines Priests
+(18, 'Pedro', 'A', 'Dumlao', '09188901234', 'fr.pedro@episcopalchurch.ph', '1990-04-20', '1990-04-20', 3, 28, '2005-01-01', NULL, 'active', 'Fr. Pedro has served in the highlands of Baguio for many years.', 'Highland ministry', CURDATE(), CURDATE(), NULL),
+(19, 'John', 'B', 'Sta. Maria', '09189012345', 'fr.john@episcopalchurch.ph', '1995-11-11', '1995-11-11', 3, 29, '2010-06-15', NULL, 'active', 'Fr. John serves the unique community of Sagada.', 'Cultural preservation', CURDATE(), CURDATE(), NULL),
+(20, 'Thomas', 'C', 'Apostol', '09190123456', 'fr.thomas@episcopalchurch.ph', '2002-07-07', '2002-07-07', 3, 30, '2018-08-20', NULL, 'active', 'Fr. Thomas works with the vegetable farming communities.', 'Agricultural ministry', CURDATE(), CURDATE(), NULL),
+
+-- Diocese of Davao Priests
+(21, 'Datu', 'A', 'Maboloc', '09191234567', 'fr.datu@episcopalchurch.ph', '1998-02-14', '1998-02-14', 7, 31, '2012-03-01', NULL, 'active', 'Fr. Datu serves the indigenous Bagobo community.', 'Indigenous rights', CURDATE(), CURDATE(), NULL),
+(22, 'Bagobo', 'B', 'Mandaya', '09192345678', 'fr.bagobo@episcopalchurch.ph', '2005-10-10', '2005-10-10', 7, 31, '2020-01-15', NULL, 'active', 'Fr. Bagobo works with multiple tribal groups.', 'Tribal ministry', CURDATE(), CURDATE(), NULL),
+
+-- Visayas Missionary Diocese Priests
+(23, 'Visayan', 'A', 'Cebuano', '09193456789', 'fr.visayan@episcopalchurch.ph', '2000-05-01', '2000-05-01', 8, 32, '2015-09-15', NULL, 'active', 'Fr. Visayan serves the Cebuano-speaking community.', 'Visayan ministry', CURDATE(), CURDATE(), NULL),
+(24, 'Boholano', 'B', 'Lapu-Lapu', '09194567890', 'fr.boholano@episcopalchurch.ph', '2008-12-12', '2008-12-12', 8, 32, '2021-03-20', NULL, 'active', 'Fr. Boholano is a gifted musician and choir director.', 'Music ministry', CURDATE(), CURDATE(), NULL);
+
+-- =====================================================
+-- 5. INSERT PARISH OFFICERS (registry_parishofficerep) - Complete all 8 positions
+-- =====================================================
+INSERT INTO `registry_parishofficerep` (`id`, `parish_id`, `first_name`, `middle_name`, `last_name`, `position`, `date_assigned`, `date_departed`, `is_active`, `contact_number`, `email`, `remarks`) VALUES
+-- Cathedral of St. Mary and St. John (Parish 1) - All positions filled
+(1, 1, 'Lorenzo', 'R', 'Ruiz', 'bishop', '2020-01-15', NULL, 1, '09171234567', 'bishop.ruiz@episcopalchurch.ph', 'Presiding Bishop of the Diocese'),
+(2, 1, 'Reynaldo', 'C', 'Evangelista', 'priest', '2010-01-15', NULL, 1, '09172345678', 'fr.reynaldo@cathedral.ph', 'Rector of the Cathedral'),
+(3, 1, 'Pedro', 'M', 'Santos', 'deacon', '2022-03-01', NULL, 1, '09173456789', 'deacon.pedro@cathedral.ph', 'Serving the community'),
+(4, 1, 'Jose', 'R', 'Rizal', 'senior_warden', '2021-06-01', NULL, 1, '09174567890', 'jose.rizal@cathedral.ph', 'Oversees parish operations'),
+(5, 1, 'Andres', 'B', 'Bonifacio', 'junior_warden', '2022-01-15', NULL, 1, '09175678901', 'andres.bonifacio@cathedral.ph', 'Assists Senior Warden'),
+(6, 1, 'Emilio', 'A', 'Aguinaldo', 'treasurer', '2021-03-15', NULL, 1, '09176789012', 'emilio.aguinaldo@cathedral.ph', 'Manages parish finances'),
+(7, 1, 'Apolinario', 'M', 'Mabini', 'secretary', '2021-03-15', NULL, 1, '09177890123', 'apolinario.mabini@cathedral.ph', 'Records and correspondence'),
+(8, 1, 'Melchora', 'A', 'Aquino', 'vestry_member', '2022-06-01', NULL, 1, '09178901234', 'melchora.aquino@cathedral.ph', 'Vestry member for 3 years'),
+(9, 1, 'Gabriela', 'S', 'Silang', 'vestry_member', '2022-06-01', NULL, 1, '09179012345', 'gabriela.silang@cathedral.ph', 'Women\'s ministry leader'),
+(10, 1, 'Gregoria', 'D', 'Gat', 'vestry_member', '2022-06-01', NULL, 1, '09180123456', 'gregoria.gat@cathedral.ph', 'Youth coordinator'),
+
+-- Church of the Holy Trinity (Parish 2)
+(11, 2, 'Manuel', 'L', 'Quezon', 'bishop', '2019-05-15', NULL, 1, '09181234567', 'bishop.quezon@holytrinity.ph', 'Bishop of Makati'),
+(12, 2, 'Antonio', 'M', 'Ledesma', 'priest', '2015-03-01', NULL, 1, '09182345678', 'fr.antonio@holytrinity.ph', 'Parish priest'),
+(13, 2, 'Sergio', 'P', 'Osmeña', 'deacon', '2023-01-20', NULL, 1, '09183456789', 'deacon.osmena@holytrinity.ph', 'Deacon for social services'),
+(14, 2, 'Manuel', 'R', 'Roxas', 'senior_warden', '2021-08-01', NULL, 1, '09184567890', 'manuel.roxas@holytrinity.ph', 'Senior warden'),
+(15, 2, 'Elpidio', 'Q', 'Quirino', 'junior_warden', '2022-04-15', NULL, 1, '09185678901', 'elpidio.quirino@holytrinity.ph', 'Junior warden'),
+(16, 2, 'Carlos', 'G', 'Garcia', 'treasurer', '2021-08-01', NULL, 1, '09186789012', 'carlos.garcia@holytrinity.ph', 'Treasurer'),
+(17, 2, 'Diosdado', 'M', 'Macapagal', 'secretary', '2021-08-01', NULL, 1, '09187890123', 'diosdado.macapagal@holytrinity.ph', 'Secretary'),
+(18, 2, 'Ferdinand', 'E', 'Marcos', 'vestry_member', '2023-01-10', NULL, 1, '09188901234', 'ferdinand.marcos@holytrinity.ph', 'Vestry member'),
+
+-- St. Stephen's Parish (Parish 3)
+(19, 3, 'Corazon', 'A', 'Aquino', 'bishop', '2018-10-20', NULL, 1, '09189012345', 'bishop.corazon@ststephens.ph', 'Bishop Emeritus'),
+(20, 3, 'Michael', 'S', 'Rodriguez', 'priest', '2018-07-20', NULL, 1, '09190123456', 'fr.michael@ststephens.ph', 'Parish priest'),
+(21, 3, 'Benigno', 'S', 'Aquino', 'deacon', '2022-09-01', NULL, 1, '09191234567', 'deacon.benigno@ststephens.ph', 'Deacon for youth'),
+(22, 3, 'Fidel', 'V', 'Ramos', 'senior_warden', '2021-10-01', NULL, 1, '09192345678', 'fidel.ramos@ststephens.ph', 'Senior warden'),
+(23, 3, 'Joseph', 'E', 'Estrada', 'junior_warden', '2022-06-15', NULL, 1, '09193456789', 'joseph.estrada@ststephens.ph', 'Junior warden'),
+(24, 3, 'Gloria', 'M', 'Macapagal-Arroyo', 'treasurer', '2021-10-01', NULL, 1, '09194567890', 'gloria.arroyo@ststephens.ph', 'Treasurer'),
+(25, 3, 'Benigno', 'A', 'Aquino', 'secretary', '2021-10-01', NULL, 1, '09195678901', 'benigno.aquino@ststephens.ph', 'Secretary'),
+(26, 3, 'Rodrigo', 'R', 'Duterte', 'vestry_member', '2023-02-20', NULL, 1, '09196789012', 'rodrigo.duterte@ststephens.ph', 'Vestry member'),
+
+-- Additional officers for other parishes (sample)
+(27, 13, 'Sultan', 'K', 'Kudarat', 'bishop', '2015-01-01', NULL, 1, '09197890123', 'bishop.kudarat@cotabato.ph', 'Bishop of Cotabato'),
+(28, 13, 'Abdul', 'M', 'Rahman', 'priest', '2010-01-01', NULL, 1, '09198901234', 'fr.abdul@cotabato.ph', 'Cathedral priest'),
+(29, 13, 'Shariff', 'K', 'Kabunsuan', 'deacon', '2020-03-15', NULL, 1, '09199012345', 'deacon.shariff@cotabato.ph', 'Deacon for interfaith'),
+(30, 13, 'Datu', 'P', 'Piang', 'senior_warden', '2018-05-20', NULL, 1, '09200123456', 'datu.piang@cotabato.ph', 'Senior warden'),
+(31, 13, 'Bai', 'L', 'Laban', 'junior_warden', '2019-06-01', NULL, 1, '09201234567', 'bai.laban@cotabato.ph', 'Junior warden'),
+(32, 13, 'Hadja', 'P', 'Putri', 'treasurer', '2018-05-20', NULL, 1, '09202345678', 'hadja.putri@cotabato.ph', 'Treasurer'),
+(33, 13, 'Aleem', 'A', 'Abdul', 'secretary', '2018-05-20', NULL, 1, '09203456789', 'aleem.abdul@cotabato.ph', 'Secretary'),
+(34, 13, 'Ustadz', 'A', 'Abdullah', 'vestry_member', '2020-06-15', NULL, 1, '09204567890', 'ustadz.abdullah@cotabato.ph', 'Vestry member'),
+(35, 13, 'Moro', 'M', 'Ali', 'vestry_member', '2021-03-10', NULL, 1, '09205678901', 'moro.ali@cotabato.ph', 'Youth representative'),
+
+-- Baguio Cathedral (Parish 28)
+(36, 28, 'Bago', 'C', 'Cordillera', 'bishop', '2010-01-01', NULL, 1, '09206789012', 'bishop.bago@baguio.ph', 'Bishop of Northern Philippines'),
+(37, 28, 'Pedro', 'A', 'Dumlao', 'priest', '2005-01-01', NULL, 1, '09207890123', 'fr.pedro@baguio.ph', 'Cathedral rector'),
+(38, 28, 'Apo', 'W', 'Oggay', 'deacon', '2015-06-01', NULL, 1, '09208901234', 'deacon.whangod@baguio.ph', 'Deacon for indigenous ministry'),
+(39, 28, 'Lumawig', 'B', 'Bontoc', 'senior_warden', '2017-03-15', NULL, 1, '09209012345', 'lumawig@baguio.ph', 'Senior warden'),
+(40, 28, 'Ferdinand', 'M', 'Marcos', 'junior_warden', '2018-08-20', NULL, 1, '09210123456', 'ferdinand@baguio.ph', 'Junior warden'),
+(41, 28, 'Imelda', 'R', 'Marcos', 'treasurer', '2017-03-15', NULL, 1, '09211234567', 'imelda.marcos@baguio.ph', 'Treasurer'),
+(42, 28, 'Bongbong', 'M', 'Marcos', 'secretary', '2017-03-15', NULL, 1, '09212345678', 'bongbong.marcos@baguio.ph', 'Secretary'),
+(43, 28, 'Sara', 'D', 'Duterte', 'vestry_member', '2022-05-10', NULL, 1, '09213456789', 'sara.duterte@baguio.ph', 'Vestry member'),
+
+-- Davao Church (Parish 31)
+(44, 31, 'Datu', 'D', 'Davao', 'bishop', '2012-03-01', NULL, 1, '09214567890', 'bishop.datu@davao.ph', 'Bishop of Davao'),
+(45, 31, 'Bagobo', 'B', 'Mandaya', 'priest', '2020-01-15', NULL, 1, '09215678901', 'fr.bagobo@davao.ph', 'Priest for tribal ministry'),
+(46, 31, 'Mandy', 'T', 'Sawadjaan', 'deacon', '2021-06-20', NULL, 1, '09216789012', 'deacon.mandy@davao.ph', 'Deacon for youth'),
+(47, 31, 'Rodrigo', 'R', 'Duterte', 'senior_warden', '2018-05-01', NULL, 1, '09217890123', 'rodrigo.duterte@davao.ph', 'Senior warden'),
+(48, 31, 'Paolo', 'Z', 'Duterte', 'junior_warden', '2020-08-15', NULL, 1, '09218901234', 'paolo.duterte@davao.ph', 'Junior warden'),
+(49, 31, 'Sara', 'Z', 'Duterte', 'treasurer', '2018-05-01', NULL, 1, '09219012345', 'sara.duterte@davao.ph', 'Treasurer'),
+(50, 31, 'Inday', 'S', 'Sara', 'secretary', '2018-05-01', NULL, 1, '09220123456', 'inday.sara@davao.ph', 'Secretary'),
+(51, 31, 'Sebastian', 'D', 'Duterte', 'vestry_member', '2021-03-10', NULL, 1, '09221234567', 'sebastian.duterte@davao.ph', 'Vestry member'),
+
+-- Talisay Cebu Church (Parish 32)
+(52, 32, 'Rajah', 'H', 'Humabon', 'bishop', '2015-09-15', NULL, 1, '09222345678', 'bishop.rajah@cebu.ph', 'Bishop of Visayas'),
+(53, 32, 'Visayan', 'A', 'Cebuano', 'priest', '2015-09-15', NULL, 1, '09223456789', 'fr.visayan@cebu.ph', 'Parish priest'),
+(54, 32, 'Lapu-Lapu', 'B', 'Mactan', 'deacon', '2020-01-20', NULL, 1, '09224567890', 'deacon.lapulapu@cebu.ph', 'Deacon for youth'),
+(55, 32, 'Boholano', 'C', 'Bohol', 'senior_warden', '2019-06-01', NULL, 1, '09225678901', 'boholano@cebu.ph', 'Senior warden'),
+(56, 32, 'Cebuano', 'D', 'Cebu', 'junior_warden', '2020-08-15', NULL, 1, '09226789012', 'cebuano@cebu.ph', 'Junior warden'),
+(57, 32, 'Maria', 'J', 'Sikatuna', 'treasurer', '2019-06-01', NULL, 1, '09227890123', 'maria.sikatuna@cebu.ph', 'Treasurer'),
+(58, 32, 'Josefina', 'M', 'Jose', 'secretary', '2019-06-01', NULL, 1, '09228901234', 'josefina.jose@cebu.ph', 'Secretary'),
+(59, 32, 'Magellan', 'F', 'Fernandez', 'vestry_member', '2021-04-10', NULL, 1, '09229012345', 'magellan.fernandez@cebu.ph', 'Vestry member');
+
+-- =====================================================
+-- 6. INSERT ORGANIZATIONS (registry_organization)
+-- =====================================================
+INSERT INTO `registry_organization` (`id`, `name`, `description`, `meeting_schedule`, `meeting_venue`, `contact_person`, `is_active`, `date_created`, `date_updated`) VALUES
+(1, 'Episcopal Church Women (ECW)', 'Women\'s organization dedicated to service and fellowship.', 'Every Saturday, 2:00 PM', 'Parish Hall', 'Maria Dela Cruz', 1, CURDATE(), CURDATE()),
+(2, 'Brotherhood of St. Andrew', 'Men\'s organization focused on evangelism and service.', 'First Friday of each month, 7:00 PM', 'Parish Center', 'Jose Rizal', 1, CURDATE(), CURDATE()),
+(3, 'Youth Episcopal Fellowship (YEF)', 'Youth organization for young members aged 13-30.', 'Every Sunday, 10:00 AM', 'Youth Center', 'Andres Bonifacio', 1, CURDATE(), CURDATE()),
+(4, 'Daughters of the King', 'Women\'s religious order focused on prayer and service.', 'Every Tuesday, 3:00 PM', 'Church Hall', 'Gabriela Silang', 1, CURDATE(), CURDATE()),
+(5, 'Altar Guild', 'Organization caring for the altar and church linens.', 'Every Thursday, 9:00 AM', 'Sacristy', 'Melchora Aquino', 1, CURDATE(), CURDATE()),
+(6, 'Choir and Music Ministry', 'Music ministry leading worship through song.', 'Every Wednesday, 6:00 PM', 'Church Choir Loft', 'Gregoria De Jesus', 1, CURDATE(), CURDATE()),
+(7, 'Lectors and Lay Readers', 'Ministry of readers during worship services.', 'Every Saturday, 3:00 PM', 'Parish Hall', 'Apolinario Mabini', 1, CURDATE(), CURDATE()),
+(8, 'Ushers and Greeters', 'Ministry of hospitality and welcome.', 'Every Saturday, 4:00 PM', 'Church Narthex', 'Emilio Aguinaldo', 1, CURDATE(), CURDATE()),
+(9, 'Outreach and Social Action', 'Community service and social justice ministry.', 'Every Monday, 5:00 PM', 'Parish Center', 'Benigno Aquino', 1, CURDATE(), CURDATE()),
+(10, 'Education and Formation', 'Christian education and formation programs.', 'Every Wednesday, 4:00 PM', 'Education Building', 'Fidel Ramos', 1, CURDATE(), CURDATE());
+
+-- =====================================================
+-- 7. INSERT ORGANIZATION MEMBERSHIPS (registry_organizationmembership)
+-- =====================================================
+INSERT INTO `registry_organizationmembership` (`id`, `member_id`, `organization_id`, `role`, `joined_date`, `is_active`, `remarks`, `date_created`) VALUES
+(1, 1, 1, 'president', '2023-01-15', 1, 'Leads ECW', CURDATE()),
+(2, 2, 1, 'secretary', '2023-02-20', 1, 'Records minutes', CURDATE()),
+(3, 3, 2, 'treasurer', '2022-05-10', 1, 'Handles funds', CURDATE()),
+(4, 4, 3, 'coordinator', '2023-03-01', 1, 'Coordinates youth activities', CURDATE()),
+(5, 5, 2, 'member', '2022-08-15', 1, 'Regular member', CURDATE()),
+(6, 6, 3, 'member', '2023-04-20', 1, 'Active in youth choir', CURDATE()),
+(7, 7, 4, 'president', '2023-01-10', 1, 'Leads women\'s organization', CURDATE()),
+(8, 8, 4, 'member', '2023-02-15', 1, 'Active member', CURDATE()),
+(9, 9, 5, 'director', '2022-11-01', 1, 'Coordinates Altar Guild', CURDATE()),
+(10, 10, 6, 'choir_master', '2022-10-15', 1, 'Leads choir', CURDATE()),
+(11, 11, 7, 'coordinator', '2023-01-20', 1, 'Coordinates lectors', CURDATE()),
+(12, 12, 8, 'head_usher', '2022-12-01', 1, 'Leads usher team', CURDATE()),
+(13, 13, 9, 'coordinator', '2023-02-10', 1, 'Coordinates outreach', CURDATE()),
+(14, 14, 10, 'teacher', '2022-09-15', 1, 'Teaches Sunday school', CURDATE()),
+(15, 15, 1, 'member', '2023-03-20', 1, 'ECW member', CURDATE()),
+(16, 16, 2, 'member', '2023-01-25', 1, 'Brotherhood member', CURDATE()),
+(17, 17, 3, 'member', '2023-02-28', 1, 'Youth member', CURDATE()),
+(18, 18, 4, 'member', '2023-03-15', 1, 'Daughters member', CURDATE()),
+(19, 19, 5, 'member', '2023-04-10', 1, 'Altar Guild member', CURDATE()),
+(20, 20, 6, 'member', '2023-05-05', 1, 'Choir member', CURDATE());
+
+-- =====================================================
+-- 8. INSERT SACRAMENT RECORDS (Baptism, Confirmation, Communion, Marriage)
+-- =====================================================
+
+-- Baptism Records
+INSERT INTO `registry_baptism` (`id`, `member_id`, `date_baptized`, `priest`, `godfathers`, `godmothers`, `birth_certificate_no`, `remarks`) VALUES
+(1, 1, '1990-06-15', 'Fr. Reynaldo Evangelista', 'Pedro Santos, Juan Dela Cruz', 'Maria Reyes, Ana Cruz', 'BC-1990-12345', 'Baptized at Cathedral of St. Mary and St. John'),
+(2, 2, '1992-09-22', 'Fr. Reynaldo Evangelista', 'Ramon Santos, Jose Gomez', 'Teresita Reyes, Carmen Lopez', 'BC-1992-23456', 'Baptized at Cathedral of St. Mary and St. John'),
+(3, 3, '1985-07-19', 'Fr. Francisco Gonzales', 'Manuel Aquino, Felipe Garcia', 'Luzviminda Torres, Consuelo Martinez', 'BC-1985-34567', 'Baptized at Church of the Holy Trinity'),
+(4, 4, '1995-12-10', 'Fr. Michael Rodriguez', 'Andres Bonifacio, Rogelio Fernandez', 'Gregoria Gat, Carmen Reyes', 'BC-1995-45678', 'Baptized at St. Stephen\'s Parish'),
+(5, 15, '1970-09-15', 'Fr. Abdul Rahman', 'Sultan Kudarat, Datu Piang', 'Princess Tarhata, Bai Laban', 'BC-1970-56789', 'Baptized at Cathedral of St. Peter and St. Paul'),
+(6, 30, '1975-07-20', 'Fr. Pedro Dumlao', 'Bago Cordillera, Lumawig Bontoc', 'Apo Whang-od, Maria Sagada', 'BC-1975-67890', 'Baptized at Cathedral of the Resurrection'),
+(7, 33, '1970-04-10', 'Fr. Datu Maboloc', 'Apo Datu Davao, Bagobo Mandaya', 'Mandy Tiburon, Inday Sara', 'BC-1970-78901', 'Baptized at Episcopal Church Davao'),
+(8, 36, '1980-12-15', 'Fr. Visayan Cebuano', 'Rajah Humabon, Lapu-Lapu Mactan', 'Maria Sikatuna, Josefina Jose', 'BC-1980-89012', 'Baptized at Episcopal Church Talisay');
+
+-- Confirmation Records
+INSERT INTO `registry_confirmation` (`id`, `member_id`, `date_confirmed`, `bishop`, `confirmation_name`, `sponsor`, `remarks`) VALUES
+(1, 1, '2000-06-15', 'The Rt. Rev. Brent Harry Alawas', 'John', 'Pedro Santos', 'Confirmed at Cathedral'),
+(2, 2, '2000-06-15', 'The Rt. Rev. Brent Harry Alawas', 'Mary', 'Maria Reyes', 'Confirmed at Cathedral'),
+(3, 3, '1995-07-19', 'The Rt. Rev. Daniel B. Lumabao', 'Joseph', 'Manuel Aquino', 'Confirmed at Holy Trinity'),
+(4, 4, '2008-12-10', 'The Rt. Rev. Brent Harry Alawas', 'Anna', 'Teresita Reyes', 'Confirmed at St. Stephen\'s'),
+(5, 15, '1985-09-15', 'The Rt. Rev. Daniel B. Lumabao', 'Muhammad', 'Sultan Kudarat', 'Confirmed at Cotabato Cathedral'),
+(6, 30, '1990-07-20', 'The Rt. Rev. Edward P. Malecdan', 'Peter', 'Bago Cordillera', 'Confirmed at Baguio Cathedral'),
+(7, 33, '1985-04-10', 'The Rt. Rev. Felixberto L. Calang', 'Paul', 'Apo Datu', 'Confirmed at Davao Church'),
+(8, 36, '1995-12-15', 'The Rt. Rev. Benito P. Caballero', 'Mark', 'Rajah Humabon', 'Confirmed at Talisay Church');
+
+-- First Holy Communion Records
+INSERT INTO `registry_firstholycommunion` (`id`, `member_id`, `date_received`, `priest`, `remarks`) VALUES
+(1, 1, '1998-06-15', 'Fr. Reynaldo Evangelista', 'First Communion at Cathedral'),
+(2, 2, '1998-06-15', 'Fr. Reynaldo Evangelista', 'First Communion at Cathedral'),
+(3, 3, '1993-07-19', 'Fr. Francisco Gonzales', 'First Communion at Holy Trinity'),
+(4, 4, '2004-12-10', 'Fr. Michael Rodriguez', 'First Communion at St. Stephen\'s'),
+(5, 15, '1980-09-15', 'Fr. Abdul Rahman', 'First Communion at Cotabato Cathedral'),
+(6, 30, '1985-07-20', 'Fr. Pedro Dumlao', 'First Communion at Baguio Cathedral'),
+(7, 33, '1980-04-10', 'Fr. Datu Maboloc', 'First Communion at Davao Church'),
+(8, 36, '1990-12-15', 'Fr. Visayan Cebuano', 'First Communion at Talisay Church');
+
+-- Marriage Records
+INSERT INTO `registry_marriage` (`id`, `member_id`, `spouse_name`, `date_married`, `priest`, `principal_sponsor`, `secondary_sponsor`, `remarks`) VALUES
+(1, 1, 'Maria Reyes Dela Cruz', '2015-05-20', 'Fr. Reynaldo Evangelista', 'Mr. and Mrs. Pedro Santos', 'Mr. and Mrs. Juan Dela Cruz', 'Wedding at Cathedral'),
+(2, 2, 'Juan Santos Dela Cruz', '2015-05-20', 'Fr. Reynaldo Evangelista', 'Mr. and Mrs. Pedro Santos', 'Mr. and Mrs. Juan Dela Cruz', 'Wedding at Cathedral'),
+(3, 7, 'Gregoria De Jesus Gat', '2010-11-30', 'Fr. Antonio Ledesma', 'Mr. and Mrs. Manuel Aquino', 'Mr. and Mrs. Felipe Garcia', 'Wedding at Holy Trinity'),
+(4, 8, 'Andres Bonifacio Gat', '2010-11-30', 'Fr. Antonio Ledesma', 'Mr. and Mrs. Manuel Aquino', 'Mr. and Mrs. Felipe Garcia', 'Wedding at Holy Trinity'),
+(5, 15, 'Shariff Kabunsuan', '1995-03-20', 'Fr. Abdul Rahman', 'Mr. and Mrs. Datu Piang', 'Mr. and Mrs. Bai Laban', 'Wedding at Cotabato Cathedral'),
+(6, 30, 'Maria Bontoc', '2000-06-15', 'Fr. Pedro Dumlao', 'Mr. and Mrs. Bago Cordillera', 'Mr. and Mrs. Lumawig', 'Wedding at Baguio Cathedral'),
+(7, 33, 'Inday Sara Duterte', '2005-08-20', 'Fr. Bagobo Mandaya', 'Mr. and Mrs. Rodrigo Duterte', 'Mr. and Mrs. Paolo Duterte', 'Wedding at Davao Church'),
+(8, 36, 'Lapu-Lapu Mactan', '2010-12-10', 'Fr. Visayan Cebuano', 'Mr. and Mrs. Rajah Humabon', 'Mr. and Mrs. Boholano', 'Wedding at Talisay Church');
+
+-- =====================================================
+-- 9. INSERT PLEDGES (registry_pledge)
+-- =====================================================
+INSERT INTO `registry_pledge` (`id`, `member_id`, `description`, `amount_pledged`, `due_date`, `status`, `date_created`) VALUES
+(1, 1, 'Cathedral Renovation Fund', 5000.00, '2024-06-30', 'partial', CURDATE()),
+(2, 2, 'Cathedral Renovation Fund', 5000.00, '2024-06-30', 'unpaid', CURDATE()),
+(3, 3, 'Youth Ministry Fund', 2000.00, '2024-05-31', 'paid', CURDATE()),
+(4, 4, 'Feast Day Celebration', 3000.00, '2024-08-15', 'partial', CURDATE()),
+(5, 5, 'Charity Fund', 1500.00, '2024-04-30', 'unpaid', CURDATE()),
+(6, 6, 'Cathedral Renovation Fund', 2500.00, '2024-06-30', 'partial', CURDATE()),
+(7, 7, 'Womens Ministry Fund', 1000.00, '2024-03-31', 'paid', CURDATE()),
+(8, 8, 'Scholarship Fund', 3000.00, '2024-07-15', 'partial', CURDATE()),
+(9, 9, 'Music Ministry Fund', 2000.00, '2024-05-15', 'unpaid', CURDATE()),
+(10, 10, 'Outreach Program', 1500.00, '2024-04-20', 'paid', CURDATE()),
+(11, 11, 'Building Maintenance', 4000.00, '2024-09-30', 'unpaid', CURDATE()),
+(12, 12, 'Education Fund', 2500.00, '2024-08-31', 'partial', CURDATE()),
+(13, 13, 'Youth Camp Fund', 1800.00, '2024-06-15', 'paid', CURDATE()),
+(14, 14, 'Medical Assistance', 2000.00, '2024-05-20', 'unpaid', CURDATE()),
+(15, 15, 'Interfaith Dialogue', 3000.00, '2024-07-31', 'partial', CURDATE()),
+(16, 16, 'Community Development', 3500.00, '2024-08-15', 'unpaid', CURDATE()),
+(17, 17, 'Indigenous Ministry', 2800.00, '2024-06-30', 'partial', CURDATE()),
+(18, 18, 'Peace Advocacy', 4000.00, '2024-09-15', 'paid', CURDATE()),
+(19, 19, 'Women Empowerment', 2200.00, '2024-07-20', 'unpaid', CURDATE()),
+(20, 20, 'Youth Leadership', 1900.00, '2024-05-25', 'partial', CURDATE());
+
+-- =====================================================
+-- 10. INSERT PLEDGE PAYMENTS (registry_pledgepayment)
+-- =====================================================
+INSERT INTO `registry_pledgepayment` (`id`, `pledge_id`, `amount`, `date_paid`, `notes`) VALUES
+(1, 1, 2000.00, '2024-01-20', 'Initial payment'),
+(2, 1, 1500.00, '2024-02-15', 'Second payment'),
+(3, 3, 2000.00, '2024-01-25', 'Full payment'),
+(4, 4, 1000.00, '2024-01-30', 'Partial payment'),
+(5, 6, 1000.00, '2024-01-28', 'First payment'),
+(6, 7, 1000.00, '2024-01-10', 'Full payment'),
+(7, 8, 1500.00, '2024-02-05', 'Initial payment'),
+(8, 10, 1500.00, '2024-01-15', 'Full payment'),
+(9, 12, 1000.00, '2024-02-20', 'First installment'),
+(10, 13, 1800.00, '2024-01-18', 'Full payment'),
+(11, 15, 1500.00, '2024-02-10', 'Partial payment'),
+(12, 17, 1400.00, '2024-01-22', 'First payment'),
+(13, 18, 4000.00, '2024-02-01', 'Full payment'),
+(14, 20, 1000.00, '2024-01-25', 'First installment');
+
+-- =====================================================
+-- VERIFICATION QUERIES
+-- =====================================================
+
