@@ -894,7 +894,7 @@ def officer_archive(request):
     return render(request, 'registry/officers/archive.html', {'officers': page_obj, 'page_obj': page_obj, 'q': q})
 
 
-@admin_required
+@login_required
 def officers_chart(request):
     # Define hierarchy levels
     hierarchy = {

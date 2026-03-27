@@ -307,6 +307,16 @@
                 </a>
             </li>
 
+            <!-- Church Details Section - Visible to Staff (Non-Admin) -->
+            {% if not user.is_superuser %}
+            <li class="nav-section">Church Details</li>
+            <li class="nav-item">
+                <a href="{% url 'officers_chart' %}" class="nav-link {% if 'officers_chart' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="bi bi-diagram-3"></i> Parish Officers Chart
+                </a>
+            </li>
+            {% endif %}
+
             <!-- Admin-Only Sections -->
             {% if user.is_superuser %}
             <li class="nav-section">Church Details</li>
