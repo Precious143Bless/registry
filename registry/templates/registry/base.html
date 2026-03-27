@@ -365,7 +365,7 @@
                 <li class="dropdown-header d-flex justify-content-between align-items-center px-3 py-2">
                     <strong class="small">Notifications</strong>
                     {% if notification_count > 0 %}
-                        <button class="btn btn-sm btn-outline-primary btn-sm" onclick="markAllNotificationsRead()">Mark All Read</button>
+                        <button id="markAllBtn" class="btn btn-sm btn-outline-primary" onclick="markAllNotificationsRead()">Mark All Read</button>
                     {% endif %}
                 </li>
                 <li><hr class="dropdown-divider my-1"></li>
@@ -501,78 +501,81 @@ function showSuccessModal(message) {
 
 // Notification functions
 function markNotificationRead(notificationId, element) {
-    console.log('Marking notification as read:', notificationId, element);
     fetch(`/notifications/${notificationId}/read/`, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
         credentials: 'same-origin'
     })
-    .then(response => {
-        console.log('Response status:', response.status);
-        return response.json();
-    })
+    .then(r => r.json())
     .then(data => {
-        console.log('Response data:', data);
         if (data.success) {
-            // Remove the notification from the dropdown
-            if (element) {
-                element.remove();
-                console.log('Removed notification from DOM');
-            }
-            // Update notification count
-            updateNotificationCount();
+            removeNotificationItem(element);
         }
     })
     .catch(error => console.error('Error:', error));
 }
 
 function markAllNotificationsRead() {
-    console.log('Marking all notifications as read');
-    // Remove all notifications from DOM immediately
-    const notificationItems = document.querySelectorAll('.notification-item');
-    notificationItems.forEach(item => {
-        console.log('Removing item:', item);
-        item.remove();
-    });
-    // Update notification count
-    updateNotificationCount();
-    
-    // Then make the AJAX call
     fetch('/notifications/mark-all-read/', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
         credentials: 'same-origin'
     })
-    .then(response => {
-        console.log('Mark all response status:', response.status);
-        return response.json();
-    })
+    .then(r => r.json())
     .then(data => {
-        console.log('Mark all response data:', data);
-        // DOM is already updated, so we don't need to do anything else
+        if (data.success) {
+            document.querySelectorAll('.notification-item').forEach(item => removeNotificationItem(item));
+        }
     })
     .catch(error => console.error('Error:', error));
 }
 
+function removeNotificationItem(element) {
+    if (!element) return;
+    // Remove the adjacent divider (next or previous sibling li with hr)
+    const next = element.nextElementSibling;
+    const prev = element.previousElementSibling;
+    if (next && next.querySelector && next.querySelector('.dropdown-divider')) {
+        next.remove();
+    } else if (prev && prev.querySelector && prev.querySelector('.dropdown-divider')) {
+        prev.remove();
+    }
+    element.remove();
+    updateNotificationCount();
+}
+
 function updateNotificationCount() {
-    const notificationItems = document.querySelectorAll('.notification-item');
-    console.log('Remaining notification items:', notificationItems.length);
+    const items = document.querySelectorAll('.notification-item');
+    const count = items.length;
     const badge = document.querySelector('.notification-badge');
-    
-    if (notificationItems.length === 0) {
-        console.log('No notifications left, removing badge');
+    const markAllBtn = document.querySelector('#markAllBtn');
+
+    if (count === 0) {
+        // Remove badge
         if (badge) badge.remove();
-        // Close notification dropdown if no notifications
-        const dropdown = bootstrap.Dropdown.getInstance(document.getElementById('notificationDropdown'));
-        if (dropdown) dropdown.hide();
+        // Hide mark all button
+        if (markAllBtn) markAllBtn.style.display = 'none';
+        // Show empty state if not already there
+        const dropdown = document.querySelector('.notification-dropdown');
+        if (dropdown && !dropdown.querySelector('.notif-empty')) {
+            const empty = document.createElement('li');
+            empty.className = 'notif-empty text-center text-muted py-4';
+            empty.innerHTML = '<i class="bi bi-bell-slash fs-2 mb-2 d-block"></i><div class="small">No new notifications</div>';
+            dropdown.appendChild(empty);
+        }
     } else {
-        console.log('Updating badge to:', notificationItems.length);
         if (badge) {
-            badge.textContent = notificationItems.length;
+            badge.textContent = count;
+        } else {
+            // Re-create badge if it was removed
+            const btn = document.getElementById('notificationDropdown');
+            const newBadge = document.createElement('span');
+            newBadge.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notification-badge';
+            newBadge.style.fontSize = '0.6rem';
+            newBadge.style.padding = '0.15em 0.35em';
+            newBadge.style.minWidth = '1rem';
+            newBadge.style.height = '1rem';
+            newBadge.style.lineHeight = '0.8';
+            newBadge.textContent = count;
+            btn.appendChild(newBadge);
         }
     }
 }

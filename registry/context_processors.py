@@ -5,50 +5,48 @@ from .models import Notification, Pledge
 def notifications_processor(request):
     """Context processor to add notifications to all templates"""
     if request.user.is_authenticated:
-        # Get unread notifications
-        unread_notifications = Notification.objects.filter(
-            user=request.user,
-            is_read=False
-        ).order_by('-created_at')[:10]  # Limit to 10 most recent
+        today = date.today()
+        tomorrow = today + timedelta(days=1)
 
-        # Check for pledges due tomorrow
-        tomorrow = date.today() + timedelta(days=1)
+        # Create notifications for pledges due today or tomorrow
         due_pledges = Pledge.objects.filter(
-            due_date=tomorrow,
+            due_date__in=[today, tomorrow],
             status__in=['unpaid', 'partial']
         )
-
-        # Create notifications for due pledges if they don't exist
         for pledge in due_pledges:
-            notification, created = Notification.objects.get_or_create(
+            days_label = 'Today' if pledge.due_date == today else 'Tomorrow'
+            Notification.objects.get_or_create(
                 user=request.user,
                 notification_type='pledge_due',
                 related_pledge=pledge,
+                is_read=False,
                 defaults={
-                    'title': f'Pledge Payment Due Tomorrow',
-                    'message': f'Payment of ₱{pledge.balance:.2f} is due tomorrow for {pledge.description} by {pledge.member.full_name}',
-                    'is_read': False
+                    'title': f'Pledge Payment Due {days_label}',
+                    'message': f'Payment of ₱{pledge.balance:.2f} is due {days_label.lower()} for {pledge.description} by {pledge.member.full_name}',
                 }
             )
 
-        # Check for overdue pledges (past due date)
+        # Create notifications for overdue pledges
         overdue_pledges = Pledge.objects.filter(
-            due_date__lt=date.today(),
+            due_date__lt=today,
             status__in=['unpaid', 'partial']
         )
-
-        # Create notifications for overdue pledges if they don't exist
         for pledge in overdue_pledges:
-            notification, created = Notification.objects.get_or_create(
+            Notification.objects.get_or_create(
                 user=request.user,
                 notification_type='pledge_overdue',
                 related_pledge=pledge,
+                is_read=False,
                 defaults={
-                    'title': f'Pledge Payment Overdue',
+                    'title': 'Pledge Payment Overdue',
                     'message': f'Payment of ₱{pledge.balance:.2f} is overdue for {pledge.description} by {pledge.member.full_name}',
-                    'is_read': False
                 }
             )
+
+        unread_notifications = Notification.objects.filter(
+            user=request.user,
+            is_read=False
+        ).order_by('-created_at')[:10]
 
         return {
             'unread_notifications': unread_notifications,
