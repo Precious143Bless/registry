@@ -512,6 +512,12 @@ class ParishOfficerForm(forms.ModelForm):
         widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
     )
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Exclude 'parish_priest' from position choices in the form
+        position_choices = list(self.fields['position'].choices)
+        self.fields['position'].choices = [choice for choice in position_choices if choice[0] != 'parish_priest']
+
     class Meta:
         model = ParishOfficer
         fields = '__all__'
