@@ -18,9 +18,9 @@ from django.http import JsonResponse
 import subprocess
 from django.core.paginator import Paginator
 from datetime import datetime
-from .models import Member, Baptism, Confirmation, FirstHolyCommunion, Marriage, LastRites, Pledge, PledgePayment, ParishInfo, ParishPriest, ParishOfficer, Notification, Organization, OrganizationMembership, Church, Parish, ParishOfficerEP
+from .models import Member, Baptism, Confirmation, FirstHolyCommunion, Marriage, LastRites, Pledge, PledgePayment, ParishInfo, ParishPriest, ParishOfficer, Notification, Organization, OrganizationMembership, Church, Parish, ParishOfficerEP, Cathedral
 from .forms import (MemberForm, BaptismForm, ConfirmationForm, CommunionForm,
-                    MarriageForm, LastRitesForm, PledgeForm, PledgePaymentForm, ParishInfoForm,ParishPriestForm, ParishOfficerForm, OrganizationForm,OrganizationMembershipForm, ParishOfficerRegistrationForm, ChurchForm, ParishForm, ParishOfficerEPForm)
+                    MarriageForm, LastRitesForm, PledgeForm, PledgePaymentForm, ParishInfoForm,ParishPriestForm, ParishOfficerForm, OrganizationForm,OrganizationMembershipForm, ParishOfficerRegistrationForm, ChurchForm, ParishForm, ParishOfficerEPForm, CathedralForm)
 from .decorators import admin_required, officer_required  
 
 
