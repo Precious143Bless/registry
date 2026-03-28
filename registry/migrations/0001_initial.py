@@ -21,6 +21,8 @@ class Migration(migrations.Migration):
                 ('parish_name', models.CharField(max_length=200)),
                 ('diocese', models.CharField(blank=True, max_length=200)),
                 ('date_established', models.DateField(blank=True, null=True)),
+                ('mission', models.TextField(blank=True)),
+                ('vision', models.TextField(blank=True)),
                 ('street_address', models.CharField(blank=True, max_length=255)),
                 ('barangay', models.CharField(blank=True, max_length=100)),
                 ('municipality', models.CharField(blank=True, max_length=100)),

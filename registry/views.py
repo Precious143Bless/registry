@@ -1301,6 +1301,7 @@ def restore_database(request):
 @admin_required
 def parish_info(request):
     info = ParishInfo.objects.first()
+    churches = Church.objects.all().order_by('name')
     if request.method == 'POST':
         form = ParishInfoForm(request.POST, instance=info)
         if form.is_valid():
@@ -1309,7 +1310,11 @@ def parish_info(request):
             return redirect('parish_info')
     else:
         form = ParishInfoForm(instance=info)
-    return render(request, 'registry/info/detail.html', {'info': info, 'form': form})
+    return render(request, 'registry/info/detail.html', {
+        'info': info,
+        'form': form,
+        'churches': churches,
+    })
 
 
 # ─── ADMIN-ONLY VIEWS (ORGANIZATIONS) ───────────────────────────────────────

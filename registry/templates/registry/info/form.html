@@ -9,16 +9,16 @@
                     <button class="nav-link active d-flex align-items-center gap-2 px-4 py-2"
                             id="tab-basic" data-bs-toggle="tab" data-bs-target="#pane-basic"
                             type="button" role="tab">
-                        <i class="bi bi-info-circle-fill" style="color:#c9a84c;"></i>
-                        <span>Basic Info</span>
+                        <i class="bi bi-building" style="color:#c9a84c;"></i>
+                        <span>Main Church</span>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link d-flex align-items-center gap-2 px-4 py-2"
                             id="tab-location" data-bs-toggle="tab" data-bs-target="#pane-location"
                             type="button" role="tab">
-                        <i class="bi bi-geo-alt-fill" style="color:#c9a84c;"></i>
-                        <span>Location &amp; Address</span>
+                        <i class="bi bi-diagram-3" style="color:#c9a84c;"></i>
+                        <span>Diocese</span>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
@@ -34,11 +34,11 @@
 
         <div class="tab-content card-body px-4 pb-4 pt-4">
 
-            <!-- Basic Info Pane -->
+            <!-- Main Church Pane -->
             <div class="tab-pane fade show active" id="pane-basic" role="tabpanel">
                 <div class="row g-4">
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold text-muted small text-uppercase">Parish Name</label>
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Church Name</label>
                         <div class="view-field">
                             <p class="mb-0 fw-semibold fs-6" style="color:#2d2d2d;">
                                 <i class="bi bi-building me-1" style="color:#c9a84c;"></i>{{ info.parish_name|default:"—" }}
@@ -47,18 +47,6 @@
                         <div class="edit-field d-none">
                             {{ form.parish_name }}
                             {% if form.parish_name.errors %}<div class="text-danger small mt-1">{{ form.parish_name.errors.0 }}</div>{% endif %}
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold text-muted small text-uppercase">Diocese</label>
-                        <div class="view-field">
-                            <p class="mb-0 fw-semibold fs-6" style="color:#2d2d2d;">
-                                <i class="bi bi-diagram-3 me-1" style="color:#c9a84c;"></i>{{ info.diocese|default:"—" }}
-                            </p>
-                        </div>
-                        <div class="edit-field d-none">
-                            {{ form.diocese }}
-                            {% if form.diocese.errors %}<div class="text-danger small mt-1">{{ form.diocese.errors.0 }}</div>{% endif %}
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -73,74 +61,68 @@
                             {% if form.date_established.errors %}<div class="text-danger small mt-1">{{ form.date_established.errors.0 }}</div>{% endif %}
                         </div>
                     </div>
+                    <div class="col-md-12">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Mission</label>
+                        <div class="view-field">
+                            <p class="mb-0 text-muted" style="color:#2d2d2d;">
+                                {{ info.mission|linebreaksbr|default:"—" }}
+                            </p>
+                        </div>
+                        <div class="edit-field d-none">
+                            {{ form.mission }}
+                            {% if form.mission.errors %}<div class="text-danger small mt-1">{{ form.mission.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Vision</label>
+                        <div class="view-field">
+                            <p class="mb-0 text-muted" style="color:#2d2d2d;">
+                                {{ info.vision|linebreaksbr|default:"—" }}
+                            </p>
+                        </div>
+                        <div class="edit-field d-none">
+                            {{ form.vision }}
+                            {% if form.vision.errors %}<div class="text-danger small mt-1">{{ form.vision.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Location & Address Pane -->
+            <!-- Diocese Pane -->
             <div class="tab-pane fade" id="pane-location" role="tabpanel">
-                <div class="row g-4 mb-2">
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold text-muted small text-uppercase">Street Address</label>
-                        <div class="view-field">
-                            <p class="mb-0 fw-semibold fs-6" style="color:#2d2d2d;">
-                                <i class="bi bi-signpost me-1" style="color:#c9a84c;"></i>{{ info.street_address|default:"—" }}
-                            </p>
-                        </div>
-                        <div class="edit-field d-none">
-                            {{ form.street_address }}
-                            {% if form.street_address.errors %}<div class="text-danger small mt-1">{{ form.street_address.errors.0 }}</div>{% endif %}
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold text-muted small text-uppercase">Barangay</label>
-                        <div class="view-field">
-                            <p class="mb-0 fw-semibold fs-6" style="color:#2d2d2d;">
-                                <i class="bi bi-map me-1" style="color:#c9a84c;"></i>{{ info.barangay|default:"—" }}
-                            </p>
-                        </div>
-                        <div class="edit-field d-none">
-                            {{ form.barangay }}
-                            {% if form.barangay.errors %}<div class="text-danger small mt-1">{{ form.barangay.errors.0 }}</div>{% endif %}
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold text-muted small text-uppercase">Municipality / City</label>
-                        <div class="view-field">
-                            <p class="mb-0 fw-semibold fs-6" style="color:#2d2d2d;">
-                                <i class="bi bi-geo-alt me-1" style="color:#c9a84c;"></i>{{ info.municipality|default:"—" }}
-                            </p>
-                        </div>
-                        <div class="edit-field d-none">
-                            {{ form.municipality }}
-                            {% if form.municipality.errors %}<div class="text-danger small mt-1">{{ form.municipality.errors.0 }}</div>{% endif %}
-                        </div>
-                    </div>
-                </div>
-                <div class="row g-4">
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold text-muted small text-uppercase">Province</label>
-                        <div class="view-field">
-                            <p class="mb-0 fw-semibold fs-6" style="color:#2d2d2d;">
-                                <i class="bi bi-pin-map me-1" style="color:#c9a84c;"></i>{{ info.province|default:"—" }}
-                            </p>
-                        </div>
-                        <div class="edit-field d-none">
-                            {{ form.province }}
-                            {% if form.province.errors %}<div class="text-danger small mt-1">{{ form.province.errors.0 }}</div>{% endif %}
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold text-muted small text-uppercase">ZIP Code</label>
-                        <div class="view-field">
-                            <p class="mb-0 fw-semibold fs-6" style="color:#2d2d2d;">
-                                <i class="bi bi-mailbox me-1" style="color:#c9a84c;"></i>{{ info.zip_code|default:"—" }}
-                            </p>
-                        </div>
-                        <div class="edit-field d-none">
-                            {{ form.zip_code }}
-                            {% if form.zip_code.errors %}<div class="text-danger small mt-1">{{ form.zip_code.errors.0 }}</div>{% endif %}
-                        </div>
-                    </div>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Location</th>
+                                <th>Bishop</th>
+                                <th>Established</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for church in churches %}
+                            <tr>
+                                <td><a href="{% url 'church_detail' church.pk %}" class="text-decoration-none">{{ church.name }}</a></td>
+                                <td>{{ church.location|truncatechars:40|default:'—' }}</td>
+                                <td>{{ church.bishop|default:'—' }}</td>
+                                <td>{{ church.established_date|date:'F d, Y'|default:'—' }}</td>
+                                <td>
+                                    {% if church.is_active %}
+                                        <span class="badge badge-paid">Active</span>
+                                    {% else %}
+                                        <span class="badge badge-unpaid">Inactive</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">No diocese/branch churches found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
 

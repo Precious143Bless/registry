@@ -167,11 +167,14 @@ class Pledge(models.Model):
 
 
 class ParishInfo(models.Model):
-    # Basic Information
+    # Basic Information (Main Church)
     parish_name = models.CharField(max_length=200)
     diocese = models.CharField(max_length=200, blank=True)
     date_established = models.DateField(null=True, blank=True)
-    # Location & Address
+    mission = models.TextField(blank=True)
+    vision = models.TextField(blank=True)
+
+    # Location & Address (Diocese branches may be listed separately)
     street_address = models.CharField(max_length=255, blank=True)
     barangay = models.CharField(max_length=100, blank=True)
     municipality = models.CharField(max_length=100, blank=True)

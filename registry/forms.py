@@ -576,6 +576,9 @@ class ParishInfoForm(forms.ModelForm):
         widgets = {
             'parish_name':    forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Saint Joseph Parish'}),
             'diocese':        forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Diocese of Cubao'}),
+            'date_established': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'mission': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Main church mission statement'}),
+            'vision': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Main church vision statement'}),
             'street_address': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'House No., Street Name'}),
             'barangay':       forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Barangay'}),
             'municipality':   forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Municipality / City'}),
