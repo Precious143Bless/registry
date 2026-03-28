@@ -171,8 +171,23 @@ class ParishInfo(models.Model):
     parish_name = models.CharField(max_length=200)
     diocese = models.CharField(max_length=200, blank=True)
     date_established = models.DateField(null=True, blank=True)
-    mission = models.TextField(blank=True)
     vision = models.TextField(blank=True)
+    mission = models.TextField(blank=True)
+
+    church_logo = models.ImageField(
+        upload_to='assets/images/church/',
+        blank=True,
+        null=True,
+        verbose_name='Church Logo'
+    )
+    prime_bishop_name = models.CharField(max_length=200, blank=True, verbose_name='Prime Bishop Name')
+    prime_bishop_details = models.TextField(blank=True, verbose_name='Prime Bishop Details')
+    prime_bishop_image = models.ImageField(
+        upload_to='assets/images/priests/',
+        blank=True,
+        null=True,
+        verbose_name='Prime Bishop Image'
+    )
 
     # Location & Address (Diocese branches may be listed separately)
     street_address = models.CharField(max_length=255, blank=True)
@@ -450,13 +465,20 @@ class Church(models.Model):
     
     # Church logo and bishop
     image = models.ImageField(
-        upload_to='logo/',  
-        blank=True, 
+        upload_to='assets/images/church/',
+        blank=True,
         null=True,
         verbose_name='Church Logo'
     )
     bishop = models.CharField(max_length=200, blank=True, help_text="Current bishop of the church")
-    
+    prime_bishop_name = models.CharField(max_length=200, blank=True, help_text="Prime Bishop name")
+    prime_bishop_image = models.ImageField(
+        upload_to='assets/images/priests/',
+        blank=True,
+        null=True,
+        verbose_name='Prime Bishop Image'
+    )
+
     date_created = models.DateField(auto_now_add=True)
     date_updated = models.DateField(auto_now=True)
 

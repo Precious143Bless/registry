@@ -1303,7 +1303,7 @@ def parish_info(request):
     info = ParishInfo.objects.first()
     churches = Church.objects.all().order_by('name')
     if request.method == 'POST':
-        form = ParishInfoForm(request.POST, instance=info)
+        form = ParishInfoForm(request.POST, request.FILES, instance=info)
         if form.is_valid():
             form.save()
             messages.success(request, 'Parish information updated successfully.')
