@@ -579,6 +579,10 @@ class ParishInfoForm(forms.ModelForm):
             'date_established': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'mission': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Main church mission statement'}),
             'vision': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Main church vision statement'}),
+            'church_logo': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
+            'prime_bishop_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Prime Bishop Full Name'}),
+            'prime_bishop_details': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Prime Bishop details, BP info, contact, etc.'}),
+            'prime_bishop_image': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
             'street_address': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'House No., Street Name'}),
             'barangay':       forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Barangay'}),
             'municipality':   forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Municipality / City'}),
@@ -862,7 +866,7 @@ class ChurchForm(forms.ModelForm):
 
     class Meta:
         model = Church
-        fields = ['name', 'location', 'description', 'established_date', 'contact_number', 'email', 'is_active', 'image', 'bishop']
+        fields = ['name', 'location', 'description', 'established_date', 'contact_number', 'email', 'is_active', 'image', 'bishop', 'prime_bishop_name', 'prime_bishop_image']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Cathedral of St. Mary and St. John'}),
             'location': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Full address...'}),
@@ -872,13 +876,17 @@ class ChurchForm(forms.ModelForm):
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'image': forms.FileInput(attrs={'class': 'form-control'}),
             'bishop': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., The Rt. Rev. John Smith'}),
+            'prime_bishop_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Prime Bishop full name'}),
+            'prime_bishop_image': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Make image field optional
+        # Make image fields optional
         self.fields['image'].required = False
         self.fields['image'].widget.attrs.update({'accept': 'image/*'})
+        self.fields['prime_bishop_image'].required = False
+        self.fields['prime_bishop_image'].widget.attrs.update({'accept': 'image/*'})
 
     def clean_name(self):
         name = self.cleaned_data['name'].strip()

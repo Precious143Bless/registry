@@ -21,7 +21,11 @@
         <div class="row align-items-center g-3">
             <div class="col-auto d-flex align-items-center justify-content-center rounded-circle flex-shrink-0"
                  style="width:52px;height:52px;background:#f5ede8;">
-                <i class="bi bi-building fs-4" style="color:#c9a84c;"></i>
+                {% if info.church_logo %}
+                    <img src="{{ info.church_logo.url }}" alt="Church Logo" class="img-fluid" style="max-height:52px; max-width:52px; border-radius:50%;" />
+                {% else %}
+                    <i class="bi bi-building fs-4" style="color:#c9a84c;"></i>
+                {% endif %}
             </div>
             <div class="col-md-4">
                 <div class="fw-bold fs-5 mb-0" style="color:#4e2a1e;">{{ info.parish_name }}</div>
@@ -59,6 +63,21 @@
                 {% if not info.contact_number and not info.email %}
                     <span class="text-muted small fst-italic">No contact set</span>
                 {% endif %}
+
+                <div class="mt-3">
+                    <div class="text-muted small text-uppercase fw-semibold mb-1">
+                        <i class="bi bi-person-fill me-1" style="color:#c9a84c;"></i>Prime Bishop
+                    </div>
+                    <div class="small" style="color:#2d2d2d;">{{ info.prime_bishop_name|default:'—' }}</div>
+                    {% if info.prime_bishop_details %}
+                    <div class="small text-muted">{{ info.prime_bishop_details|truncatechars:80 }}</div>
+                    {% endif %}
+                    {% if info.prime_bishop_image %}
+                    <div class="mt-2">
+                        <img src="{{ info.prime_bishop_image.url }}" alt="Prime Bishop" style="max-height:65px;" class="img-thumbnail" />
+                    </div>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>

@@ -1,4 +1,4 @@
-<form method="post" id="parishForm">
+<form method="post" id="parishForm" enctype="multipart/form-data">
     {% csrf_token %}
 
     <!-- Tabs -->
@@ -62,6 +62,18 @@
                         </div>
                     </div>
                     <div class="col-md-12">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Vision</label>
+                        <div class="view-field">
+                            <p class="mb-0 text-muted" style="color:#2d2d2d;">
+                                {{ info.vision|linebreaksbr|default:"—" }}
+                            </p>
+                        </div>
+                        <div class="edit-field d-none">
+                            {{ form.vision }}
+                            {% if form.vision.errors %}<div class="text-danger small mt-1">{{ form.vision.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-12">
                         <label class="form-label fw-semibold text-muted small text-uppercase">Mission</label>
                         <div class="view-field">
                             <p class="mb-0 text-muted" style="color:#2d2d2d;">
@@ -73,16 +85,102 @@
                             {% if form.mission.errors %}<div class="text-danger small mt-1">{{ form.mission.errors.0 }}</div>{% endif %}
                         </div>
                     </div>
-                    <div class="col-md-12">
-                        <label class="form-label fw-semibold text-muted small text-uppercase">Vision</label>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Church Logo</label>
                         <div class="view-field">
-                            <p class="mb-0 text-muted" style="color:#2d2d2d;">
-                                {{ info.vision|linebreaksbr|default:"—" }}
-                            </p>
+                            {% if info.church_logo %}
+                                <img src="{{ info.church_logo.url }}" alt="Church Logo" class="img-fluid img-thumbnail" style="max-height:120px;" />
+                            {% else %}
+                                <p class="mb-0 text-muted">—</p>
+                            {% endif %}
                         </div>
                         <div class="edit-field d-none">
-                            {{ form.vision }}
-                            {% if form.vision.errors %}<div class="text-danger small mt-1">{{ form.vision.errors.0 }}</div>{% endif %}
+                            {{ form.church_logo }}
+                            {% if form.church_logo.errors %}<div class="text-danger small mt-1">{{ form.church_logo.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Prime Bishop Name</label>
+                        <div class="view-field">
+                            <p class="mb-0 fw-semibold fs-6" style="color:#2d2d2d;">{{ info.prime_bishop_name|default:'—' }}</p>
+                        </div>
+                        <div class="edit-field d-none">
+                            {{ form.prime_bishop_name }}
+                            {% if form.prime_bishop_name.errors %}<div class="text-danger small mt-1">{{ form.prime_bishop_name.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Prime Bishop Details</label>
+                        <div class="view-field">
+                            <p class="mb-0 text-muted" style="color:#2d2d2d;">{{ info.prime_bishop_details|linebreaksbr|default:'—' }}</p>
+                        </div>
+                        <div class="edit-field d-none">
+                            {{ form.prime_bishop_details }}
+                            {% if form.prime_bishop_details.errors %}<div class="text-danger small mt-1">{{ form.prime_bishop_details.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Prime Bishop Image</label>
+                        <div class="view-field">
+                            {% if info.prime_bishop_image %}
+                                <img src="{{ info.prime_bishop_image.url }}" alt="Prime Bishop" class="img-fluid img-thumbnail" style="max-height:120px;" />
+                            {% else %}
+                                <p class="mb-0 text-muted">—</p>
+                            {% endif %}
+                        </div>
+                        <div class="edit-field d-none">
+                            {{ form.prime_bishop_image }}
+                            {% if form.prime_bishop_image.errors %}<div class="text-danger small mt-1">{{ form.prime_bishop_image.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Street Address</label>
+                        <div class="view-field">
+                            <p class="mb-0 text-muted" style="color:#2d2d2d;">{{ info.street_address|default:'—' }}</p>
+                        </div>
+                        <div class="edit-field d-none">
+                            {{ form.street_address }}
+                            {% if form.street_address.errors %}<div class="text-danger small mt-1">{{ form.street_address.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Barangay</label>
+                        <div class="view-field">
+                            <p class="mb-0 text-muted" style="color:#2d2d2d;">{{ info.barangay|default:'—' }}</p>
+                        </div>
+                        <div class="edit-field d-none">
+                            {{ form.barangay }}
+                            {% if form.barangay.errors %}<div class="text-danger small mt-1">{{ form.barangay.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Municipality</label>
+                        <div class="view-field">
+                            <p class="mb-0 text-muted" style="color:#2d2d2d;">{{ info.municipality|default:'—' }}</p>
+                        </div>
+                        <div class="edit-field d-none">
+                            {{ form.municipality }}
+                            {% if form.municipality.errors %}<div class="text-danger small mt-1">{{ form.municipality.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Province</label>
+                        <div class="view-field">
+                            <p class="mb-0 text-muted" style="color:#2d2d2d;">{{ info.province|default:'—' }}</p>
+                        </div>
+                        <div class="edit-field d-none">
+                            {{ form.province }}
+                            {% if form.province.errors %}<div class="text-danger small mt-1">{{ form.province.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">ZIP Code</label>
+                        <div class="view-field">
+                            <p class="mb-0 text-muted" style="color:#2d2d2d;">{{ info.zip_code|default:'—' }}</p>
+                        </div>
+                        <div class="edit-field d-none">
+                            {{ form.zip_code }}
+                            {% if form.zip_code.errors %}<div class="text-danger small mt-1">{{ form.zip_code.errors.0 }}</div>{% endif %}
                         </div>
                     </div>
                 </div>
