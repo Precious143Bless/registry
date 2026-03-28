@@ -259,6 +259,39 @@ class MemberForm(forms.ModelForm):
 
 # ─── BAPTISM FORM ────────────────────────────────────────────────────────────
 
+def _find_priest_pk(stored_name, qs):
+    """Match a stored priest name string to a ParishPriest instance pk."""
+    if not stored_name:
+        return None
+    stored = stored_name.strip().lower()
+    # Strip common prefixes
+    for prefix in ('rev. fr. ', 'fr. ', 'rev. ', 'rev '):
+        if stored.startswith(prefix):
+            stored = stored[len(prefix):]
+    for p in qs:
+        # Match against __str__ (Fr. First Last), full_name (First Middle Last), and first+last
+        candidates = [
+            str(p).lower(),
+            p.full_name.lower(),
+            f"{p.first_name} {p.last_name}".lower(),
+        ]
+        # Also strip prefixes from candidates
+        stripped_candidates = []
+        for c in candidates:
+            for prefix in ('rev. fr. ', 'fr. ', 'rev. ', 'rev '):
+                if c.startswith(prefix):
+                    c = c[len(prefix):]
+            stripped_candidates.append(c)
+        if stored in stripped_candidates or any(stored in c or c in stored for c in stripped_candidates):
+            return p.pk
+    return None
+
+
+def _priest_initial(stored_name, qs):
+    """Return the pk of the ParishPriest matching the stored name, for ModelChoiceField initial."""
+    return _find_priest_pk(stored_name, qs)
+
+
 class BaptismForm(forms.ModelForm):
     date_baptized = forms.DateField(
         widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
@@ -266,12 +299,17 @@ class BaptismForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        qs = ParishPriest.objects.order_by('last_name', 'first_name')
         self.fields['priest'] = forms.ModelChoiceField(
-            queryset=ParishPriest.objects.filter(status='active').order_by('last_name', 'first_name'),
+            queryset=qs,
             empty_label="Select Officiating Priest",
             widget=forms.Select(attrs={'class': 'form-select'}),
-            to_field_name='id'
         )
+        # Auto-select the saved priest when editing
+        if self.instance and self.instance.pk and self.instance.priest:
+            priest_obj = _priest_initial(self.instance.priest, qs)
+            if priest_obj:
+                self.initial['priest'] = priest_obj
 
     class Meta:
         model = Baptism
@@ -292,7 +330,7 @@ class BaptismForm(forms.ModelForm):
         value = self.cleaned_data['priest']
         if not value:
             raise ValidationError('Officiating priest is required.')
-        return value
+        return str(value)
 
 
 # ─── CONFIRMATION FORM ───────────────────────────────────────────────────────
@@ -340,12 +378,17 @@ class CommunionForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        qs = ParishPriest.objects.order_by('last_name', 'first_name')
         self.fields['priest'] = forms.ModelChoiceField(
-            queryset=ParishPriest.objects.filter(status='active').order_by('last_name', 'first_name'),
+            queryset=qs,
             empty_label="Select Officiating Priest",
             widget=forms.Select(attrs={'class': 'form-select'}),
-            to_field_name='id'
         )
+        # Auto-select the saved priest when editing
+        if self.instance and self.instance.pk and self.instance.priest:
+            priest_obj = _priest_initial(self.instance.priest, qs)
+            if priest_obj:
+                self.initial['priest'] = priest_obj
 
     class Meta:
         model = FirstHolyCommunion
@@ -363,7 +406,7 @@ class CommunionForm(forms.ModelForm):
         value = self.cleaned_data['priest']
         if not value:
             raise ValidationError('Officiating priest is required.')
-        return value
+        return str(value)
 
 
 # ─── MARRIAGE FORM ───────────────────────────────────────────────────────────
@@ -375,12 +418,17 @@ class MarriageForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        qs = ParishPriest.objects.order_by('last_name', 'first_name')
         self.fields['priest'] = forms.ModelChoiceField(
-            queryset=ParishPriest.objects.filter(status='active').order_by('last_name', 'first_name'),
+            queryset=qs,
             empty_label="Select Officiating Priest",
             widget=forms.Select(attrs={'class': 'form-select'}),
-            to_field_name='id'
         )
+        # Auto-select the saved priest when editing
+        if self.instance and self.instance.pk and self.instance.priest:
+            priest_obj = _priest_initial(self.instance.priest, qs)
+            if priest_obj:
+                self.initial['priest'] = priest_obj
 
     class Meta:
         model = Marriage
@@ -408,7 +456,7 @@ class MarriageForm(forms.ModelForm):
         value = self.cleaned_data['priest']
         if not value:
             raise ValidationError('Officiating priest is required.')
-        return value
+        return str(value)
 
 
 # ─── LAST RITES FORM ─────────────────────────────────────────────────────────
@@ -420,12 +468,17 @@ class LastRitesForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        qs = ParishPriest.objects.order_by('last_name', 'first_name')
         self.fields['priest'] = forms.ModelChoiceField(
-            queryset=ParishPriest.objects.filter(status='active').order_by('last_name', 'first_name'),
+            queryset=qs,
             empty_label="Select Officiating Priest",
             widget=forms.Select(attrs={'class': 'form-select'}),
-            to_field_name='id'
         )
+        # Auto-select the saved priest when editing
+        if self.instance and self.instance.pk and self.instance.priest:
+            priest_obj = _priest_initial(self.instance.priest, qs)
+            if priest_obj:
+                self.initial['priest'] = priest_obj
 
     class Meta:
         model = LastRites
@@ -443,7 +496,7 @@ class LastRitesForm(forms.ModelForm):
         value = self.cleaned_data['priest']
         if not value:
             raise ValidationError('Officiating priest is required.')
-        return value
+        return str(value)
 
 
 # ─── PLEDGE FORM ─────────────────────────────────────────────────────────────
