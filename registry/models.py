@@ -482,16 +482,8 @@ class Church(models.Model):
 
 class Parish(models.Model):
     """Parish under a church"""
-    PARISH_TYPES = [
-        ('cathedral', 'Cathedral'),
-        ('parish', 'Parish'),
-        ('mission', 'Mission'),
-        ('chapel', 'Chapel'),
-    ]
-
     church = models.ForeignKey(Church, on_delete=models.CASCADE, related_name='parishes')
     name = models.CharField(max_length=200)
-    parish_type = models.CharField(max_length=20, choices=PARISH_TYPES, default='parish')
     location = models.CharField(max_length=300, help_text="Full address of the parish")
     description = models.TextField(blank=True)
     established_date = models.DateField(null=True, blank=True)
@@ -507,10 +499,11 @@ class Parish(models.Model):
         verbose_name_plural = 'Parishes'
 
     def __str__(self):
-        return f"{self.name} ({self.get_parish_type_display()})"
-
+        return self.name
+    
     @property
     def officer_count(self):
+        """Get the number of active officers in this parish"""
         return self.parish_officers.filter(is_active=True).count()
 
 

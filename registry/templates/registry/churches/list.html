@@ -64,7 +64,7 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="{% url 'parish_create' church.pk %}" class="dropdown-item">
+                                <a href="{% url 'parish_create' %}?church_id={{ church.pk }}" class="dropdown-item">
                                     <i class="bi bi-plus-circle me-2"></i>Add Parish
                                 </a>
                             </li>

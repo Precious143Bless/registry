@@ -125,10 +125,12 @@ urlpatterns = [
 
     # Parishes
     path('parishes/', views.parish_list, name='parish_list'),
-    path('churches/<int:church_pk>/parish/new/', views.parish_create, name='parish_create'),
+    path('parishes/new/', views.parish_create, name='parish_create'),
     path('parishes/<int:pk>/', views.parish_detail, name='parish_detail'),
     path('parishes/<int:pk>/edit/', views.parish_edit, name='parish_edit'),
     path('parishes/<int:pk>/delete/', views.parish_delete, name='parish_delete'),
+    path('parishes/<int:pk>/members/', views.parish_member, name='parish_member'),
+    path('parishes/<int:pk>/officer-chart/', views.parish_officer_chart, name='parish_officer_chart'),
 
     # Parish Officers
     path('parishes/<int:parish_pk>/officer/add/', views.parish_officer_add, name='parish_officer_add'),

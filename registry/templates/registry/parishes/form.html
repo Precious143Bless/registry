@@ -8,7 +8,7 @@
         <div class="card border-0 shadow-sm" style="border-radius:12px;">
             <div class="card-header bg-white border-0 pt-4 px-4">
                 <h6 class="fw-bold mb-0" style="color:#4e2a1e;">
-                    <i class="bi bi-building me-2" style="color:#c9a84c;"></i>{{ title }}
+                    <i class="bi bi-church me-2" style="color:#c9a84c;"></i>{{ title }}
                 </h6>
             </div>
             <div class="card-body px-4 pb-4">
@@ -17,30 +17,47 @@
                 <div class="alert alert-danger py-2 px-3 mb-3" style="border-radius:8px;">
                     <i class="bi bi-exclamation-triangle-fill me-2"></i>
                     <strong>Please fix the errors below before saving.</strong>
+                    <ul class="mb-0 mt-1">
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <li><strong>{{ field|title }}:</strong> {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
                 </div>
                 {% endif %}
 
-                <form method="post" enctype="multipart/form-data" novalidate>
+                <form method="post" novalidate>
                     {% csrf_token %}
                     <div class="row g-3">
 
                         <div class="col-12">
-                            <label class="form-label fw-semibold small">Church Name *</label>
+                            <label class="form-label fw-semibold small">Church *</label>
+                            <select name="church" class="form-select" required>
+                                <option value="">Select Church/Diocese</option>
+                                {% for church in churches %}
+                                <option value="{{ church.id }}" {% if church.id|stringformat:"s" == selected_church_id %}selected{% endif %}>
+                                    {{ church.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            {% if form.church.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.church.errors.0 }}</div>
+                            {% endif %}
+                            <div class="text-muted small mt-1">
+                                <i class="bi bi-info-circle"></i> 
+                                <a href="{% url 'church_create' %}" target="_blank">Add new church</a> if not in the list.
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Parish Name *</label>
                             {{ form.name }}
                             {% if form.name.errors %}
                                 <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.name.errors.0 }}</div>
                             {% endif %}
-                            <div class="text-muted small mt-1">Full name of the church (e.g., Cathedral of St. Mary and St. John)</div>
+                            <div class="text-muted small mt-1">Full name of the parish (e.g., St. Stephen's Parish)</div>
                         </div>
-
-                        {% comment %} <div class="col-12">
-                            <label class="form-label fw-semibold small">Bishop</label>
-                            {{ form.bishop }}
-                            {% if form.bishop.errors %}
-                                <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.bishop.errors.0 }}</div>
-                            {% endif %}
-                            <div class="text-muted small mt-1">Current bishop of the church (e.g., The Rt. Rev. John Smith)</div>
-                        </div> {% endcomment %}
 
                         <div class="col-12">
                             <label class="form-label fw-semibold small">Location / Address *</label>
@@ -57,7 +74,7 @@
                             {% if form.description.errors %}
                                 <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.description.errors.0 }}</div>
                             {% endif %}
-                            <div class="text-muted small mt-1">Brief description of the church's history, mission, and activities.</div>
+                            <div class="text-muted small mt-1">Brief description of the parish's history, mission, and activities.</div>
                         </div>
 
                         <div class="col-md-6">
@@ -89,22 +106,21 @@
                             <div class="form-check">
                                 {{ form.is_active }}
                                 <label class="form-check-label fw-semibold small" for="{{ form.is_active.id_for_label }}">
-                                    Active Church
+                                    Active Parish
                                 </label>
                             </div>
                             {% if form.is_active.errors %}
                                 <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.is_active.errors.0 }}</div>
                             {% endif %}
-                            <div class="text-muted small mt-1">Inactive churches will not appear in public lists.</div>
+                            <div class="text-muted small mt-1">Inactive parishes will not appear in lists.</div>
                         </div>
 
                     </div>
                     <div class="d-flex gap-2 mt-4">
                         <button type="submit" class="btn btn-primary-church px-4">
-                            <i class="bi bi-check-lg me-1"></i>Save Church
+                            <i class="bi bi-check-lg me-1"></i>Save Parish
                         </button>
-                        <a href="{% if church %}{% url 'church_detail' church.pk %}{% else %}{% url 'church_list' %}{% endif %}" 
-                           class="btn btn-outline-secondary px-4">Cancel</a>
+                        <a href="{% url 'parish_list' %}" class="btn btn-outline-secondary px-4">Cancel</a>
                     </div>
                 </form>
             </div>
@@ -116,6 +132,7 @@
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        // Format contact number input
         const contactInput = document.querySelector('input[name="contact_number"]');
         if (contactInput) {
             contactInput.addEventListener('input', function(e) {
@@ -123,6 +140,7 @@
             });
         }
         
+        // Highlight invalid fields
         document.querySelectorAll('.text-danger').forEach(function (el) {
             const input = el.previousElementSibling;
             if (input && (input.tagName === 'INPUT' || input.tagName === 'SELECT' || input.tagName === 'TEXTAREA')) {

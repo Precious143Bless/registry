@@ -22,13 +22,6 @@
                 <option value="{{ church.id }}" {% if church_filter == church.id|stringformat:"s" %}selected{% endif %}>{{ church.name }}</option>
                 {% endfor %}
             </select>
-            <select name="parish_type" class="form-select form-select-sm" style="width: auto;" onchange="filterByType(this.value)">
-                <option value="">All Types</option>
-                <option value="cathedral" {% if parish_type == 'cathedral' %}selected{% endif %}>Cathedral</option>
-                <option value="parish" {% if parish_type == 'parish' %}selected{% endif %}>Parish</option>
-                <option value="mission" {% if parish_type == 'mission' %}selected{% endif %}>Mission</option>
-                <option value="chapel" {% if parish_type == 'chapel' %}selected{% endif %}>Chapel</option>
-            </select>
         </div>
         <a href="{% url 'parish_create' %}" class="btn btn-sm btn-primary-church">
             <i class="bi bi-plus-lg me-1"></i>New Parish
@@ -50,7 +43,6 @@
                         </div>
                         <div>
                             <h6 class="fw-bold mb-1" style="color: #4e2a1e;">{{ parish.name }}</h6>
-                            <span class="badge" style="background: #f5ede8; color: #6b3a2a;">{{ parish.get_parish_type_display }}</span>
                         </div>
                     </div>
                     <div class="dropdown">
@@ -97,27 +89,12 @@
                 </div>
                 {% endif %}
                 
-                <!-- Feast Day -->
-                {% if parish.feast_day %}
-                <div class="d-flex align-items-center gap-2 mb-2">
-                    <i class="bi bi-calendar-heart" style="color: #c9a84c; font-size: 0.9rem;"></i>
-                    <span class="small text-muted">Feast: {{ parish.feast_day }}</span>
-                </div>
-                {% endif %}
-                
                 <!-- Contact -->
                 {% if parish.contact_number %}
                 <div class="d-flex align-items-center gap-2 mb-2">
                     <i class="bi bi-telephone" style="color: #c9a84c; font-size: 0.9rem;"></i>
                     <span class="small text-muted">{{ parish.contact_number }}</span>
                 </div>
-                {% endif %}
-                
-                <!-- Description -->
-                {% if parish.description %}
-                <p class="text-muted small mb-3" style="line-height: 1.5;">
-                    {{ parish.description|truncatechars:100 }}
-                </p>
                 {% endif %}
                 
                 <!-- Parish Stats -->
@@ -170,7 +147,7 @@
     <ul class="pagination justify-content-center">
         {% if parishes.has_previous %}
         <li class="page-item">
-            <a class="page-link" href="?page={{ parishes.previous_page_number }}{% if q %}&q={{ q }}{% endif %}{% if church_filter %}&church_filter={{ church_filter }}{% endif %}{% if parish_type %}&parish_type={{ parish_type }}{% endif %}">
+            <a class="page-link" href="?page={{ parishes.previous_page_number }}{% if q %}&q={{ q }}{% endif %}{% if church_filter %}&church_filter={{ church_filter }}{% endif %}">
                 <i class="bi bi-chevron-left"></i>
             </a>
         </li>
@@ -181,14 +158,14 @@
             <li class="page-item active"><span class="page-link">{{ num }}</span></li>
             {% elif num > parishes.number|add:'-3' and num < parishes.number|add:'3' %}
             <li class="page-item">
-                <a class="page-link" href="?page={{ num }}{% if q %}&q={{ q }}{% endif %}{% if church_filter %}&church_filter={{ church_filter }}{% endif %}{% if parish_type %}&parish_type={{ parish_type }}{% endif %}">{{ num }}</a>
+                <a class="page-link" href="?page={{ num }}{% if q %}&q={{ q }}{% endif %}{% if church_filter %}&church_filter={{ church_filter }}{% endif %}">{{ num }}</a>
             </li>
             {% endif %}
         {% endfor %}
         
         {% if parishes.has_next %}
         <li class="page-item">
-            <a class="page-link" href="?page={{ parishes.next_page_number }}{% if q %}&q={{ q }}{% endif %}{% if church_filter %}&church_filter={{ church_filter }}{% endif %}{% if parish_type %}&parish_type={{ parish_type }}{% endif %}">
+            <a class="page-link" href="?page={{ parishes.next_page_number }}{% if q %}&q={{ q }}{% endif %}{% if church_filter %}&church_filter={{ church_filter }}{% endif %}">
                 <i class="bi bi-chevron-right"></i>
             </a>
         </li>
@@ -226,7 +203,7 @@
     function deleteParish(id, name) {
         document.getElementById('deleteConfirmTitle').innerText = 'Delete Parish';
         document.getElementById('deleteConfirmMessage').innerHTML = `Are you sure you want to delete "<strong>${name}</strong>"? This will also remove all officers associated with this parish.`;
-        deleteUrl = `/churches/parishes/${id}/delete/`;
+        deleteUrl = `/parishes/${id}/delete/`;
         document.getElementById('deleteForm').action = deleteUrl;
         new bootstrap.Modal(document.getElementById('deleteConfirmModal')).show();
     }
@@ -237,17 +214,6 @@
             url.searchParams.set('church_filter', value);
         } else {
             url.searchParams.delete('church_filter');
-        }
-        url.searchParams.delete('page');
-        window.location.href = url.toString();
-    }
-    
-    function filterByType(value) {
-        const url = new URL(window.location.href);
-        if (value) {
-            url.searchParams.set('parish_type', value);
-        } else {
-            url.searchParams.delete('parish_type');
         }
         url.searchParams.delete('page');
         window.location.href = url.toString();

@@ -910,17 +910,22 @@ class ParishForm(forms.ModelForm):
 
     class Meta:
         model = Parish
-        fields = ['church', 'name', 'parish_type', 'location', 'description', 'established_date', 'contact_number', 'email', 'is_active']
+        fields = ['church', 'name', 'location', 'description', 'established_date', 'contact_number', 'email', 'is_active']
         widgets = {
             'church': forms.Select(attrs={'class': 'form-select'}),
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., St. Stephen\'s Parish'}),
-            'parish_type': forms.Select(attrs={'class': 'form-select'}),
             'location': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Full address...'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Brief description...'}),
             'contact_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '09XXXXXXXXX'}),
             'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'parish@email.com'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make name and location fields required
+        self.fields['name'].required = True
+        self.fields['location'].required = True
 
     def clean_name(self):
         name = self.cleaned_data['name'].strip()
@@ -929,6 +934,28 @@ class ParishForm(forms.ModelForm):
         if len(name) < 3:
             raise ValidationError('Parish name must be at least 3 characters.')
         return name
+
+    def clean_location(self):
+        location = self.cleaned_data['location'].strip()
+        if not location:
+            raise ValidationError('Location is required.')
+        if len(location) < 10:
+            raise ValidationError('Please enter a complete address (at least 10 characters).')
+        return location
+
+    def clean_contact_number(self):
+        value = self.cleaned_data.get('contact_number', '').strip()
+        if value:
+            if not re.match(r'^09\d{9}$', value):
+                raise ValidationError('Enter a valid 11-digit Philippine mobile number starting with 09.')
+        return value
+
+    def clean_email(self):
+        value = self.cleaned_data.get('email', '').strip()
+        if value:
+            if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', value):
+                raise ValidationError('Enter a valid email address.')
+        return value
 
 
 # ─── PARISH OFFICER EP FORM ───────────────────────────────────────────────

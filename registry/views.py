@@ -1510,7 +1510,7 @@ def church_create(request):
 @admin_required
 def church_detail(request, pk):
     church = get_object_or_404(Church, pk=pk)
-    parishes = church.parishes.filter(is_active=True)
+    parishes = church.parishes.filter(is_active=True).order_by('name')
     
     # Calculate total officers across all parishes
     total_officers = 0
@@ -1597,45 +1597,42 @@ def parish_list(request):
         'churches': Church.objects.filter(is_active=True),
     }
     
-    return render(request, 'registry/churches/parishes/list.html', context)
+    return render(request, 'registry/parishes/list.html', context)
 
 
 @admin_required
-def parish_create(request, church_pk=None):
-    """
-    Create a new parish. If church_pk is provided, pre-select that church.
-    """
-    # Get church if church_pk is provided via URL or GET parameter
-    church = None
-    if church_pk:
-        church = get_object_or_404(Church, pk=church_pk)
-    elif request.GET.get('church_id'):
-        church = get_object_or_404(Church, pk=request.GET.get('church_id'))
-    
-    # Initialize form with church if available
-    initial_data = {}
-    if church:
-        initial_data['church'] = church
-    
+def parish_create(request):
+    """Create a new parish with church selection from dropdown"""
     if request.method == 'POST':
         form = ParishForm(request.POST)
         if form.is_valid():
-            parish = form.save()
+            parish = form.save(commit=False)
+            parish.parish_type = 'parish'  # Always set to 'parish'
+            parish.save()
             messages.success(request, f'Parish "{parish.name}" created successfully.')
-            
-            # Redirect to church detail if church was specified, otherwise to parish list
-            if church:
-                return redirect('church_detail', pk=church.pk)
-            return redirect('parish_list')
+            return redirect('parish_detail', pk=parish.pk)
+        else:
+            # Print errors for debugging
+            for field, errors in form.errors.items():
+                for error in errors:
+                    print(f"Error in {field}: {error}")
     else:
-        form = ParishForm(initial=initial_data)
+        form = ParishForm()
+        # Pre-select church if church_id is passed in GET
+        if request.GET.get('church_id'):
+            selected_church_id = request.GET.get('church_id')
+        else:
+            selected_church_id = None
     
-    return render(request, 'registry/churches/parishes/form.html', {
+    # Get all churches for dropdown
+    churches = Church.objects.filter(is_active=True).order_by('name')
+    
+    return render(request, 'registry/parishes/form.html', {
         'form': form,
-        'church': church,
+        'churches': churches,
+        'selected_church_id': request.GET.get('church_id', ''),
         'title': 'Add New Parish'
     })
-
 
 @admin_required
 def parish_detail(request, pk):
@@ -1650,7 +1647,7 @@ def parish_detail(request, pk):
     if officer_position:
         officers = officers.filter(position=officer_position)
     
-    return render(request, 'registry/churches/parishes/detail.html', {
+    return render(request, 'registry/parishes/detail.html', {
         'parish': parish,
         'officers': officers,
         'officer_position': officer_position,
@@ -1665,10 +1662,16 @@ def parish_edit(request, pk):
         form.save()
         messages.success(request, 'Parish updated successfully.')
         return redirect('parish_detail', pk=parish.pk)
-    return render(request, 'registry/churches/parishes/form.html', {
+    
+    # Get all churches for dropdown
+    churches = Church.objects.filter(is_active=True).order_by('name')
+    
+    return render(request, 'registry/parishes/form.html', {
         'form': form,
-        'parish': parish,
-        'title': f'Edit {parish.name}'
+        'churches': churches,
+        'selected_church_id': str(parish.church_id) if parish.church_id else '',
+        'title': f'Edit {parish.name}',
+        'parish': parish
     })
 
 
@@ -1680,7 +1683,7 @@ def parish_delete(request, pk):
         parish.delete()
         messages.success(request, f'Parish "{parish_name}" has been deleted.')
         return redirect('parish_list')
-    return render(request, 'registry/churches/parishes/confirm_delete.html', {
+    return render(request, 'registry/parishes/confirm_delete.html', {
         'parish': parish
     })
 
@@ -1697,7 +1700,7 @@ def parish_officer_add(request, parish_pk):
         messages.success(request, f'{officer.full_name} has been added as {officer.get_position_display()} to {parish.name}.')
         return redirect('parish_detail', pk=parish.pk)
     
-    return render(request, 'registry/churches/parishes/officer_form.html', {
+    return render(request, 'registry/parishes/officer_form.html', {
         'form': form,
         'parish': parish,
         'title': f'Add Officer to {parish.name}'
@@ -1714,7 +1717,7 @@ def parish_officer_edit(request, pk):
         messages.success(request, 'Officer information updated successfully.')
         return redirect('parish_detail', pk=officer.parish.pk)
     
-    return render(request, 'registry/churches/parishes/officer_form.html', {
+    return render(request, 'registry/parishes/officer_form.html', {
         'form': form,
         'officer': officer,
         'parish': officer.parish,
@@ -1732,7 +1735,7 @@ def parish_officer_delete(request, pk):
         messages.success(request, 'Officer has been removed.')
         return redirect('parish_detail', pk=parish_pk)
     
-    return render(request, 'registry/churches/parishes/confirm_officer_delete.html', {
+    return render(request, 'registry/parishes/confirm_officer_delete.html', {
         'officer': officer
     })
 
@@ -1782,7 +1785,7 @@ def parish_officer_chart(request, pk):
     # Calculate total officers count
     total_officers = sum(len(officers) for officers in officers_by_position.values())
     
-    return render(request, 'registry/churches/parishes/parish_officer_chart.html', {
+    return render(request, 'registry/parishes/parish_officer_chart.html', {
         'parish': parish,
         'officers_by_position': officers_by_position,
         'total_officers': total_officers,
@@ -1822,7 +1825,7 @@ def parish_member(request, pk):
     paginator = Paginator(members, 15)
     page_obj = paginator.get_page(request.GET.get('page'))
     
-    return render(request, 'registry/churches/parishes/parish_member.html', {
+    return render(request, 'registry/parishes/parish_member.html', {
         'parish': parish,
         'members': page_obj,
         'page_obj': page_obj,
