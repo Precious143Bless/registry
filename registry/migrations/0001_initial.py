@@ -65,6 +65,33 @@ class Migration(migrations.Migration):
                 'ordering': ['name'],
             },
         ),
+
+         migrations.CreateModel(
+            name='Cathedral',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('name', models.CharField(max_length=200, verbose_name='Cathedral Name')),
+                ('location', models.CharField(help_text='Full address of the cathedral', max_length=300, verbose_name='Location')),
+                ('description', models.TextField(blank=True, verbose_name='Description')),
+                ('established_date', models.DateField(blank=True, null=True, verbose_name='Established Date')),
+                ('contact_number', models.CharField(blank=True, max_length=20, verbose_name='Contact Number')),
+                ('email', models.EmailField(blank=True, max_length=254, verbose_name='Email')),
+                ('is_active', models.BooleanField(default=True, verbose_name='Is Active')),
+                ('date_created', models.DateField(auto_now_add=True, verbose_name='Date Created')),
+                ('date_updated', models.DateField(auto_now=True, verbose_name='Date Updated')),
+                ('church', models.OneToOneField(
+                    on_delete=django.db.models.deletion.CASCADE, 
+                    related_name='cathedral', 
+                    to='registry.church', 
+                    verbose_name='Church'
+                )),
+            ],
+            options={
+                'verbose_name': 'Cathedral',
+                'verbose_name_plural': 'Cathedrals',
+                'ordering': ['name'],
+            },
+        ),
         
         # Create Parish model (depends on Church)
         migrations.CreateModel(
@@ -72,7 +99,6 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=200, verbose_name='Parish Name')),
-                ('parish_type', models.CharField(choices=[('cathedral', 'Cathedral'), ('parish', 'Parish'), ('mission', 'Mission'), ('chapel', 'Chapel')], default='parish', max_length=20, verbose_name='Parish Type')),
                 ('location', models.CharField(help_text='Full address of the parish', max_length=300, verbose_name='Location')),
                 ('description', models.TextField(blank=True, verbose_name='Description')),
                 ('established_date', models.DateField(blank=True, null=True, verbose_name='Established Date')),
@@ -453,16 +479,24 @@ class Migration(migrations.Migration):
             index=models.Index(fields=['is_active'], name='church_active_idx'),
         ),
         migrations.AddIndex(
+            model_name='cathedral',
+            index=models.Index(fields=['name'], name='cathedral_name_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='cathedral',
+            index=models.Index(fields=['church_id'], name='cathedral_church_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='cathedral',
+            index=models.Index(fields=['is_active'], name='cathedral_active_idx'),
+        ),
+        migrations.AddIndex(
             model_name='parish',
             index=models.Index(fields=['name'], name='parish_name_idx'),
         ),
         migrations.AddIndex(
             model_name='parish',
             index=models.Index(fields=['church_id'], name='parish_church_idx'),
-        ),
-        migrations.AddIndex(
-            model_name='parish',
-            index=models.Index(fields=['parish_type'], name='parish_type_idx'),
         ),
         migrations.AddIndex(
             model_name='parish',

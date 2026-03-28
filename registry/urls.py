@@ -131,16 +131,24 @@ urlpatterns = [
     path('parishes/<int:pk>/delete/', views.parish_delete, name='parish_delete'),
     path('parishes/<int:pk>/members/', views.parish_member, name='parish_member'),
     path('parishes/<int:pk>/officer-chart/', views.parish_officer_chart, name='parish_officer_chart'),
+    path('parishes/<int:parish_pk>/priests/', views.parish_priest_list, name='parish_priest_list'),
+    path('priests/<int:pk>/remove-from-parish/', views.priest_remove_from_parish, name='priest_remove_from_parish'),
 
     # Parish Officers
     path('parishes/<int:parish_pk>/officer/add/', views.parish_officer_add, name='parish_officer_add'),
     path('parish-officers/<int:pk>/edit/', views.parish_officer_edit, name='parish_officer_edit'),
     path('parish-officers/<int:pk>/delete/', views.parish_officer_delete, name='parish_officer_delete'),
 
-    # Parish Officer Chart
+    # Parish Officer Chart and member
     path('parishes/<int:pk>/officer-chart/', views.parish_officer_chart, name='parish_officer_chart'),
-    # Add this to your urlpatterns
     path('parishes/<int:pk>/members/', views.parish_member, name='parish_member'),
+
+    # Cathedrals
+    path('cathedrals/', views.cathedral_list, name='cathedral_list'),
+    path('cathedrals/new/', views.cathedral_create, name='cathedral_create'),
+    path('cathedrals/<int:pk>/', views.cathedral_detail, name='cathedral_detail'),
+    path('cathedrals/<int:pk>/edit/', views.cathedral_edit, name='cathedral_edit'),
+    path('cathedrals/<int:pk>/delete/', views.cathedral_delete, name='cathedral_delete'),
 ]
 
 # Serve media files in development

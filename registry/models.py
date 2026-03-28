@@ -465,20 +465,13 @@ class Church(models.Model):
     
     # Church logo and bishop
     image = models.ImageField(
-        upload_to='assets/images/church/',
-        blank=True,
+        upload_to='logo/',  
+        blank=True, 
         null=True,
         verbose_name='Church Logo'
     )
     bishop = models.CharField(max_length=200, blank=True, help_text="Current bishop of the church")
-    prime_bishop_name = models.CharField(max_length=200, blank=True, help_text="Prime Bishop name")
-    prime_bishop_image = models.ImageField(
-        upload_to='assets/images/priests/',
-        blank=True,
-        null=True,
-        verbose_name='Prime Bishop Image'
-    )
-
+    
     date_created = models.DateField(auto_now_add=True)
     date_updated = models.DateField(auto_now=True)
 
@@ -567,3 +560,29 @@ class ParishOfficerEP(models.Model):
     def full_name(self):
         parts = [self.first_name, self.middle_name, self.last_name]
         return ' '.join(p for p in parts if p)
+    
+class Cathedral(models.Model):
+    """Cathedral - each church can have only one cathedral"""
+    church = models.OneToOneField(
+        Church, 
+        on_delete=models.CASCADE, 
+        related_name='cathedral',
+        verbose_name='Church'
+    )
+    name = models.CharField(max_length=200, verbose_name='Cathedral Name')
+    location = models.CharField(max_length=300, help_text="Full address of the cathedral")
+    description = models.TextField(blank=True)
+    established_date = models.DateField(null=True, blank=True)
+    contact_number = models.CharField(max_length=20, blank=True)
+    email = models.EmailField(blank=True)
+    is_active = models.BooleanField(default=True)
+    date_created = models.DateField(auto_now_add=True)
+    date_updated = models.DateField(auto_now=True)
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = 'Cathedral'
+        verbose_name_plural = 'Cathedrals'
+
+    def __str__(self):
+        return self.name

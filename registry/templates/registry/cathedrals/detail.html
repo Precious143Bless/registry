@@ -1,0 +1,114 @@
+{% extends 'registry/base.html' %}
+{% load static %}
+
+{% block page_title %}{{ cathedral.name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Cathedral Header -->
+        <div class="card border-0 shadow-sm mb-4" style="border-radius:12px;">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="bi bi-building" style="color: #c9a84c; font-size: 1.8rem;"></i>
+                            <h4 class="fw-bold mb-0" style="color:#4e2a1e;">{{ cathedral.name }}</h4>
+                            {% if cathedral.is_active %}
+                            <span class="badge badge-paid ms-2">Active</span>
+                            {% else %}
+                            <span class="badge badge-unpaid ms-2">Inactive</span>
+                            {% endif %}
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-building" style="color: #c9a84c;"></i>
+                            <span class="text-muted">{{ cathedral.church.name }}</span>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'cathedral_edit' cathedral.pk %}" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-pencil me-1"></i>Edit
+                        </a>
+                        <a href="{% url 'church_detail' cathedral.church.pk %}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-building me-1"></i>View Church
+                        </a>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteCathedral({{ cathedral.id }}, '{{ cathedral.name|escapejs }}')">
+                            <i class="bi bi-trash me-1"></i>Delete
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Cathedral Information Cards -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="p-3 rounded" style="background:#f5ede8;">
+                            <div class="small text-muted mb-1">Location</div>
+                            <div class="fw-semibold">{{ cathedral.location|default:"—" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 rounded" style="background:#f5ede8;">
+                            <div class="small text-muted mb-1">Contact Number</div>
+                            <div class="fw-semibold">{{ cathedral.contact_number|default:"—" }}</div>
+                        </div>
+                    </div>
+                    {% if cathedral.email %}
+                    <div class="col-md-3">
+                        <div class="p-3 rounded" style="background:#f5ede8;">
+                            <div class="small text-muted mb-1">Email Address</div>
+                            <div class="fw-semibold">{{ cathedral.email }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="col-md-2">
+                        <div class="p-3 rounded" style="background:#f5ede8;">
+                            <div class="small text-muted mb-1">Established</div>
+                            <div class="fw-semibold">{{ cathedral.established_date|date:"Y"|default:"—" }}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if cathedral.description %}
+                <div class="mt-3 p-3" style="background: #f5ede8; border-radius: 12px;">
+                    <p class="mb-0 text-muted">{{ cathedral.description }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Cathedral Modal -->
+<div class="modal fade" id="deleteCathedralModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0" style="border-radius:14px;">
+            <div class="modal-body text-center p-4">
+                <i class="bi bi-exclamation-triangle-fill" style="font-size: 2rem; color: #dc3545;"></i>
+                <h6 class="fw-bold mt-2">Delete Cathedral</h6>
+                <p class="small text-muted" id="deleteCathedralMessage">Are you sure you want to delete this cathedral?</p>
+                <div class="d-flex gap-2 justify-content-center mt-3">
+                    <button class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form method="post" id="deleteCathedralForm" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let deleteCathedralUrl = '';
+    
+    function deleteCathedral(id, name) {
+        document.getElementById('deleteCathedralMessage').innerHTML = `Are you sure you want to delete "<strong>${name}</strong>"? This action cannot be undone.`;
+        deleteCathedralUrl = `/cathedrals/${id}/delete/`;
+        document.getElementById('deleteCathedralForm').action = deleteCathedralUrl;
+        new bootstrap.Modal(document.getElementById('deleteCathedralModal')).show();
+    }
+</script>
+{% endblock %}

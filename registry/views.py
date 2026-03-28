@@ -847,22 +847,65 @@ def payment_edit(request, pk):
 @admin_required
 def priests_list(request):
     from django.core.paginator import Paginator
+    
     q = request.GET.get('q', '')
-    priests = ParishPriest.objects.filter(status='active')
+    church_filter = request.GET.get('church_filter', '')
+    parish_filter = request.GET.get('parish_filter', '')
+    
+    priests = ParishPriest.objects.all()
+    
+    # Search by name
     if q:
         priests = priests.filter(
             Q(first_name__icontains=q) |
             Q(last_name__icontains=q) |
             Q(middle_name__icontains=q) |
-            Q(email__icontains=q) |
-            Q(contact_number__icontains=q)
+            Q(contact_number__icontains=q) |
+            Q(email__icontains=q)
         )
+    
+    # Filter by church
+    if church_filter:
+        priests = priests.filter(church_id=church_filter)
+    
+    # Filter by parish
+    if parish_filter:
+        priests = priests.filter(parish_id=parish_filter)
+    
+    # Get all churches for filter dropdown
+    churches = Church.objects.filter(is_active=True).order_by('name')
+    
+    # Get all parishes for filter dropdown
+    parishes = Parish.objects.filter(is_active=True).order_by('name')
+    
+    # Pagination
     paginator = Paginator(priests, 15)
     page_obj = paginator.get_page(request.GET.get('page'))
+    
+    # Get filter names for display
+    church_filter_name = None
+    parish_filter_name = None
+    if church_filter:
+        try:
+            church_filter_name = Church.objects.get(id=church_filter).name
+        except Church.DoesNotExist:
+            pass
+    if parish_filter:
+        try:
+            parish_filter_name = Parish.objects.get(id=parish_filter).name
+        except Parish.DoesNotExist:
+            pass
+    
     return render(request, 'registry/priests/list.html', {
         'priests': page_obj,
         'page_obj': page_obj,
         'q': q,
+        'church_filter': church_filter,
+        'parish_filter': parish_filter,
+        'church_filter_name': church_filter_name,
+        'parish_filter_name': parish_filter_name,
+        'churches': churches,
+        'parishes': parishes,
     })
 
 
@@ -1511,6 +1554,11 @@ def church_create(request):
 def church_detail(request, pk):
     church = get_object_or_404(Church, pk=pk)
     parishes = church.parishes.filter(is_active=True).order_by('name')
+    cathedral = None
+    
+    # Check if church has a cathedral
+    if hasattr(church, 'cathedral'):
+        cathedral = church.cathedral
     
     # Calculate total officers across all parishes
     total_officers = 0
@@ -1520,6 +1568,7 @@ def church_detail(request, pk):
     return render(request, 'registry/churches/detail.html', {
         'church': church,
         'parishes': parishes,
+        'cathedral': cathedral,
         'total_officers': total_officers,
     })
 
@@ -1566,7 +1615,6 @@ def church_delete(request, pk):
 def parish_list(request):
     q = request.GET.get('q', '')
     church_filter = request.GET.get('church_filter', '')
-    parish_type = request.GET.get('parish_type', '')
     
     parishes = Parish.objects.all()
     
@@ -1579,9 +1627,6 @@ def parish_list(request):
     if church_filter:
         parishes = parishes.filter(church_id=church_filter)
     
-    if parish_type:
-        parishes = parishes.filter(parish_type=parish_type)
-    
     paginator = Paginator(parishes, 12)
     page_obj = paginator.get_page(request.GET.get('page'))
     
@@ -1590,7 +1635,6 @@ def parish_list(request):
         'page_obj': page_obj,
         'q': q,
         'church_filter': church_filter,
-        'parish_type': parish_type,
         'total_parishes': Parish.objects.count(),
         'active_parishes': Parish.objects.filter(is_active=True).count(),
         'total_churches': Church.objects.count(),
@@ -1607,7 +1651,6 @@ def parish_create(request):
         form = ParishForm(request.POST)
         if form.is_valid():
             parish = form.save(commit=False)
-            parish.parish_type = 'parish'  # Always set to 'parish'
             parish.save()
             messages.success(request, f'Parish "{parish.name}" created successfully.')
             return redirect('parish_detail', pk=parish.pk)
@@ -1641,6 +1684,9 @@ def parish_detail(request, pk):
     # Get officers
     officers = parish.parish_officers.filter(is_active=True)
     
+    # Get all priests assigned to this parish (no status filter)
+    priests = parish.priests.all()  # This will get all priests assigned to this parish
+    
     # Filter parameters
     officer_position = request.GET.get('officer_position', '')
     
@@ -1650,6 +1696,7 @@ def parish_detail(request, pk):
     return render(request, 'registry/parishes/detail.html', {
         'parish': parish,
         'officers': officers,
+        'priests': priests,
         'officer_position': officer_position,
     })
 
@@ -1835,4 +1882,182 @@ def parish_member(request, pk):
         'active_members': active_members,
         'male_members': male_members,
         'female_members': female_members,
+    })
+
+@admin_required
+def parish_priest_list(request, parish_pk):
+    """Display list of priests assigned to a specific parish"""
+    # Get the parish
+    parish = get_object_or_404(Parish, pk=parish_pk)
+    
+    # Get all priests where parish field equals this parish
+    priests = ParishPriest.objects.filter(parish=parish)
+    
+    return render(request, 'registry/parishes/parish_priest_list.html', {
+        'parish': parish,
+        'priests': priests,
+    })
+
+@admin_required
+def priest_remove_from_parish(request, pk):
+    """Remove a priest from their current parish assignment"""
+    priest = get_object_or_404(ParishPriest, pk=pk)
+    parish_pk = priest.parish.pk if priest.parish else None
+    
+    if request.method == 'POST':
+        priest_name = priest.full_name
+        priest.parish = None
+        priest.date_assigned = None
+        priest.save()
+        messages.success(request, f'Rev. {priest_name} has been removed from the parish.')
+        
+        if parish_pk:
+            return redirect('parish_priest_list', parish_pk=parish_pk)
+        return redirect('priests_list')
+    
+    return redirect('priests_list')
+
+@admin_required
+def cathedral_list(request):
+    """Display list of all cathedrals in table format"""
+    from django.core.paginator import Paginator
+    
+    q = request.GET.get('q', '')
+    church_filter = request.GET.get('church_filter', '')
+    
+    cathedrals = Cathedral.objects.select_related('church').all()
+    
+    # Search functionality
+    if q:
+        cathedrals = cathedrals.filter(
+            Q(name__icontains=q) |
+            Q(location__icontains=q) |
+            Q(church__name__icontains=q)
+        )
+    
+    # Filter by church
+    if church_filter:
+        cathedrals = cathedrals.filter(church_id=church_filter)
+    
+    # Get filter name for display
+    church_filter_name = None
+    if church_filter:
+        try:
+            church_filter_name = Church.objects.get(id=church_filter).name
+        except Church.DoesNotExist:
+            pass
+    
+    # Get all churches for filter dropdown
+    churches = Church.objects.filter(is_active=True).order_by('name')
+    
+    # Pagination
+    paginator = Paginator(cathedrals, 15)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    
+    context = {
+        'cathedrals': page_obj,
+        'page_obj': page_obj,
+        'q': q,
+        'church_filter': church_filter,
+        'church_filter_name': church_filter_name,
+        'churches': churches,
+    }
+    
+    return render(request, 'registry/cathedrals/list.html', context)
+
+
+@admin_required
+def cathedral_detail(request, pk):
+    """Display details of a specific cathedral"""
+    cathedral = get_object_or_404(Cathedral, pk=pk)
+    
+    return render(request, 'registry/cathedrals/detail.html', {
+        'cathedral': cathedral,
+    })
+
+
+@admin_required
+def cathedral_create(request):
+    """Create a new cathedral - only for churches without a cathedral"""
+    if request.method == 'POST':
+        form = CathedralForm(request.POST)
+        if form.is_valid():
+            cathedral = form.save()
+            messages.success(request, f'Cathedral "{cathedral.name}" created successfully.')
+            return redirect('cathedral_detail', pk=cathedral.pk)
+        else:
+            # Print errors for debugging
+            for field, errors in form.errors.items():
+                for error in errors:
+                    print(f"Error in {field}: {error}")
+    else:
+        form = CathedralForm()
+        # Pre-select church if church_id is passed in GET
+        if request.GET.get('church_id'):
+            church_id = request.GET.get('church_id')
+            try:
+                church = Church.objects.get(pk=church_id)
+                # Check if this church already has a cathedral
+                if hasattr(church, 'cathedral'):
+                    messages.error(request, f'{church.name} already has a cathedral.')
+                    return redirect('church_detail', pk=church.pk)
+            except Church.DoesNotExist:
+                pass
+    
+    # Get churches without cathedral for the form (already filtered in form __init__)
+    churches_without_cathedral = Church.objects.filter(
+        is_active=True
+    ).exclude(
+        id__in=Cathedral.objects.values_list('church_id', flat=True)
+    ).order_by('name')
+    
+    return render(request, 'registry/cathedrals/form.html', {
+        'form': form,
+        'churches_without_cathedral': churches_without_cathedral,
+        'selected_church_id': request.GET.get('church_id', ''),
+        'title': 'Add New Cathedral'
+    })
+
+
+@admin_required
+def cathedral_edit(request, pk):
+    """Edit an existing cathedral"""
+    cathedral = get_object_or_404(Cathedral, pk=pk)
+    original_church = cathedral.church
+    
+    if request.method == 'POST':
+        form = CathedralForm(request.POST, instance=cathedral)
+        if form.is_valid():
+            updated_cathedral = form.save()
+            messages.success(request, f'Cathedral "{updated_cathedral.name}" updated successfully.')
+            return redirect('cathedral_detail', pk=cathedral.pk)
+        else:
+            # Print errors for debugging
+            for field, errors in form.errors.items():
+                for error in errors:
+                    print(f"Error in {field}: {error}")
+    else:
+        form = CathedralForm(instance=cathedral)
+    
+    return render(request, 'registry/cathedrals/form.html', {
+        'form': form,
+        'cathedral': cathedral,
+        'title': f'Edit {cathedral.name}'
+    })
+
+
+@admin_required
+def cathedral_delete(request, pk):
+    """Delete a cathedral"""
+    cathedral = get_object_or_404(Cathedral, pk=pk)
+    
+    if request.method == 'POST':
+        cathedral_name = cathedral.name
+        church_pk = cathedral.church.pk
+        cathedral.delete()
+        messages.success(request, f'Cathedral "{cathedral_name}" has been deleted.')
+        return redirect('church_detail', pk=church_pk)
+    
+    return render(request, 'registry/cathedrals/confirm_delete.html', {
+        'cathedral': cathedral
     })

@@ -33,6 +33,9 @@
                         <a href="{% url 'parish_member' parish.pk %}" class="btn btn-sm btn-primary-church">
                             <i class="bi bi-eye me-1"></i>View Members
                         </a>
+                        <a href="{% url 'parish_priest_list' parish.pk %}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-person-badge me-1"></i>View Priests
+                        </a>
                         <button class="btn btn-sm btn-outline-danger" onclick="deleteParish({{ parish.id }}, '{{ parish.name|escapejs }}')">
                             <i class="bi bi-trash me-1"></i>Delete
                         </button>
@@ -220,15 +223,36 @@
     </div>
 </div>
 
+<!-- Delete Priest Assignment Modal -->
+<div class="modal fade" id="deletePriestModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0" style="border-radius:14px;">
+            <div class="modal-body text-center p-4">
+                <i class="bi bi-exclamation-triangle-fill" style="font-size: 2rem; color: #dc3545;"></i>
+                <h6 class="fw-bold mt-2">Remove Priest Assignment</h6>
+                <p class="small text-muted" id="deletePriestMessage">Are you sure you want to remove this priest from the parish?</p>
+                <div class="d-flex gap-2 justify-content-center mt-3">
+                    <button class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form method="post" id="deletePriestForm" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
     let deleteParishUrl = '';
     let deleteOfficerUrl = '';
+    let deletePriestUrl = '';
     
     function deleteParish(id, name) {
-        document.getElementById('deleteParishMessage').innerHTML = `Are you sure you want to delete "<strong>${name}</strong>"? This will also remove all officers associated with this parish.`;
+        document.getElementById('deleteParishMessage').innerHTML = `Are you sure you want to delete "<strong>${name}</strong>"? This will also remove all officers and priest assignments associated with this parish.`;
         deleteParishUrl = `/parishes/${id}/delete/`;
         document.getElementById('deleteParishForm').action = deleteParishUrl;
         new bootstrap.Modal(document.getElementById('deleteParishModal')).show();
@@ -239,6 +263,13 @@
         deleteOfficerUrl = `/parish-officers/${id}/delete/`;
         document.getElementById('deleteOfficerForm').action = deleteOfficerUrl;
         new bootstrap.Modal(document.getElementById('deleteOfficerModal')).show();
+    }
+    
+    function deletePriestAssignment(id, name) {
+        document.getElementById('deletePriestMessage').innerHTML = `Are you sure you want to remove "<strong>${name}</strong>" from this parish?`;
+        deletePriestUrl = `/parish-priests/${id}/delete/`;
+        document.getElementById('deletePriestForm').action = deletePriestUrl;
+        new bootstrap.Modal(document.getElementById('deletePriestModal')).show();
     }
 </script>
 {% endblock %}

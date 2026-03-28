@@ -321,33 +321,29 @@
             {% if user.is_superuser %}
             <li class="nav-section">Church Details</li>
             <li class="nav-item">
-                <a href="{% url 'church_list' %}" class="nav-link {% if 'church' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'church_list' %}" class="nav-link {% if 'church' in request.resolver_match.url_name or request.resolver_match.url_name == 'church_list' or request.resolver_match.url_name == 'church_create' or request.resolver_match.url_name == 'church_detail' or request.resolver_match.url_name == 'church_edit' %}active{% endif %}">
                     <i class="bi bi-house"></i> Dioceses
                 </a>
             </li>
             <li class="nav-item">
-                <a href="{% url 'church_list' %}" class="nav-link {% if 'cathedral' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'cathedral_list' %}" class="nav-link {% if 'cathedral' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="bi bi-building"></i> Cathedrals
                 </a>
             </li>
             <li class="nav-item">
-                <a href="{% url 'parish_list' %}" class="nav-link {% if 'parish' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'parish_list' %}" class="nav-link {% if request.resolver_match.url_name == 'parish_list' or request.resolver_match.url_name == 'parish_detail' or request.resolver_match.url_name == 'parish_create' or request.resolver_match.url_name == 'parish_edit' %}active{% endif %}">
                     <i class="bi bi-house-heart"></i> Parishes
                 </a>
             </li>
+
             <li class="nav-item">
-                <a href="{% url 'priests_list' %}" class="nav-link {% if 'priests' in request.resolver_match.url_name %}active{% endif %}">
-                    <i class="bi bi-person-badge"></i> Bishops
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'priests_list' %}" class="nav-link {% if 'priests' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'priests_list' %}" class="nav-link {% if request.resolver_match.url_name == 'priests_list' or request.resolver_match.url_name == 'priest_detail' or request.resolver_match.url_name == 'priest_create' or request.resolver_match.url_name == 'priest_edit' %}active{% endif %}">
                     <i class="bi bi-person-badge"></i> Priests
                 </a>
             </li>
             <li class="nav-item">
                 <a href="{% url 'organization_list' %}" class="nav-link {% if 'organization' in request.resolver_match.url_name %}active{% endif %}">
-                    <i class="bi bi-people"></i> Organizations
+                    <i class="bi bi-people"></i> Ministries
                 </a>
             </li>
             <li class="nav-item">
@@ -355,7 +351,6 @@
                     <i class="bi bi-building"></i> Info
                 </a>
             </li>
-            
             <li class="nav-section">Database Management</li>
             <li class="nav-item">
                 <a href="{% url 'database_restore' %}" class="nav-link {% if 'restore' in request.resolver_match.url_name %}active{% endif %}">

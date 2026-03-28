@@ -1,0 +1,125 @@
+{% extends 'registry/base.html' %}
+{% load static %}
+
+{% block page_title %}Parish Priests - {{ parish.name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Parish Header -->
+        <div class="card border-0 shadow-sm mb-4" style="border-radius:12px;">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="bi bi-church" style="color: #c9a84c; font-size: 1.8rem;"></i>
+                            <h4 class="fw-bold mb-0" style="color:#4e2a1e;">{{ parish.name }}</h4>
+                            <span class="badge ms-2" style="background: #f5ede8; color: #6b3a2a;">
+                                Parish Priests
+                            </span>
+                            {% if parish.is_active %}
+                            <span class="badge badge-paid">Active</span>
+                            {% else %}
+                            <span class="badge badge-unpaid">Inactive</span>
+                            {% endif %}
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-building" style="color: #c9a84c;"></i>
+                            <span class="text-muted">{{ parish.church.name }}</span>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'parish_detail' parish.pk %}" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Back to Parish
+                        </a>
+                        <a href="{% url 'priest_create' %}" class="btn btn-sm btn-primary-church">
+                            <i class="bi bi-person-plus me-1"></i>Add Priest
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Priests List Table -->
+        <div class="card border-0 shadow-sm" style="border-radius:12px;">
+            <div class="card-header bg-white border-0 pt-4 px-4">
+                <h6 class="fw-bold mb-0" style="color:#4e2a1e;">
+                    <i class="bi bi-person-badge me-2" style="color:#c9a84c;"></i>Assigned Priests
+                    <span class="badge bg-secondary rounded-pill ms-2">{{ priests|length }}</span>
+                </h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 60px;">#</th>
+                                <th>Priest Name</th>
+                                <th>Date Assigned</th>
+                                <th>Date Departed</th>
+                                <th>Ordination Date</th>
+                                <th>Contact</th>
+                                <th>Status</th>
+                                <th style="width: 100px;">Actions</th>
+                            </thead>
+                        <tbody>
+                            {% for priest in priests %}
+                            <tr>
+                                <td class="text-muted small">{{ forloop.counter }}</td>
+                                <td>
+                                    <a href="{% url 'priest_detail' priest.pk %}" class="fw-semibold text-decoration-none" style="color:#4e2a1e;">
+                                        Rev. {{ priest.full_name }}
+                                    </a>
+                                </td>
+                                <td class="small">{{ priest.date_assigned|date:"M d, Y"|default:"—" }}</td>
+                                <td class="small">{{ priest.date_departed|date:"M d, Y"|default:"—" }}</td>
+                                <td class="small">{{ priest.ordination_date|date:"M d, Y"|default:"—" }}</td>
+                                <td class="small">{{ priest.contact_number|default:"—" }}</td>
+                                <td>
+                                    {% if priest.status == 'active' %}
+                                    <span class="badge badge-paid">Active</span>
+                                    {% else %}
+                                    <span class="badge badge-unpaid">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-1">
+                                        <a href="{% url 'priest_detail' priest.pk %}" class="btn btn-sm" style="background:#f5ede8;color:#6b3a2a;" title="View Priest">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="{% url 'priest_edit' priest.pk %}" class="btn btn-sm btn-outline-secondary" title="Edit Priest">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="8" class="text-center text-muted py-5">
+                                    <i class="bi bi-person-badge" style="font-size: 2rem; color: #c9a84c;"></i>
+                                    <p class="mt-2 mb-0">No priests assigned to this parish yet.</p>
+                                    <a href="{% url 'priest_create' %}" class="btn btn-sm btn-primary-church mt-2">
+                                        <i class="bi bi-person-plus me-1"></i>Add Priest
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .table > :not(caption) > * > * {
+        vertical-align: middle;
+        padding: 0.75rem 0.5rem;
+    }
+    
+    .table tbody tr:hover {
+        background: #fef9f5;
+    }
+</style>
+{% endblock %}

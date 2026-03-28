@@ -1,0 +1,196 @@
+{% extends 'registry/base.html' %}
+{% load static %}
+
+{% block page_title %}Cathedrals{% endblock %}
+
+{% block content %}
+<div class="card table-card">
+    <div class="card-header bg-white border-0 pt-3 px-4 d-flex flex-wrap gap-2 align-items-center justify-content-between">
+        <h6 class="fw-bold mb-0" style="color:#4e2a1e;">
+            <i class="bi bi-building me-2" style="color:#c9a84c;"></i>Cathedrals
+            {% if church_filter_name %}
+            <span class="badge ms-2" style="background: #c9a84c; color: #4e2a1e;">
+                {{ church_filter_name }}
+            </span>
+            {% endif %}
+        </h6>
+        <div class="d-flex gap-2 flex-wrap">
+            <form class="d-flex gap-2" method="get">
+                <div class="input-group input-group-sm">
+                    <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search by name or location...">
+                    <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-search"></i></button>
+                    {% if q %}<a href="{% url 'cathedral_list' %}" class="btn btn-outline-danger"><i class="bi bi-x"></i></a>{% endif %}
+                </div>
+            </form>
+            
+            <!-- Church Filter Dropdown -->
+            <select name="church_filter" class="form-select form-select-sm" style="width: auto;" onchange="filterByChurch(this.value)">
+                <option value="">All Churches</option>
+                {% for church in churches %}
+                <option value="{{ church.id }}" {% if church_filter == church.id|stringformat:"s" %}selected{% endif %}>{{ church.name }}</option>
+                {% endfor %}
+            </select>
+            
+            <a href="{% url 'cathedral_create' %}" class="btn btn-sm btn-primary-church">
+                <i class="bi bi-plus-lg me-1"></i>Add Cathedral
+            </a>
+            {% if church_filter %}
+            <a href="{% url 'cathedral_list' %}" class="btn btn-sm btn-outline-danger">
+                <i class="bi bi-x-circle me-1"></i>Clear Filters
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">#</th>
+                        <th>Cathedral Name</th>
+                        <th>Church/Diocese</th>
+                        <th>Location</th>
+                        <th>Contact Number</th>
+                        <th>Email</th>
+                        <th>Established</th>
+                        <th>Status</th>
+                        <th style="width: 100px;">Actions</th>
+                    </thead>
+                <tbody>
+                    {% for cathedral in cathedrals %}
+                    <tr>
+                        <td class="text-muted small">{{ forloop.counter }}</td>
+                        <td>
+                            <a href="{% url 'cathedral_detail' cathedral.pk %}" class="fw-semibold text-decoration-none" style="color:#4e2a1e;">
+                                {{ cathedral.name }}
+                            </a>
+                        </td>
+                        <td>
+                            <span class="badge" style="background: #f5ede8; color: #6b3a2a;">
+                                <i class="bi bi-building me-1"></i>{{ cathedral.church.name }}
+                            </span>
+                        </td>
+                        <td class="small text-muted">{{ cathedral.location|truncatechars:50 }}</td>
+                        <td class="small">{{ cathedral.contact_number|default:"—" }}</td>
+                        <td class="small">{{ cathedral.email|default:"—"|truncatechars:25 }}</td>
+                        <td class="small">{{ cathedral.established_date|date:"Y"|default:"—" }}</td>
+                        <td>
+                            {% if cathedral.is_active %}
+                            <span class="badge badge-paid">Active</span>
+                            {% else %}
+                            <span class="badge badge-unpaid">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a href="{% url 'cathedral_detail' cathedral.pk %}" class="btn btn-sm" style="background:#f5ede8;color:#6b3a2a;" title="View">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{% url 'cathedral_edit' cathedral.pk %}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <button class="btn btn-sm btn-outline-danger" title="Delete" 
+                                        onclick="confirmCathedralDelete('{{ cathedral.pk }}', '{{ cathedral.name|escapejs }}')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                                <form id="cathedralDeleteForm-{{ cathedral.pk }}" method="post" action="{% url 'cathedral_delete' cathedral.pk %}" class="d-none">
+                                    {% csrf_token %}
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center text-muted py-5">
+                            <i class="bi bi-building fs-2 d-block mb-2"></i>
+                            No cathedrals found{% if q %} for "{{ q }}"{% endif %}.
+                            {% if church_filter %}
+                            <div class="mt-2">
+                                <a href="{% url 'cathedral_list' %}" class="btn btn-sm btn-outline-secondary">Clear Filters</a>
+                            </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer bg-white border-0 px-4 py-2 d-flex justify-content-between align-items-center">
+        <small class="text-muted">{{ page_obj.paginator.count }} cathedral(s) found</small>
+        {% if page_obj.has_other_pages %}
+        <nav>
+            <ul class="pagination pagination-sm mb-0">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% if q %}q={{ q }}&{% endif %}{% if church_filter %}church_filter={{ church_filter }}&{% endif %}page={{ page_obj.previous_page_number }}">&laquo;</a>
+                </li>
+                {% endif %}
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li class="page-item active"><span class="page-link" style="background:#6b3a2a;border-color:#6b3a2a;">{{ num }}</span></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item"><a class="page-link" href="?{% if q %}q={{ q }}&{% endif %}{% if church_filter %}church_filter={{ church_filter }}&{% endif %}page={{ num }}">{{ num }}</a></li>
+                    {% endif %}
+                {% endfor %}
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% if q %}q={{ q }}&{% endif %}{% if church_filter %}church_filter={{ church_filter }}&{% endif %}page={{ page_obj.next_page_number }}">&raquo;</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    function filterByChurch(churchId) {
+        const url = new URL(window.location.href);
+        if (churchId) {
+            url.searchParams.set('church_filter', churchId);
+        } else {
+            url.searchParams.delete('church_filter');
+        }
+        url.searchParams.delete('page');
+        window.location.href = url.toString();
+    }
+</script>
+
+<style>
+    .table > :not(caption) > * > * {
+        vertical-align: middle;
+        padding: 0.75rem 0.5rem;
+    }
+    
+    .table tbody tr:hover {
+        background: #fef9f5;
+    }
+    
+    .badge i {
+        font-size: 0.7rem;
+    }
+    
+    @media (max-width: 768px) {
+        .table-responsive {
+            overflow-x: auto;
+        }
+        .table {
+            min-width: 800px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmCathedralDelete(pk, name) {
+    showConfirmModal(
+        `Are you sure you want to delete "${name}"? This action cannot be undone.`,
+        function() {
+            document.getElementById('cathedralDeleteForm-' + pk).submit();
+        }
+    );
+}
+</script>
+{% endblock %}

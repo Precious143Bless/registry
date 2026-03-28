@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from datetime import date
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Member, Baptism, Confirmation, FirstHolyCommunion, Marriage, LastRites, Pledge, PledgePayment, ParishInfo, ParishPriest, ParishOfficer, OrganizationMembership, Organization, Church, Parish, ParishOfficerEP
+from .models import Member, Baptism, Confirmation, FirstHolyCommunion, Marriage, LastRites, Pledge, PledgePayment, ParishInfo, ParishPriest, ParishOfficer, OrganizationMembership, Organization, Church, Parish, ParishOfficerEP, Cathedral
 
 
 # ─── REUSABLE VALIDATORS ─────────────────────────────────────────────────────
@@ -866,7 +866,7 @@ class ChurchForm(forms.ModelForm):
 
     class Meta:
         model = Church
-        fields = ['name', 'location', 'description', 'established_date', 'contact_number', 'email', 'is_active', 'image', 'bishop', 'prime_bishop_name', 'prime_bishop_image']
+        fields = ['name', 'location', 'description', 'established_date', 'contact_number', 'email', 'is_active', 'image', 'bishop']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Cathedral of St. Mary and St. John'}),
             'location': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Full address...'}),
@@ -876,17 +876,13 @@ class ChurchForm(forms.ModelForm):
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'image': forms.FileInput(attrs={'class': 'form-control'}),
             'bishop': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., The Rt. Rev. John Smith'}),
-            'prime_bishop_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Prime Bishop full name'}),
-            'prime_bishop_image': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Make image fields optional
+        # Make image field optional
         self.fields['image'].required = False
         self.fields['image'].widget.attrs.update({'accept': 'image/*'})
-        self.fields['prime_bishop_image'].required = False
-        self.fields['prime_bishop_image'].widget.attrs.update({'accept': 'image/*'})
 
     def clean_name(self):
         name = self.cleaned_data['name'].strip()
@@ -1022,3 +1018,65 @@ class ParishOfficerEPForm(forms.ModelForm):
             raise ValidationError('Date departed must be after date assigned.')
         
         return cleaned_data
+
+class CathedralForm(forms.ModelForm):
+    established_date = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+    )
+
+    class Meta:
+        model = Cathedral
+        fields = ['church', 'name', 'location', 'description', 'established_date', 'contact_number', 'email', 'is_active']
+        widgets = {
+            'church': forms.Select(attrs={'class': 'form-select'}),
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., St. Mary\'s Cathedral'}),
+            'location': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Full address...'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Brief description...'}),
+            'contact_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '09XXXXXXXXX'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'cathedral@email.com'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Filter churches that don't have a cathedral yet
+        churches_with_cathedral = Cathedral.objects.values_list('church_id', flat=True)
+        self.fields['church'].queryset = Church.objects.filter(
+            is_active=True
+        ).exclude(
+            id__in=churches_with_cathedral
+        ).order_by('name')
+        self.fields['church'].empty_label = "Select Church"
+        self.fields['name'].required = True
+        self.fields['location'].required = True
+
+    def clean_name(self):
+        name = self.cleaned_data['name'].strip()
+        if not name:
+            raise ValidationError('Cathedral name is required.')
+        if len(name) < 3:
+            raise ValidationError('Cathedral name must be at least 3 characters.')
+        return name
+
+    def clean_location(self):
+        location = self.cleaned_data['location'].strip()
+        if not location:
+            raise ValidationError('Location is required.')
+        if len(location) < 10:
+            raise ValidationError('Please enter a complete address (at least 10 characters).')
+        return location
+
+    def clean_contact_number(self):
+        value = self.cleaned_data.get('contact_number', '').strip()
+        if value:
+            if not re.match(r'^09\d{9}$', value):
+                raise ValidationError('Enter a valid 11-digit Philippine mobile number starting with 09.')
+        return value
+
+    def clean_email(self):
+        value = self.cleaned_data.get('email', '').strip()
+        if value:
+            if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', value):
+                raise ValidationError('Enter a valid email address.')
+        return value

@@ -83,6 +83,76 @@
             </div>
         </div>
         
+        <!-- Cathedral Section -->
+        <div class="card border-0 shadow-sm mb-4" style="border-radius:12px;">
+            <div class="card-header bg-white border-0 pt-4 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <h6 class="fw-bold mb-0" style="color:#4e2a1e;">
+                    <i class="bi bi-building" style="color: #c9a84c;"></i> Cathedral
+                </h6>
+                {% if not cathedral %}
+                <a href="{% url 'cathedral_create' %}?church_id={{ church.pk }}" class="btn btn-sm btn-primary-church">
+                    <i class="bi bi-plus-lg me-1"></i>Add Cathedral
+                </a>
+                {% endif %}
+            </div>
+            <div class="card-body p-4">
+                {% if cathedral %}
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="mb-3">
+                            <h5 class="fw-bold mb-2" style="color:#4e2a1e;">{{ cathedral.name }}</h5>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="bi bi-geo-alt" style="color: #c9a84c;"></i>
+                                <span class="text-muted">{{ cathedral.location }}</span>
+                            </div>
+                            {% if cathedral.contact_number %}
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="bi bi-telephone" style="color: #c9a84c;"></i>
+                                <span class="text-muted">{{ cathedral.contact_number }}</span>
+                            </div>
+                            {% endif %}
+                            {% if cathedral.email %}
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="bi bi-envelope" style="color: #c9a84c;"></i>
+                                <span class="text-muted">{{ cathedral.email }}</span>
+                            </div>
+                            {% endif %}
+                            {% if cathedral.established_date %}
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-calendar" style="color: #c9a84c;"></i>
+                                <span class="text-muted">Established: {{ cathedral.established_date|date:"F d, Y" }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% if cathedral.description %}
+                        <div class="mt-3 p-3" style="background: #f5ede8; border-radius: 12px;">
+                            <p class="mb-0 text-muted">{{ cathedral.description }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a href="{% url 'cathedral_edit' cathedral.pk %}" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-pencil me-1"></i>Edit
+                            </a>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteCathedral({{ cathedral.id }}, '{{ cathedral.name|escapejs }}')">
+                                <i class="bi bi-trash me-1"></i>Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-building" style="font-size: 2rem; color: #c9a84c;"></i>
+                    <p class="text-muted mt-2 mb-0">No cathedral assigned to this church yet.</p>
+                    <a href="{% url 'cathedral_create' %}?church_id={{ church.pk }}" class="btn btn-sm btn-primary-church mt-2">
+                        <i class="bi bi-plus-lg me-1"></i>Add Cathedral
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
         <!-- Parishes Section - Table View -->
         <div class="card border-0 shadow-sm" style="border-radius:12px;">
             <div class="card-header bg-white border-0 pt-4 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
@@ -95,9 +165,9 @@
                         <input type="text" id="parishSearch" class="form-control" placeholder="Search parishes...">
                         <button class="btn btn-outline-secondary" onclick="filterParishes()"><i class="bi bi-search"></i></button>
                     </div>
-                        <a href="{% url 'parish_create' %}?church_id={{ church.pk }}" class="dropdown-item">
-                            <i class="bi bi-plus-circle me-2"></i>Add Parish
-                        </a>
+                    <a href="{% url 'parish_create' %}?church_id={{ church.pk }}" class="btn btn-sm btn-primary-church">
+                        <i class="bi bi-plus-lg me-1"></i>Add Parish
+                    </a>
                 </div>
             </div>
             <div class="card-body p-0">
@@ -113,8 +183,7 @@
                                 <th>Officers</th>
                                 <th>Status</th>
                                 <th style="width: 100px;">Actions</th>
-                            </tr>
-                        </thead>
+                            </thead>
                         <tbody id="parishesTableBody">
                             {% for parish in parishes %}
                             <tr class="parish-row" data-name="{{ parish.name|lower }}">
@@ -158,8 +227,8 @@
                                 <td colspan="8" class="text-center text-muted py-5">
                                     <i class="bi bi-church" style="font-size: 2rem; color: #c9a84c;"></i>
                                     <p class="mt-2 mb-0">No parishes added under this church yet.</p>
-                                    <a href="{% url 'parish_create' %}?church_id={{ church.pk }}" class="dropdown-item">
-                                        <i class="bi bi-plus-circle me-2"></i>Add Parish
+                                    <a href="{% url 'parish_create' %}?church_id={{ church.pk }}" class="btn btn-sm btn-primary-church mt-2">
+                                        <i class="bi bi-plus-lg me-1"></i>Add First Parish
                                     </a>
                                 </td>
                             </tr>
@@ -212,15 +281,36 @@
     </div>
 </div>
 
+<!-- Delete Cathedral Modal -->
+<div class="modal fade" id="deleteCathedralModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0" style="border-radius:14px;">
+            <div class="modal-body text-center p-4">
+                <i class="bi bi-exclamation-triangle-fill" style="font-size: 2rem; color: #dc3545;"></i>
+                <h6 class="fw-bold mt-2">Delete Cathedral</h6>
+                <p class="small text-muted" id="deleteCathedralMessage">Are you sure you want to delete this cathedral?</p>
+                <div class="d-flex gap-2 justify-content-center mt-3">
+                    <button class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form method="post" id="deleteCathedralForm" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
     let deleteChurchUrl = '';
     let deleteParishUrl = '';
+    let deleteCathedralUrl = '';
     
     function deleteChurch(id, name) {
-        document.getElementById('deleteChurchMessage').innerHTML = `Are you sure you want to delete "<strong>${name}</strong>"? This will also delete all parishes under this church.`;
+        document.getElementById('deleteChurchMessage').innerHTML = `Are you sure you want to delete "<strong>${name}</strong>"? This will also delete all parishes and cathedral under this church.`;
         deleteChurchUrl = `/churches/${id}/delete/`;
         document.getElementById('deleteChurchForm').action = deleteChurchUrl;
         new bootstrap.Modal(document.getElementById('deleteChurchModal')).show();
@@ -228,9 +318,16 @@
     
     function deleteParish(id, name) {
         document.getElementById('deleteParishMessage').innerHTML = `Are you sure you want to delete "<strong>${name}</strong>"? This will remove all officers associated with this parish.`;
-        deleteParishUrl = `/churches/parishes/${id}/delete/`;
+        deleteParishUrl = `/parishes/${id}/delete/`;
         document.getElementById('deleteParishForm').action = deleteParishUrl;
         new bootstrap.Modal(document.getElementById('deleteParishModal')).show();
+    }
+    
+    function deleteCathedral(id, name) {
+        document.getElementById('deleteCathedralMessage').innerHTML = `Are you sure you want to delete "<strong>${name}</strong>"?`;
+        deleteCathedralUrl = `/cathedrals/${id}/delete/`;
+        document.getElementById('deleteCathedralForm').action = deleteCathedralUrl;
+        new bootstrap.Modal(document.getElementById('deleteCathedralModal')).show();
     }
     
     // Search/filter parishes
