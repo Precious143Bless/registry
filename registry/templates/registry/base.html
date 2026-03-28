@@ -336,6 +336,11 @@
                 </a>
             </li> {% endcomment %}
             <li class="nav-item">
+                <a href="{% url 'organization_list' %}" class="nav-link {% if 'organization' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="bi bi-people"></i> Church Organizations
+                </a>
+            </li>
+            <li class="nav-item">
                 <a href="{% url 'parish_info' %}" class="nav-link {% if request.resolver_match.url_name == 'parish_info' %}active{% endif %}">
                     <i class="bi bi-building"></i> Church Info
                 </a>
