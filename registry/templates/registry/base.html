@@ -276,6 +276,68 @@
             color: #991b1b; 
         }
 
+        /* Collapsible sidebar nav */
+        .nav-collapse-btn {
+            color: rgba(255,255,255,0.85);
+            padding: 0.48rem 1rem;
+            border-radius: 6px;
+            margin: 1px 0.6rem;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: none;
+            border: none;
+            width: calc(100% - 1.2rem);
+            text-align: left;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+            min-height: 34px;
+        }
+        .nav-collapse-btn:hover,
+        .nav-collapse-btn[aria-expanded="true"] {
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+        }
+        .nav-collapse-btn i.ni { font-size: 0.9rem; width: 18px; flex-shrink: 0; }
+        .nav-collapse-btn .nc {
+            margin-left: auto;
+            font-size: 0.65rem;
+            opacity: 0.65;
+            transition: transform 0.25s;
+        }
+        .nav-collapse-btn[aria-expanded="true"] .nc { transform: rotate(90deg); }
+        .nav-sub {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .nav-sub.show {
+            padding: 2px 0 4px;
+        }
+        .nav-sub .nav-link {
+            padding: 0.3rem 1rem 0.3rem 2.6rem;
+            font-size: 0.77rem;
+            color: rgba(255,255,255,0.6);
+            border-radius: 5px;
+            margin: 1px 0.6rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .nav-sub .nav-link::before {
+            content: '';
+            width: 4px; height: 4px;
+            border-radius: 50%;
+            background: var(--gold);
+            flex-shrink: 0;
+        }
+        .nav-sub .nav-link:hover,
+        .nav-sub .nav-link.active {
+            background: rgba(255,255,255,0.12);
+            color: #fff;
+        }
+
         @media print {
             #sidebar, .topbar, .no-print { display: none !important; }
             #main-content { margin-left: 0 !important; }
@@ -312,144 +374,107 @@
     </div>
     {% endif %}
     
-    <ul class="nav flex-column mt-1" style="padding-bottom: 0.5rem;">
+    <ul class="nav flex-column mt-2" style="padding-bottom: 1rem;">
         {% if user.is_superuser %}
-        <!-- Admin -->
-        <li class="nav-section">Main</li>
+
+        <!-- Dashboard -->
         <li class="nav-item">
             <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                 <i class="bi bi-speedometer2"></i> Dashboard
             </a>
         </li>
 
-        <li class="nav-section">Records</li>
+        <!-- Records -->
         <li class="nav-item">
-            <a href="{% url 'member_list' %}" class="nav-link {% if 'member' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-people-fill"></i> Members
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="{% url 'sacrament_list' %}" class="nav-link {% if 'sacrament' in request.resolver_match.url_name or 'baptism' in request.resolver_match.url_name or 'confirmation' in request.resolver_match.url_name or 'communion' in request.resolver_match.url_name or 'marriage' in request.resolver_match.url_name or 'last_rites' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-journal-bookmark-fill"></i> Sacraments
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="{% url 'pledge_list' %}" class="nav-link {% if 'pledge' in request.resolver_match.url_name or 'payment' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-cash-coin"></i> Pledges
-            </a>
+            <button class="nav-collapse-btn" data-bs-toggle="collapse" data-bs-target="#nav-records"
+                aria-expanded="{% if 'member' in request.resolver_match.url_name or 'sacrament' in request.resolver_match.url_name or 'baptism' in request.resolver_match.url_name or 'confirmation' in request.resolver_match.url_name or 'communion' in request.resolver_match.url_name or 'marriage' in request.resolver_match.url_name or 'last_rites' in request.resolver_match.url_name or 'pledge' in request.resolver_match.url_name or 'payment' in request.resolver_match.url_name %}true{% else %}false{% endif %}">
+                <i class="bi bi-folder2-open ni"></i> Records
+                <i class="bi bi-chevron-right nc"></i>
+            </button>
+            <ul class="nav-sub collapse {% if 'member' in request.resolver_match.url_name or 'sacrament' in request.resolver_match.url_name or 'baptism' in request.resolver_match.url_name or 'confirmation' in request.resolver_match.url_name or 'communion' in request.resolver_match.url_name or 'marriage' in request.resolver_match.url_name or 'last_rites' in request.resolver_match.url_name or 'pledge' in request.resolver_match.url_name or 'payment' in request.resolver_match.url_name %}show{% endif %}" id="nav-records">
+                <li><a href="{% url 'member_list' %}" class="nav-link {% if 'member' in request.resolver_match.url_name %}active{% endif %}">Members</a></li>
+                <li><a href="{% url 'sacrament_list' %}" class="nav-link {% if 'sacrament' in request.resolver_match.url_name or 'baptism' in request.resolver_match.url_name or 'confirmation' in request.resolver_match.url_name or 'communion' in request.resolver_match.url_name or 'marriage' in request.resolver_match.url_name or 'last_rites' in request.resolver_match.url_name %}active{% endif %}">Sacraments</a></li>
+                <li><a href="{% url 'pledge_list' %}" class="nav-link {% if 'pledge' in request.resolver_match.url_name or 'payment' in request.resolver_match.url_name %}active{% endif %}">Pledges</a></li>
+            </ul>
         </li>
 
-        <li class="nav-section">Church Details</li>
+        <!-- Church Details -->
         <li class="nav-item">
-            <a href="{% url 'church_list' %}" class="nav-link {% if 'church' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-house"></i> Dioceses
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="{% url 'cathedral_list' %}" class="nav-link {% if 'cathedral' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-building"></i> Cathedrals
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="{% url 'parish_list' %}" class="nav-link {% if request.resolver_match.url_name == 'parish_list' or request.resolver_match.url_name == 'parish_detail' or request.resolver_match.url_name == 'parish_create' or request.resolver_match.url_name == 'parish_edit' %}active{% endif %}">
-                <i class="bi bi-house-heart"></i> Parishes
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="{% url 'priests_list' %}" class="nav-link {% if 'priest' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-person-badge"></i> Priests
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="{% url 'officers_list' %}" class="nav-link {% if 'officer' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-person-lines-fill"></i> Officers
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="{% url 'organization_list' %}" class="nav-link {% if 'organization' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-people"></i> Ministries
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="{% url 'parish_info' %}" class="nav-link {% if request.resolver_match.url_name == 'parish_info' %}active{% endif %}">
-                <i class="bi bi-info-circle"></i> Parish Info
-            </a>
+            <button class="nav-collapse-btn" data-bs-toggle="collapse" data-bs-target="#nav-church"
+                aria-expanded="{% if 'church' in request.resolver_match.url_name or 'cathedral' in request.resolver_match.url_name or 'parish' in request.resolver_match.url_name or 'priest' in request.resolver_match.url_name or 'officer' in request.resolver_match.url_name or 'organization' in request.resolver_match.url_name or request.resolver_match.url_name == 'parish_info' %}true{% else %}false{% endif %}">
+                <i class="bi bi-house-fill ni"></i> Church Details
+                <i class="bi bi-chevron-right nc"></i>
+            </button>
+            <ul class="nav-sub collapse {% if 'church' in request.resolver_match.url_name or 'cathedral' in request.resolver_match.url_name or 'parish' in request.resolver_match.url_name or 'priest' in request.resolver_match.url_name or 'officer' in request.resolver_match.url_name or 'organization' in request.resolver_match.url_name or request.resolver_match.url_name == 'parish_info' %}show{% endif %}" id="nav-church">
+                <li><a href="{% url 'church_list' %}" class="nav-link {% if 'church' in request.resolver_match.url_name %}active{% endif %}">Dioceses</a></li>
+                <li><a href="{% url 'cathedral_list' %}" class="nav-link {% if 'cathedral' in request.resolver_match.url_name %}active{% endif %}">Cathedrals</a></li>
+                <li><a href="{% url 'parish_list' %}" class="nav-link {% if request.resolver_match.url_name == 'parish_list' or request.resolver_match.url_name == 'parish_detail' or request.resolver_match.url_name == 'parish_create' or request.resolver_match.url_name == 'parish_edit' %}active{% endif %}">Parishes</a></li>
+                <li><a href="{% url 'priests_list' %}" class="nav-link {% if 'priest' in request.resolver_match.url_name %}active{% endif %}">Priests</a></li>
+                <li><a href="{% url 'officers_list' %}" class="nav-link {% if 'officer' in request.resolver_match.url_name %}active{% endif %}">Officers</a></li>
+                <li><a href="{% url 'organization_list' %}" class="nav-link {% if 'organization' in request.resolver_match.url_name %}active{% endif %}">Ministries</a></li>
+                <li><a href="{% url 'parish_info' %}" class="nav-link {% if request.resolver_match.url_name == 'parish_info' %}active{% endif %}">Parish Info</a></li>
+            </ul>
         </li>
 
-        <li class="nav-section">Database Management</li>
-        <li class="nav-item">
-            <a href="{% url 'database_restore' %}" class="nav-link {% if 'restore' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-arrow-repeat"></i> Restore
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="{% url 'database_backup' %}" class="nav-link {% if 'backup' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-database"></i> Backup
-            </a>
-        </li>
-
-        <li class="nav-section">System</li>
+        <!-- User Management -->
         <li class="nav-item">
             <a href="{% url 'user_list' %}" class="nav-link {% if 'user' in request.resolver_match.url_name %}active{% endif %}">
                 <i class="bi bi-person-gear"></i> User Management
             </a>
         </li>
 
+        <!-- Database Management -->
+        <li class="nav-item">
+            <button class="nav-collapse-btn" data-bs-toggle="collapse" data-bs-target="#nav-db"
+                aria-expanded="{% if 'backup' in request.resolver_match.url_name or 'restore' in request.resolver_match.url_name %}true{% else %}false{% endif %}">
+                <i class="bi bi-database ni"></i> Database Management
+                <i class="bi bi-chevron-right nc"></i>
+            </button>
+            <ul class="nav-sub collapse {% if 'backup' in request.resolver_match.url_name or 'restore' in request.resolver_match.url_name %}show{% endif %}" id="nav-db">
+                <li><a href="{% url 'database_backup' %}" class="nav-link {% if 'backup' in request.resolver_match.url_name %}active{% endif %}">Backup</a></li>
+                <li><a href="{% url 'database_restore' %}" class="nav-link {% if 'restore' in request.resolver_match.url_name %}active{% endif %}">Restore</a></li>
+            </ul>
+        </li>
+
         {% else %}
         <!-- Staff -->
-        <li class="nav-section">Main</li>
         <li class="nav-item">
             <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                 <i class="bi bi-speedometer2"></i> Dashboard
             </a>
         </li>
 
-        <li class="nav-section">Records</li>
         <li class="nav-item">
-            <a href="{% url 'member_list' %}" class="nav-link {% if 'member' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-people-fill"></i> Our Members
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="{% url 'sacrament_list' %}" class="nav-link {% if 'sacrament' in request.resolver_match.url_name or 'baptism' in request.resolver_match.url_name or 'confirmation' in request.resolver_match.url_name or 'communion' in request.resolver_match.url_name or 'marriage' in request.resolver_match.url_name or 'last_rites' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-journal-bookmark-fill"></i> Sacraments
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="{% url 'pledge_list' %}" class="nav-link {% if 'pledge' in request.resolver_match.url_name or 'payment' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-cash-coin"></i> Pledges
-            </a>
+            <button class="nav-collapse-btn" data-bs-toggle="collapse" data-bs-target="#nav-records"
+                aria-expanded="{% if 'member' in request.resolver_match.url_name or 'sacrament' in request.resolver_match.url_name or 'baptism' in request.resolver_match.url_name or 'confirmation' in request.resolver_match.url_name or 'communion' in request.resolver_match.url_name or 'marriage' in request.resolver_match.url_name or 'last_rites' in request.resolver_match.url_name or 'pledge' in request.resolver_match.url_name or 'payment' in request.resolver_match.url_name %}true{% else %}false{% endif %}">
+                <i class="bi bi-folder2-open ni"></i> Records
+                <i class="bi bi-chevron-right nc"></i>
+            </button>
+            <ul class="nav-sub collapse {% if 'member' in request.resolver_match.url_name or 'sacrament' in request.resolver_match.url_name or 'baptism' in request.resolver_match.url_name or 'confirmation' in request.resolver_match.url_name or 'communion' in request.resolver_match.url_name or 'marriage' in request.resolver_match.url_name or 'last_rites' in request.resolver_match.url_name or 'pledge' in request.resolver_match.url_name or 'payment' in request.resolver_match.url_name %}show{% endif %}" id="nav-records">
+                <li><a href="{% url 'member_list' %}" class="nav-link {% if 'member' in request.resolver_match.url_name %}active{% endif %}">Our Members</a></li>
+                <li><a href="{% url 'sacrament_list' %}" class="nav-link {% if 'sacrament' in request.resolver_match.url_name or 'baptism' in request.resolver_match.url_name or 'confirmation' in request.resolver_match.url_name or 'communion' in request.resolver_match.url_name or 'marriage' in request.resolver_match.url_name or 'last_rites' in request.resolver_match.url_name %}active{% endif %}">Sacraments</a></li>
+                <li><a href="{% url 'pledge_list' %}" class="nav-link {% if 'pledge' in request.resolver_match.url_name or 'payment' in request.resolver_match.url_name %}active{% endif %}">Pledges</a></li>
+            </ul>
         </li>
 
-        <li class="nav-section">Church Details</li>
-        {% if user_parish %}
         <li class="nav-item">
-            <a href="{% url 'parish_detail' user_parish.id %}" class="nav-link {% if request.resolver_match.url_name == 'parish_detail' %}active{% endif %}">
-                <i class="bi bi-house-heart"></i> Parish
-            </a>
+            <button class="nav-collapse-btn" data-bs-toggle="collapse" data-bs-target="#nav-church"
+                aria-expanded="{% if request.resolver_match.url_name == 'parish_detail' or request.resolver_match.url_name == 'parish_priest_list' or request.resolver_match.url_name == 'parish_officer_chart' or 'organization' in request.resolver_match.url_name %}true{% else %}false{% endif %}">
+                <i class="bi bi-house-fill ni"></i> Church Details
+                <i class="bi bi-chevron-right nc"></i>
+            </button>
+            <ul class="nav-sub collapse {% if request.resolver_match.url_name == 'parish_detail' or request.resolver_match.url_name == 'parish_priest_list' or request.resolver_match.url_name == 'parish_officer_chart' or 'organization' in request.resolver_match.url_name %}show{% endif %}" id="nav-church">
+                {% if user_parish %}
+                <li><a href="{% url 'parish_detail' user_parish.id %}" class="nav-link {% if request.resolver_match.url_name == 'parish_detail' %}active{% endif %}">Parish</a></li>
+                <li><a href="{% url 'parish_priest_list' user_parish.id %}" class="nav-link {% if request.resolver_match.url_name == 'parish_priest_list' %}active{% endif %}">Our Priests</a></li>
+                <li><a href="{% url 'parish_officer_chart' user_parish.id %}" class="nav-link {% if request.resolver_match.url_name == 'parish_officer_chart' %}active{% endif %}">Our Officers</a></li>
+                <li><a href="{% url 'organization_list' %}" class="nav-link {% if 'organization' in request.resolver_match.url_name %}active{% endif %}">Ministries</a></li>
+                {% else %}
+                <li><div class="text-white-50 small py-1 px-3"><i class="bi bi-exclamation-triangle me-1"></i>No parish assigned</div></li>
+                {% endif %}
+            </ul>
         </li>
-        <li class="nav-item">
-            <a href="{% url 'parish_priest_list' user_parish.id %}" class="nav-link {% if request.resolver_match.url_name == 'parish_priest_list' %}active{% endif %}">
-                <i class="bi bi-person-badge"></i> Our Priests
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="{% url 'parish_officer_chart' user_parish.id %}" class="nav-link {% if request.resolver_match.url_name == 'parish_officer_chart' %}active{% endif %}">
-                <i class="bi bi-diagram-3"></i> Our Officers
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="{% url 'organization_list' %}" class="nav-link {% if 'organization' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-people"></i> Ministries
-            </a>
-        </li>
-        {% else %}
-        <li class="nav-item">
-            <div class="text-center text-white-50 small py-2 px-3">
-                <i class="bi bi-exclamation-triangle"></i><br>No parish assigned
-            </div>
-        </li>
-        {% endif %}
+
         {% endif %}
     </ul>
 </nav>
