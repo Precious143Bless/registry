@@ -330,6 +330,7 @@ def reset_password(request):
 # ─── DASHBOARD ───────────────────────────────────────────────────────────────
 
 @login_required
+@officer_required
 def dashboard(request):
     """Dashboard with filtered data based on user role"""
     parish_filter = get_user_parish_filter(request)
