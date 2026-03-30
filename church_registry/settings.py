@@ -49,6 +49,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'registry.context_processors.notifications_processor',
+                'registry.context_processors.parish_officer_context',
             ],
         },
     },
