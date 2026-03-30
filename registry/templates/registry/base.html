@@ -276,7 +276,6 @@
             color: #991b1b; 
         }
 
-        /* Print */
         @media print {
             #sidebar, .topbar, .no-print { display: none !important; }
             #main-content { margin-left: 0 !important; }
@@ -315,7 +314,7 @@
     
     <ul class="nav flex-column mt-1" style="padding-bottom: 0.5rem;">
         {% if user.is_superuser %}
-        <!-- Admin sees all sections -->
+        <!-- Admin -->
         <li class="nav-section">Main</li>
         <li class="nav-item">
             <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
@@ -340,10 +339,9 @@
             </a>
         </li>
 
-        <!-- Church Details Section - Admin sees all -->
         <li class="nav-section">Church Details</li>
         <li class="nav-item">
-            <a href="{% url 'church_list' %}" class="nav-link {% if 'church' in request.resolver_match.url_name or request.resolver_match.url_name == 'church_list' or request.resolver_match.url_name == 'church_create' or request.resolver_match.url_name == 'church_detail' or request.resolver_match.url_name == 'church_edit' %}active{% endif %}">
+            <a href="{% url 'church_list' %}" class="nav-link {% if 'church' in request.resolver_match.url_name %}active{% endif %}">
                 <i class="bi bi-house"></i> Dioceses
             </a>
         </li>
@@ -358,8 +356,13 @@
             </a>
         </li>
         <li class="nav-item">
-            <a href="{% url 'priests_list' %}" class="nav-link {% if request.resolver_match.url_name == 'priests_list' or request.resolver_match.url_name == 'priest_detail' or request.resolver_match.url_name == 'priest_create' or request.resolver_match.url_name == 'priest_edit' %}active{% endif %}">
+            <a href="{% url 'priests_list' %}" class="nav-link {% if 'priest' in request.resolver_match.url_name %}active{% endif %}">
                 <i class="bi bi-person-badge"></i> Priests
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{% url 'officers_list' %}" class="nav-link {% if 'officer' in request.resolver_match.url_name %}active{% endif %}">
+                <i class="bi bi-person-lines-fill"></i> Officers
             </a>
         </li>
         <li class="nav-item">
@@ -369,9 +372,10 @@
         </li>
         <li class="nav-item">
             <a href="{% url 'parish_info' %}" class="nav-link {% if request.resolver_match.url_name == 'parish_info' %}active{% endif %}">
-                <i class="bi bi-building"></i> Info
+                <i class="bi bi-info-circle"></i> Parish Info
             </a>
         </li>
+
         <li class="nav-section">Database Management</li>
         <li class="nav-item">
             <a href="{% url 'database_restore' %}" class="nav-link {% if 'restore' in request.resolver_match.url_name %}active{% endif %}">
@@ -383,17 +387,16 @@
                 <i class="bi bi-database"></i> Backup
             </a>
         </li>
+
         <li class="nav-section">System</li>
         <li class="nav-item">
             <a href="{% url 'user_list' %}" class="nav-link {% if 'user' in request.resolver_match.url_name %}active{% endif %}">
                 <i class="bi bi-person-gear"></i> User Management
             </a>
         </li>
-        
-        {% else %}
-        <!-- Staff (Non-Admin) sees all sections filtered to their parish -->
 
-        <!-- Main Section -->
+        {% else %}
+        <!-- Staff -->
         <li class="nav-section">Main</li>
         <li class="nav-item">
             <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
@@ -401,7 +404,6 @@
             </a>
         </li>
 
-        <!-- Records Section - Staff sees filtered data -->
         <li class="nav-section">Records</li>
         <li class="nav-item">
             <a href="{% url 'member_list' %}" class="nav-link {% if 'member' in request.resolver_match.url_name %}active{% endif %}">
@@ -419,43 +421,32 @@
             </a>
         </li>
 
-        <!-- Church Details Section - Staff sees only their parish info -->
         <li class="nav-section">Church Details</li>
         {% if user_parish %}
-        <!-- Staff can view their own parish details -->
         <li class="nav-item">
             <a href="{% url 'parish_detail' user_parish.id %}" class="nav-link {% if request.resolver_match.url_name == 'parish_detail' %}active{% endif %}">
                 <i class="bi bi-house-heart"></i> Parish
             </a>
         </li>
-
-        <!-- Staff can view priests assigned to their parish -->
         <li class="nav-item">
             <a href="{% url 'parish_priest_list' user_parish.id %}" class="nav-link {% if request.resolver_match.url_name == 'parish_priest_list' %}active{% endif %}">
                 <i class="bi bi-person-badge"></i> Our Priests
             </a>
         </li>
-
-        <!-- Staff can view their parish's officers chart -->
         <li class="nav-item">
             <a href="{% url 'parish_officer_chart' user_parish.id %}" class="nav-link {% if request.resolver_match.url_name == 'parish_officer_chart' %}active{% endif %}">
                 <i class="bi bi-diagram-3"></i> Our Officers
             </a>
         </li>
-
-        <!-- Ministries/Organizations - filtered to parish members -->
         <li class="nav-item">
             <a href="{% url 'organization_list' %}" class="nav-link {% if 'organization' in request.resolver_match.url_name %}active{% endif %}">
                 <i class="bi bi-people"></i> Ministries
             </a>
         </li>
-
         {% else %}
-        <!-- If staff has no assigned parish (should not happen) -->
         <li class="nav-item">
             <div class="text-center text-white-50 small py-2 px-3">
-                <i class="bi bi-exclamation-triangle"></i><br>
-                No parish assigned
+                <i class="bi bi-exclamation-triangle"></i><br>No parish assigned
             </div>
         </li>
         {% endif %}
