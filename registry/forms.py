@@ -112,7 +112,7 @@ class ParishOfficerRegistrationForm(forms.Form):
         email = self.cleaned_data.get('email')
         if email:
             # Check if email exists in ParishOfficer
-            if not ParishOfficer.objects.filter(email=email).exists():
+            if not ParishOfficerEP.objects.filter(email=email).exists():
                 raise ValidationError('This email is not registered as a parish officer.')
             
             # Check if user already exists

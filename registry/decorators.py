@@ -1,8 +1,9 @@
+# decorators.py
 from django.contrib.auth.decorators import user_passes_test
 from functools import wraps
 from django.shortcuts import redirect
 from django.contrib import messages
-from .models import ParishOfficer
+from .models import ParishOfficerEP
 
 def admin_required(view_func):
     """
@@ -27,6 +28,7 @@ def admin_required(view_func):
 def officer_required(view_func):
     """
     Decorator for views that both admin and parish officers can access.
+    This also attaches the officer's parish to the request for filtering.
     """
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
@@ -39,13 +41,17 @@ def officer_required(view_func):
         
         # Check if user is a parish officer
         try:
-            officer = ParishOfficer.objects.filter(email=request.user.email).first()
-            if officer and officer.status == 'active':
+            officer = ParishOfficerEP.objects.filter(email=request.user.email, is_active=True).first()
+            if officer:
+                # Attach the officer and their parish to the request
+                request.parish_officer = officer
+                request.user_parish = officer.parish
                 return view_func(request, *args, **kwargs)
             else:
                 messages.error(request, 'You are not authorized to access this page.')
                 return redirect('dashboard')
-        except:
+        except Exception as e:
+            print(f"Officer authorization error: {e}")
             messages.error(request, 'You are not authorized to access this page.')
             return redirect('dashboard')
     

@@ -25,7 +25,8 @@
                 </div>
             </form>
             
-            <!-- Church Filter Dropdown -->
+            <!-- Church Filter Dropdown - Only show for admin -->
+            {% if not is_officer %}
             <select name="church_filter" class="form-select form-select-sm" style="width: auto;" onchange="filterByChurch(this.value)">
                 <option value="">All Churches/Dioceses</option>
                 {% for church in churches %}
@@ -33,13 +34,22 @@
                 {% endfor %}
             </select>
             
-            <!-- Parish Filter Dropdown (dependent on church) -->
+            <!-- Parish Filter Dropdown (dependent on church) - Only show for admin -->
             <select name="parish_filter" class="form-select form-select-sm" style="width: auto;" id="parishFilterSelect" onchange="filterByParish(this.value)">
                 <option value="">All Parishes</option>
                 {% for parish in parishes %}
                 <option value="{{ parish.id }}" data-church="{{ parish.church_id }}" {% if parish_filter == parish.id|stringformat:"s" %}selected{% endif %}>{{ parish.name }}</option>
                 {% endfor %}
             </select>
+            {% endif %}
+            
+            <!-- Show user's parish info for officers -->
+            {% if is_officer and user_parish %}
+            <div class="alert alert-info py-1 px-3 mb-0" style="background: #e8f0fe; border: none;">
+                <i class="bi bi-building me-1"></i>
+                <small>Your Parish: <strong>{{ user_parish.name }}</strong></small>
+            </div>
+            {% endif %}
             
             <a href="{% url 'member_list_print' %}" class="btn btn-sm btn-outline-secondary" target="_blank">
                 <i class="bi bi-printer me-1"></i>Print List
@@ -64,7 +74,9 @@
                     <tr>
                         <th>#</th>
                         <th>Full Name</th>
-                        
+                        {% if is_officer %}
+                        <th>Parish</th>
+                        {% endif %}
                         <th>Birthday</th>
                         <th>Gender</th>
                         <th>Civil Status</th>
@@ -80,7 +92,17 @@
                                 {{ member.full_name }}
                             </a>
                         </td>
-                      
+                        {% if is_officer %}
+                        <td>
+                            {% if member.parish %}
+                            <span class="badge" style="background: #c9a84c20; color: #6b3a2a;">
+                                {{ member.parish.name }}
+                            </span>
+                            {% else %}
+                            <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        {% endif %}
                         <td>{{ member.birthday }}</td>
                         <td>{{ member.get_gender_display }}</td>
                         <td>{{ member.get_civil_status_display }}</td>
@@ -105,12 +127,17 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="10" class="text-center text-muted py-5">
+                        <td colspan="{% if is_officer %}8{% else %}7{% endif %}" class="text-center text-muted py-5">
                             <i class="bi bi-people fs-2 d-block mb-2"></i>
                             No members found{% if q %} for "{{ q }}"{% endif %}.
                             {% if church_filter or parish_filter %}
                             <div class="mt-2">
                                 <a href="{% url 'member_list' %}" class="btn btn-sm btn-outline-secondary">Clear Filters</a>
+                            </div>
+                            {% endif %}
+                            {% if is_officer and user_parish %}
+                            <div class="mt-2 text-muted">
+                                <small>Showing members from your assigned parish: <strong>{{ user_parish.name }}</strong></small>
                             </div>
                             {% endif %}
                         </td>
@@ -149,7 +176,8 @@
 </div>
 
 <script>
-    // Store all parish options for filtering
+    // Store all parish options for filtering (only needed for admin view)
+    {% if not is_officer %}
     const allParishOptions = Array.from(document.querySelectorAll('#parishFilterSelect option'));
     
     function filterByChurch(churchId) {
@@ -219,6 +247,7 @@
             churchSelect.addEventListener('change', filterParishDropdown);
         }
     });
+    {% endif %}
 </script>
 
 <style>

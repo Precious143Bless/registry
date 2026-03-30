@@ -1,5 +1,7 @@
+# context_processors.py
 from datetime import date, timedelta
 from .models import Notification, Pledge
+from .models import ParishOfficerEP
 
 
 def notifications_processor(request):
@@ -56,3 +58,35 @@ def notifications_processor(request):
         'unread_notifications': [],
         'notification_count': 0,
     }
+
+
+def parish_officer_context(request):
+    """Context processor to add parish officer information to all templates"""
+    context = {
+        'is_officer': False,
+        'user_parish': None,
+    }
+    
+    if request.user.is_authenticated:
+        # First check if middleware already attached the parish to the request
+        if hasattr(request, 'user_parish') and request.user_parish:
+            context['is_officer'] = True
+            context['user_parish'] = request.user_parish
+            print(f"Context processor: Using middleware parish: {request.user_parish.name}")
+        # If not a superuser and middleware didn't attach, try to fetch from database
+        elif not request.user.is_superuser:
+            try:
+                officer = ParishOfficerEP.objects.filter(
+                    email=request.user.email, 
+                    is_active=True
+                ).first()
+                if officer:
+                    context['is_officer'] = True
+                    context['user_parish'] = officer.parish
+                    print(f"Context processor: Found parish {officer.parish.name} for {request.user.email}")
+                else:
+                    print(f"Context processor: No active officer found for {request.user.email}")
+            except Exception as e:
+                print(f"Context processor error: {e}")
+    
+    return context

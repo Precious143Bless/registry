@@ -24,6 +24,49 @@ from .forms import (MemberForm, BaptismForm, ConfirmationForm, CommunionForm,
 from .decorators import admin_required, officer_required  
 
 
+# ─── HELPER FUNCTIONS ─────────────────────────────────────────────────────────
+
+def get_user_parish_filter(request):
+    """Helper function to get parish filter based on user role"""
+    if request.user.is_superuser:
+        return None  # Admin sees all data
+    elif hasattr(request, 'user_parish') and request.user_parish:
+        return request.user_parish  # Officer sees only their parish
+    return None  # No access
+
+def check_parish_access(request, parish):
+    """Check if current user can access a parish"""
+    parish_filter = get_user_parish_filter(request)
+    if parish_filter and parish != parish_filter:
+        return False
+    return True
+
+def check_member_access(request, member):
+    """Check if current user can access a member"""
+    parish_filter = get_user_parish_filter(request)
+    if parish_filter and member.parish != parish_filter:
+        return False
+    return True
+
+def check_priest_access(request, priest):
+    """Check if current user can access a priest"""
+    parish_filter = get_user_parish_filter(request)
+    if parish_filter and priest.parish != parish_filter:
+        return False
+    return True
+
+def check_officer_ep_access(request, officer):
+    """Check if current user can access a parish officer"""
+    parish_filter = get_user_parish_filter(request)
+    if parish_filter and officer.parish != parish_filter:
+        return False
+    return True
+
+def _parish_ctx():
+    """Helper to inject ParishInfo into print views."""
+    return ParishInfo.objects.first()
+
+
 # ─── AUTH ────────────────────────────────────────────────────────────────────
 
 def landing_view(request):
@@ -60,9 +103,9 @@ def login_view(request):
             
             # Check if this user has a parish officer record
             try:
-                officer = ParishOfficer.objects.filter(email=user.email).first()
+                officer = ParishOfficerEP.objects.filter(email=user.email, is_active=True).first()
                 
-                if officer and officer.status == 'active':
+                if officer:
                     messages.success(request, f'Welcome back, {user.get_full_name() or user.username}!')
                     return redirect('dashboard')
                 else:
@@ -93,18 +136,13 @@ def register_view(request):
             last_name = form.cleaned_data['last_name']
             password = form.cleaned_data['password']
             
-            # Check if this email is registered in ParishOfficer table
+            # Check if this email is registered in ParishOfficerEP table
             try:
-                officer = ParishOfficer.objects.get(email=email)
+                officer = ParishOfficerEP.objects.get(email=email, is_active=True)
                 
                 # Also verify name matches
                 if officer.first_name.lower() != first_name.lower() or officer.last_name.lower() != last_name.lower():
                     messages.error(request, 'The name you entered does not match our records for this email.')
-                    return render(request, 'registry/register.html', {'form': form})
-                
-                # Check if officer is active
-                if officer.status != 'active':
-                    messages.error(request, 'Your account is not active. Please contact the administrator.')
                     return render(request, 'registry/register.html', {'form': form})
                 
                 # Check if user already exists
@@ -136,7 +174,7 @@ def register_view(request):
                 messages.success(request, f'Welcome {first_name}! Your account has been created successfully.')
                 return redirect('dashboard')
                 
-            except ParishOfficer.DoesNotExist:
+            except ParishOfficerEP.DoesNotExist:
                 messages.error(request, 'You are not authorized to register. Only parish officers can create accounts.')
                 return render(request, 'registry/register.html', {'form': form})
             except Exception as e:
@@ -150,6 +188,7 @@ def register_view(request):
 def logout_view(request):
     logout(request)
     return redirect('login')
+
 
 # ─── PASSWORD RESET WITH OTP ─────────────────────────────────────────────────
 
@@ -171,8 +210,8 @@ def forgot_password(request):
             if user.is_superuser:
                 is_authorized = True
             else:
-                officer = ParishOfficer.objects.filter(email=email).first()
-                if officer and officer.status == 'active':
+                officer = ParishOfficerEP.objects.filter(email=email, is_active=True).first()
+                if officer:
                     is_authorized = True
             
             if is_authorized:
@@ -287,20 +326,52 @@ def reset_password(request):
     
     return render(request, 'registry/forgot_password/reset_password.html')
 
+
 # ─── DASHBOARD ───────────────────────────────────────────────────────────────
 
 @login_required
 def dashboard(request):
+    """Dashboard with filtered data based on user role"""
+    parish_filter = get_user_parish_filter(request)
+    
+    # Base querysets
+    members_qs = Member.objects.filter(is_active=True)
+    pledges_qs = Pledge.objects.all()
+    
+    # Apply parish filter for officers
+    if parish_filter:
+        # Filter members by parish
+        members_qs = members_qs.filter(parish=parish_filter)
+        
+        # Filter pledges through members
+        pledges_qs = pledges_qs.filter(member__parish=parish_filter)
+        
+        # Filter sacraments through members
+        baptism_qs = Baptism.objects.filter(member__parish=parish_filter)
+        confirmation_qs = Confirmation.objects.filter(member__parish=parish_filter)
+        communion_qs = FirstHolyCommunion.objects.filter(member__parish=parish_filter)
+        marriage_qs = Marriage.objects.filter(member__parish=parish_filter)
+        last_rites_qs = LastRites.objects.filter(member__parish=parish_filter)
+    else:
+        # Admin sees everything
+        baptism_qs = Baptism.objects.all()
+        confirmation_qs = Confirmation.objects.all()
+        communion_qs = FirstHolyCommunion.objects.all()
+        marriage_qs = Marriage.objects.all()
+        last_rites_qs = LastRites.objects.all()
+    
     context = {
-        'total_members':       Member.objects.filter(is_active=True).count(),
-        'total_baptisms':      Baptism.objects.count(),
-        'total_confirmations': Confirmation.objects.count(),
-        'total_communions':    FirstHolyCommunion.objects.count(),
-        'total_marriages':     Marriage.objects.count(),
-        'total_last_rites':    LastRites.objects.count(),
-        'total_pledges':       Pledge.objects.count(),
-        'outstanding_pledges': Pledge.objects.filter(status__in=['unpaid', 'partial']).count(),
-        'recent_members':      Member.objects.filter(is_active=True).order_by('-date_registered')[:5],
+        'total_members': members_qs.count(),
+        'total_baptisms': baptism_qs.count(),
+        'total_confirmations': confirmation_qs.count(),
+        'total_communions': communion_qs.count(),
+        'total_marriages': marriage_qs.count(),
+        'total_last_rites': last_rites_qs.count(),
+        'total_pledges': pledges_qs.count(),
+        'outstanding_pledges': pledges_qs.filter(status__in=['unpaid', 'partial']).count(),
+        'recent_members': members_qs.order_by('-date_registered')[:5],
+        'is_officer': not request.user.is_superuser and hasattr(request, 'user_parish'),
+        'user_parish': getattr(request, 'user_parish', None),
     }
     return render(request, 'registry/dashboard.html', context)
 
@@ -332,14 +403,24 @@ def mark_all_notifications_read(request):
 # ─── MEMBERS ─────────────────────────────────────────────────────────────────
 
 @login_required
+@officer_required
 def member_list(request):
     from django.core.paginator import Paginator
     
+    parish_filter = get_user_parish_filter(request)
+    
     q = request.GET.get('q', '')
     church_filter = request.GET.get('church_filter', '')
-    parish_filter = request.GET.get('parish_filter', '')
+    parish_filter_param = request.GET.get('parish_filter', '')
     
+    # Start with base queryset
     members = Member.objects.filter(is_active=True)
+    
+    # Apply automatic parish filter for officers
+    if parish_filter:
+        members = members.filter(parish=parish_filter)
+        # Officers can't filter by other parishes
+        parish_filter_param = parish_filter.id
     
     # Search by name or contact
     if q:
@@ -355,14 +436,17 @@ def member_list(request):
         members = members.filter(church_id=church_filter)
     
     # Filter by parish
-    if parish_filter:
-        members = members.filter(parish_id=parish_filter)
+    if parish_filter_param:
+        members = members.filter(parish_id=parish_filter_param)
     
-    # Get all churches for filter dropdown
+    # Get churches for filter dropdown
     churches = Church.objects.filter(is_active=True).order_by('name')
     
-    # Get all parishes for filter dropdown
-    parishes = Parish.objects.filter(is_active=True).order_by('name')
+    # Get parishes for filter dropdown (officers see only their parish)
+    if parish_filter:
+        parishes = Parish.objects.filter(id=parish_filter.id).order_by('name')
+    else:
+        parishes = Parish.objects.filter(is_active=True).order_by('name')
     
     # Pagination
     paginator = Paginator(members, 15)
@@ -376,9 +460,9 @@ def member_list(request):
             church_filter_name = Church.objects.get(id=church_filter).name
         except Church.DoesNotExist:
             pass
-    if parish_filter:
+    if parish_filter_param:
         try:
-            parish_filter_name = Parish.objects.get(id=parish_filter).name
+            parish_filter_name = Parish.objects.get(id=parish_filter_param).name
         except Parish.DoesNotExist:
             pass
     
@@ -387,33 +471,61 @@ def member_list(request):
         'page_obj': page_obj,
         'q': q,
         'church_filter': church_filter,
-        'parish_filter': parish_filter,
+        'parish_filter': parish_filter_param,
         'church_filter_name': church_filter_name,
         'parish_filter_name': parish_filter_name,
         'churches': churches,
         'parishes': parishes,
+        'is_officer': not request.user.is_superuser,
+        'user_parish': getattr(request, 'user_parish', None),
     })
 
 
 @login_required
+@officer_required
 def member_create(request):
+    parish_filter = get_user_parish_filter(request)
     form = MemberForm(request.POST or None)
+    
     if form.is_valid():
-        form.save()
+        member = form.save(commit=False)
+        
+        # For officers, ensure the member is assigned to their parish
+        if parish_filter:
+            member.parish = parish_filter
+        
+        member.save()
         messages.success(request, 'Member registered successfully.')
         return redirect('member_list')
+    
     return render(request, 'registry/members/form.html', {'form': form, 'title': 'Register New Member'})
 
 
 @login_required
+@officer_required
 def member_detail(request, pk):
     member = get_object_or_404(Member, pk=pk)
+    parish_filter = get_user_parish_filter(request)
+    
+    # Check if officer has access to this member
+    if parish_filter and member.parish != parish_filter:
+        messages.error(request, 'You do not have permission to view this member.')
+        return redirect('member_list')
+    
     return render(request, 'registry/members/detail.html', {'member': member})
 
 
 @login_required
+@officer_required
 def member_edit(request, pk):
     member = get_object_or_404(Member, pk=pk)
+    parish_filter = get_user_parish_filter(request)
+    
+    # Check if officer has access to this member
+    if parish_filter and member.parish != parish_filter:
+        messages.error(request, 'You do not have permission to edit this member.')
+        return redirect('member_list')
+    
     form = MemberForm(request.POST or None, instance=member)
     if form.is_valid():
         form.save()
@@ -423,8 +535,16 @@ def member_edit(request, pk):
 
 
 @login_required
+@officer_required
 def member_deactivate(request, pk):
     member = get_object_or_404(Member, pk=pk)
+    parish_filter = get_user_parish_filter(request)
+    
+    # Check if officer has access to this member
+    if parish_filter and member.parish != parish_filter:
+        messages.error(request, 'You do not have permission to deactivate this member.')
+        return redirect('member_list')
+    
     if request.method == 'POST':
         member.is_active = False
         member.save()
@@ -434,10 +554,18 @@ def member_deactivate(request, pk):
 
 
 @login_required
+@officer_required
 def member_archive(request):
     from django.core.paginator import Paginator
+    parish_filter = get_user_parish_filter(request)
+    
     q = request.GET.get('q', '')
     members = Member.objects.filter(is_active=False)
+    
+    # Apply parish filter for officers
+    if parish_filter:
+        members = members.filter(parish=parish_filter)
+    
     if q:
         members = members.filter(
             Q(first_name__icontains=q) | Q(last_name__icontains=q) |
@@ -449,8 +577,16 @@ def member_archive(request):
 
 
 @login_required
+@officer_required
 def member_reactivate(request, pk):
     member = get_object_or_404(Member, pk=pk)
+    parish_filter = get_user_parish_filter(request)
+    
+    # Check if officer has access to this member
+    if parish_filter and member.parish != parish_filter:
+        messages.error(request, 'You do not have permission to reactivate this member.')
+        return redirect('member_archive')
+    
     if request.method == 'POST':
         member.is_active = True
         member.save()
@@ -461,49 +597,69 @@ def member_reactivate(request, pk):
 
 # ─── SACRAMENTS ──────────────────────────────────────────────────────────────
 
-def _parish_ctx():
-    """Helper to inject ParishInfo into print views."""
-    return ParishInfo.objects.first()
-
-
 @login_required
+@officer_required
 def sacrament_list(request):
     from django.core.paginator import Paginator
+    
+    parish_filter = get_user_parish_filter(request)
     q = request.GET.get('q', '')
-    baptisms      = Baptism.objects.select_related('member')
-    confirmations = Confirmation.objects.select_related('member')
-    communions    = FirstHolyCommunion.objects.select_related('member')
-    marriages     = Marriage.objects.select_related('member')
-    last_rites    = LastRites.objects.select_related('member')
+    
+    # Base querysets with filtering
+    if parish_filter:
+        baptisms = Baptism.objects.select_related('member').filter(member__parish=parish_filter)
+        confirmations = Confirmation.objects.select_related('member').filter(member__parish=parish_filter)
+        communions = FirstHolyCommunion.objects.select_related('member').filter(member__parish=parish_filter)
+        marriages = Marriage.objects.select_related('member').filter(member__parish=parish_filter)
+        last_rites = LastRites.objects.select_related('member').filter(member__parish=parish_filter)
+        all_members = Member.objects.filter(is_active=True, parish=parish_filter).order_by('last_name', 'first_name')
+    else:
+        baptisms = Baptism.objects.select_related('member')
+        confirmations = Confirmation.objects.select_related('member')
+        communions = FirstHolyCommunion.objects.select_related('member')
+        marriages = Marriage.objects.select_related('member')
+        last_rites = LastRites.objects.select_related('member')
+        all_members = Member.objects.filter(is_active=True).order_by('last_name', 'first_name')
+    
     if q:
         f = Q(member__first_name__icontains=q) | Q(member__last_name__icontains=q)
-        baptisms      = baptisms.filter(f)
+        baptisms = baptisms.filter(f)
         confirmations = confirmations.filter(f)
-        communions    = communions.filter(f)
-        marriages     = marriages.filter(f | Q(spouse_name__icontains=q))
-        last_rites    = last_rites.filter(f)
+        communions = communions.filter(f)
+        marriages = marriages.filter(f | Q(spouse_name__icontains=q))
+        last_rites = last_rites.filter(f)
 
     def paginate(qs, param):
         return Paginator(qs, 15).get_page(request.GET.get(param))
 
     context = {
-        'baptisms':      paginate(baptisms,      'page_b'),
+        'baptisms': paginate(baptisms, 'page_b'),
         'confirmations': paginate(confirmations, 'page_c'),
-        'communions':    paginate(communions,    'page_co'),
-        'marriages':     paginate(marriages,     'page_m'),
-        'last_rites':    paginate(last_rites,    'page_lr'),
+        'communions': paginate(communions, 'page_co'),
+        'marriages': paginate(marriages, 'page_m'),
+        'last_rites': paginate(last_rites, 'page_lr'),
         'q': q,
-        'all_members': Member.objects.filter(is_active=True).order_by('last_name', 'first_name'),
+        'all_members': all_members,
+        'is_officer': not request.user.is_superuser,
+        'user_parish': getattr(request, 'user_parish', None),
     }
     return render(request, 'registry/sacraments/list.html', context)
 
 
 @login_required
+@officer_required
 def baptism_create(request, member_pk):
     member = get_object_or_404(Member, pk=member_pk)
+    
+    # Check access
+    if not check_member_access(request, member):
+        messages.error(request, 'You do not have permission to add sacraments for this member.')
+        return redirect('member_list')
+    
     if hasattr(member, 'baptism'):
         messages.warning(request, 'This member already has a baptism record.')
         return redirect('member_detail', pk=member_pk)
+    
     form = BaptismForm(request.POST or None)
     if form.is_valid():
         b = form.save(commit=False)
@@ -515,8 +671,16 @@ def baptism_create(request, member_pk):
 
 
 @login_required
+@officer_required
 def baptism_edit(request, pk):
     baptism = get_object_or_404(Baptism, pk=pk)
+    member = baptism.member
+    
+    # Check access
+    if not check_member_access(request, member):
+        messages.error(request, 'You do not have permission to edit this baptism record.')
+        return redirect('member_list')
+    
     form = BaptismForm(request.POST or None, instance=baptism)
     if form.is_valid():
         form.save()
@@ -534,11 +698,19 @@ def baptism_print(request, pk):
 
 
 @login_required
+@officer_required
 def confirmation_create(request, member_pk):
     member = get_object_or_404(Member, pk=member_pk)
+    
+    # Check access
+    if not check_member_access(request, member):
+        messages.error(request, 'You do not have permission to add sacraments for this member.')
+        return redirect('member_list')
+    
     if hasattr(member, 'confirmation'):
         messages.warning(request, 'This member already has a confirmation record.')
         return redirect('member_detail', pk=member_pk)
+    
     form = ConfirmationForm(request.POST or None)
     if form.is_valid():
         c = form.save(commit=False)
@@ -550,8 +722,16 @@ def confirmation_create(request, member_pk):
 
 
 @login_required
+@officer_required
 def confirmation_edit(request, pk):
     conf = get_object_or_404(Confirmation, pk=pk)
+    member = conf.member
+    
+    # Check access
+    if not check_member_access(request, member):
+        messages.error(request, 'You do not have permission to edit this confirmation record.')
+        return redirect('member_list')
+    
     form = ConfirmationForm(request.POST or None, instance=conf)
     if form.is_valid():
         form.save()
@@ -570,11 +750,19 @@ def confirmation_print(request, pk):
 
 
 @login_required
+@officer_required
 def communion_create(request, member_pk):
     member = get_object_or_404(Member, pk=member_pk)
+    
+    # Check access
+    if not check_member_access(request, member):
+        messages.error(request, 'You do not have permission to add sacraments for this member.')
+        return redirect('member_list')
+    
     if hasattr(member, 'communion'):
         messages.warning(request, 'This member already has a communion record.')
         return redirect('member_detail', pk=member_pk)
+    
     form = CommunionForm(request.POST or None)
     if form.is_valid():
         c = form.save(commit=False)
@@ -586,8 +774,16 @@ def communion_create(request, member_pk):
 
 
 @login_required
+@officer_required
 def communion_edit(request, pk):
     communion = get_object_or_404(FirstHolyCommunion, pk=pk)
+    member = communion.member
+    
+    # Check access
+    if not check_member_access(request, member):
+        messages.error(request, 'You do not have permission to edit this communion record.')
+        return redirect('member_list')
+    
     form = CommunionForm(request.POST or None, instance=communion)
     if form.is_valid():
         form.save()
@@ -606,8 +802,15 @@ def communion_print(request, pk):
 
 
 @login_required
+@officer_required
 def marriage_create(request, member_pk):
     member = get_object_or_404(Member, pk=member_pk)
+    
+    # Check access
+    if not check_member_access(request, member):
+        messages.error(request, 'You do not have permission to add sacraments for this member.')
+        return redirect('member_list')
+    
     form = MarriageForm(request.POST or None)
     if form.is_valid():
         m = form.save(commit=False)
@@ -619,8 +822,16 @@ def marriage_create(request, member_pk):
 
 
 @login_required
+@officer_required
 def marriage_edit(request, pk):
     marriage = get_object_or_404(Marriage, pk=pk)
+    member = marriage.member
+    
+    # Check access
+    if not check_member_access(request, member):
+        messages.error(request, 'You do not have permission to edit this marriage record.')
+        return redirect('member_list')
+    
     form = MarriageForm(request.POST or None, instance=marriage)
     if form.is_valid():
         form.save()
@@ -639,11 +850,19 @@ def marriage_print(request, pk):
 
 
 @login_required
+@officer_required
 def last_rites_create(request, member_pk):
     member = get_object_or_404(Member, pk=member_pk)
+    
+    # Check access
+    if not check_member_access(request, member):
+        messages.error(request, 'You do not have permission to add sacraments for this member.')
+        return redirect('member_list')
+    
     if hasattr(member, 'last_rites'):
         messages.warning(request, 'This member already has a last rites record.')
         return redirect('member_detail', pk=member_pk)
+    
     form = LastRitesForm(request.POST or None)
     if form.is_valid():
         lr = form.save(commit=False)
@@ -655,8 +874,16 @@ def last_rites_create(request, member_pk):
 
 
 @login_required
+@officer_required
 def last_rites_edit(request, pk):
     lr = get_object_or_404(LastRites, pk=pk)
+    member = lr.member
+    
+    # Check access
+    if not check_member_access(request, member):
+        messages.error(request, 'You do not have permission to edit this last rites record.')
+        return redirect('member_list')
+    
     form = LastRitesForm(request.POST or None, instance=lr)
     if form.is_valid():
         form.save()
@@ -677,43 +904,77 @@ def last_rites_print(request, pk):
 # ─── PLEDGES ─────────────────────────────────────────────────────────────────
 
 @login_required
+@officer_required
 def pledge_list(request):
     from django.core.paginator import Paginator
+    
+    parish_filter = get_user_parish_filter(request)
     q = request.GET.get('q', '')
-    pledges = Pledge.objects.select_related('member')
+    
+    # Filter pledges by member's parish for officers
+    if parish_filter:
+        pledges = Pledge.objects.select_related('member').filter(member__parish=parish_filter)
+        all_members = Member.objects.filter(is_active=True, parish=parish_filter).order_by('last_name', 'first_name')
+    else:
+        pledges = Pledge.objects.select_related('member')
+        all_members = Member.objects.filter(is_active=True).order_by('last_name', 'first_name')
+    
     if q:
         pledges = pledges.filter(
             Q(member__first_name__icontains=q) | Q(member__last_name__icontains=q) |
             Q(description__icontains=q)
         )
+    
     paginator = Paginator(pledges, 15)
     page_obj = paginator.get_page(request.GET.get('page'))
+    
     return render(request, 'registry/pledges/list.html', {
         'pledges': page_obj,
         'page_obj': page_obj,
         'q': q,
-        'all_members': Member.objects.filter(is_active=True).order_by('last_name', 'first_name'),
+        'all_members': all_members,
+        'is_officer': not request.user.is_superuser,
+        'user_parish': getattr(request, 'user_parish', None),
     })
 
 
 @login_required
+@officer_required
 def pledge_create(request):
+    parish_filter = get_user_parish_filter(request)
     form = PledgeForm(request.POST or None)
+    
     if form.is_valid():
-        form.save()
+        pledge = form.save(commit=False)
+        
+        # For officers, ensure the pledge's member belongs to their parish
+        if parish_filter and pledge.member.parish != parish_filter:
+            messages.error(request, 'You can only create pledges for members in your parish.')
+            return redirect('pledge_list')
+        
+        pledge.save()
         messages.success(request, 'Pledge recorded successfully.')
         return redirect('pledge_list')
+    
     if request.method == 'POST':
         for field, errors in form.errors.items():
             for error in errors:
                 messages.error(request, f'{field.replace("_", " ").title()}: {error}')
         return redirect('pledge_list')
+    
     return render(request, 'registry/pledges/form.html', {'form': form, 'title': 'Add Pledge'})
 
 
 @login_required
+@officer_required
 def member_pledge_create(request, member_pk):
     member = get_object_or_404(Member, pk=member_pk)
+    
+    # Check access
+    if not check_member_access(request, member):
+        messages.error(request, 'You do not have permission to create pledges for this member.')
+        return redirect('member_list')
+    
     if request.method == 'POST':
         from datetime import date as _date
         description = request.POST.get('description', '').strip()
@@ -749,9 +1010,17 @@ def member_pledge_create(request, member_pk):
 
 
 @login_required
+@officer_required
 def pledge_detail(request, pk):
     from django.core.paginator import Paginator
+    
     pledge = get_object_or_404(Pledge, pk=pk)
+    
+    # Check access
+    if not check_member_access(request, pledge.member):
+        messages.error(request, 'You do not have permission to view this pledge.')
+        return redirect('pledge_list')
+    
     payments = pledge.payments.all()
 
     date_from = request.GET.get('date_from', '')
@@ -781,8 +1050,15 @@ def pledge_detail(request, pk):
 
 
 @login_required
+@officer_required
 def pledge_edit(request, pk):
     pledge = get_object_or_404(Pledge, pk=pk)
+    
+    # Check access
+    if not check_member_access(request, pledge.member):
+        messages.error(request, 'You do not have permission to edit this pledge.')
+        return redirect('pledge_list')
+    
     form = PledgeForm(request.POST or None, instance=pledge)
     if form.is_valid():
         form.save()
@@ -792,8 +1068,15 @@ def pledge_edit(request, pk):
 
 
 @login_required
+@officer_required
 def pledge_delete(request, pk):
     pledge = get_object_or_404(Pledge, pk=pk)
+    
+    # Check access
+    if not check_member_access(request, pledge.member):
+        messages.error(request, 'You do not have permission to delete this pledge.')
+        return redirect('pledge_list')
+    
     if request.method == 'POST':
         pledge.delete()
         messages.success(request, 'Pledge deleted.')
@@ -802,8 +1085,15 @@ def pledge_delete(request, pk):
 
 
 @login_required
+@officer_required
 def payment_add(request, pledge_pk):
     pledge = get_object_or_404(Pledge, pk=pledge_pk)
+    
+    # Check access
+    if not check_member_access(request, pledge.member):
+        messages.error(request, 'You do not have permission to add payments for this pledge.')
+        return redirect('pledge_list')
+    
     if request.method == 'POST':
         form = PledgePaymentForm(request.POST)
         if form.is_valid():
@@ -819,9 +1109,16 @@ def payment_add(request, pledge_pk):
 
 
 @login_required
+@officer_required
 def payment_delete(request, pk):
     payment = get_object_or_404(PledgePayment, pk=pk)
     pledge = payment.pledge
+    
+    # Check access
+    if not check_member_access(request, pledge.member):
+        messages.error(request, 'You do not have permission to delete this payment.')
+        return redirect('pledge_list')
+    
     pledge_pk = pledge.pk
     if request.method == 'POST':
         payment.delete()
@@ -832,358 +1129,22 @@ def payment_delete(request, pk):
 
 
 @login_required
+@officer_required
 def payment_edit(request, pk):
     payment = get_object_or_404(PledgePayment, pk=pk)
+    pledge = payment.pledge
+    
+    # Check access
+    if not check_member_access(request, pledge.member):
+        messages.error(request, 'You do not have permission to edit this payment.')
+        return redirect('pledge_list')
+    
     form = PledgePaymentForm(request.POST or None, instance=payment)
     if form.is_valid():
         form.save()
         messages.success(request, 'Payment updated.')
         return redirect('pledge_detail', pk=payment.pledge.pk)
     return redirect('pledge_detail', pk=payment.pledge.pk)
-
-
-# ─── ADMIN-ONLY VIEWS (PARISH PRIESTS) ───────────────────────────────────────
-
-@admin_required
-def priests_list(request):
-    from django.core.paginator import Paginator
-    
-    q = request.GET.get('q', '')
-    church_filter = request.GET.get('church_filter', '')
-    parish_filter = request.GET.get('parish_filter', '')
-    
-    priests = ParishPriest.objects.all()
-    
-    # Search by name
-    if q:
-        priests = priests.filter(
-            Q(first_name__icontains=q) |
-            Q(last_name__icontains=q) |
-            Q(middle_name__icontains=q) |
-            Q(contact_number__icontains=q) |
-            Q(email__icontains=q)
-        )
-    
-    # Filter by church
-    if church_filter:
-        priests = priests.filter(church_id=church_filter)
-    
-    # Filter by parish
-    if parish_filter:
-        priests = priests.filter(parish_id=parish_filter)
-    
-    # Get all churches for filter dropdown
-    churches = Church.objects.filter(is_active=True).order_by('name')
-    
-    # Get all parishes for filter dropdown
-    parishes = Parish.objects.filter(is_active=True).order_by('name')
-    
-    # Pagination
-    paginator = Paginator(priests, 15)
-    page_obj = paginator.get_page(request.GET.get('page'))
-    
-    # Get filter names for display
-    church_filter_name = None
-    parish_filter_name = None
-    if church_filter:
-        try:
-            church_filter_name = Church.objects.get(id=church_filter).name
-        except Church.DoesNotExist:
-            pass
-    if parish_filter:
-        try:
-            parish_filter_name = Parish.objects.get(id=parish_filter).name
-        except Parish.DoesNotExist:
-            pass
-    
-    return render(request, 'registry/priests/list.html', {
-        'priests': page_obj,
-        'page_obj': page_obj,
-        'q': q,
-        'church_filter': church_filter,
-        'parish_filter': parish_filter,
-        'church_filter_name': church_filter_name,
-        'parish_filter_name': parish_filter_name,
-        'churches': churches,
-        'parishes': parishes,
-    })
-
-
-@admin_required
-def priest_create(request):
-    if request.method == 'POST':
-        form = ParishPriestForm(request.POST, request.FILES)
-        if form.is_valid():
-            priest = form.save(commit=False)
-            # Handle image clearing if needed
-            if request.POST.get('clear_image') == 'on':
-                priest.image = None
-            priest.save()
-            messages.success(request, 'Parish priest added successfully.')
-            return redirect('priests_list')
-        else:
-            # Log form errors for debugging
-            for field, errors in form.errors.items():
-                for error in errors:
-                    print(f"Error in {field}: {error}")
-    else:
-        form = ParishPriestForm()
-    
-    return render(request, 'registry/priests/form.html', {
-        'form': form,
-        'title': 'Add Parish Priest'
-    })
-
-
-@admin_required
-def priest_edit(request, pk):
-    priest = get_object_or_404(ParishPriest, pk=pk)
-    
-    if request.method == 'POST':
-        form = ParishPriestForm(request.POST, request.FILES, instance=priest)
-        if form.is_valid():
-            # Handle image clearing
-            if request.POST.get('clear_image') == 'on':
-                if priest.image:
-                    priest.image.delete(save=False)
-                form.instance.image = None
-            form.save()
-            messages.success(request, 'Parish priest updated successfully.')
-            return redirect('priest_detail', pk=priest.pk)
-        else:
-            # Log form errors for debugging
-            for field, errors in form.errors.items():
-                for error in errors:
-                    print(f"Error in {field}: {error}")
-    else:
-        form = ParishPriestForm(instance=priest)
-    
-    return render(request, 'registry/priests/form.html', {
-        'form': form,
-        'title': 'Edit Parish Priest',
-        'priest': priest
-    })
-
-
-@admin_required
-def priest_detail(request, pk):
-    priest = get_object_or_404(ParishPriest, pk=pk)
-    return render(request, 'registry/priests/detail.html', {'priest': priest})
-
-
-@admin_required
-def priest_deactivate(request, pk):
-    priest = get_object_or_404(ParishPriest, pk=pk)
-    if request.method == 'POST':
-        if priest.status == 'active':
-            priest.status = 'inactive'
-            messages.success(request, f'Fr. {priest.last_name} has been deactivated.')
-        else:
-            priest.status = 'active'
-            messages.success(request, f'Fr. {priest.last_name} has been reactivated.')
-        priest.save()
-        return redirect('priests_list')
-    return redirect('priest_detail', pk=pk)
-
-
-@admin_required
-def priests_list_print(request):
-    priests = ParishPriest.objects.all().order_by('last_name', 'first_name')
-    return render(request, 'registry/priests/print_priest_list.html', {'priests': priests})
-
-
-@admin_required
-def priest_archive(request):
-    from django.core.paginator import Paginator
-    q = request.GET.get('q', '')
-    priests = ParishPriest.objects.filter(status='inactive')
-    if q:
-        priests = priests.filter(
-            Q(first_name__icontains=q) | Q(last_name__icontains=q) | Q(middle_name__icontains=q)
-        )
-    paginator = Paginator(priests, 15)
-    page_obj = paginator.get_page(request.GET.get('page'))
-    return render(request, 'registry/priests/archive.html', {'priests': page_obj, 'page_obj': page_obj, 'q': q})
-
-
-# ─── ADMIN-ONLY VIEWS (PARISH OFFICERS) ─────────────────────────────────────
-
-@admin_required
-def officers_list(request):
-    from django.core.paginator import Paginator
-    q = request.GET.get('q', '')
-    officers = ParishOfficer.objects.filter(status='active')
-    if q:
-        officers = officers.filter(
-            Q(first_name__icontains=q) |
-            Q(last_name__icontains=q) |
-            Q(middle_name__icontains=q) |
-            Q(position__icontains=q) |
-            Q(email__icontains=q) |
-            Q(contact_number__icontains=q)
-        )
-    paginator = Paginator(officers, 15)
-    page_obj = paginator.get_page(request.GET.get('page'))
-    return render(request, 'registry/officers/list.html', {
-        'officers': page_obj,
-        'page_obj': page_obj,
-        'q': q,
-    })
-
-
-@admin_required
-def officer_create(request):
-    form = ParishOfficerForm(request.POST or None, request.FILES or None)
-    if form.is_valid():
-        form.save()
-        messages.success(request, 'Parish officer added successfully.')
-        return redirect('officers_list')
-    members = Member.objects.filter(is_active=True).order_by('last_name', 'first_name')
-    return render(request, 'registry/officers/form.html', {
-        'form': form,
-        'title': 'Add Parish Officer',
-        'members': members,
-    })
-
-
-@admin_required
-def officer_detail(request, pk):
-    officer = get_object_or_404(ParishOfficer, pk=pk)
-    return render(request, 'registry/officers/detail.html', {'officer': officer})
-
-
-@admin_required
-def officer_edit(request, pk):
-    officer = get_object_or_404(ParishOfficer, pk=pk)
-    form = ParishOfficerForm(request.POST or None, request.FILES or None, instance=officer)
-    if form.is_valid():
-        if request.POST.get('clear_image') == 'on':
-            if officer.image:
-                officer.image.delete(save=False)
-            form.instance.image = None
-        form.save()
-        messages.success(request, 'Parish officer updated successfully.')
-        return redirect('officer_detail', pk=officer.pk)
-    return render(request, 'registry/officers/form.html', {'form': form, 'title': 'Edit Parish Officer', 'officer': officer})
-
-
-@admin_required
-def officer_deactivate(request, pk):
-    officer = get_object_or_404(ParishOfficer, pk=pk)
-    if request.method == 'POST':
-        if officer.status == 'active':
-            officer.status = 'inactive'
-            messages.success(request, f'{officer.full_name} has been deactivated.')
-        else:
-            officer.status = 'active'
-            messages.success(request, f'{officer.full_name} has been reactivated.')
-        officer.save()
-        return redirect('officers_list')
-    return render(request, 'registry/officers/confirm_status.html', {'officer': officer})
-
-
-@admin_required
-def officers_list_print(request):
-    officers = ParishOfficer.objects.all().order_by('last_name', 'first_name')
-    return render(request, 'registry/officers/print_officer_list.html', {'officers': officers})
-
-
-@admin_required
-def officer_archive(request):
-    from django.core.paginator import Paginator
-    q = request.GET.get('q', '')
-    officers = ParishOfficer.objects.filter(status='inactive')
-    if q:
-        officers = officers.filter(
-            Q(first_name__icontains=q) | Q(last_name__icontains=q) |
-            Q(middle_name__icontains=q) | Q(position__icontains=q)
-        )
-    paginator = Paginator(officers, 15)
-    page_obj = paginator.get_page(request.GET.get('page'))
-    return render(request, 'registry/officers/archive.html', {'officers': page_obj, 'page_obj': page_obj, 'q': q})
-
-
-@login_required
-def officers_chart(request):
-    # Define hierarchy levels
-    hierarchy = {
-        'clergy': {
-            'title': 'Clergy',
-            'icon': 'bi-church',
-            'positions': ['parish_priest', 'parochial_vicar']
-        },
-        'parish_pastoral_council': {
-            'title': 'Parish Pastoral Council',
-            'icon': 'bi-building',
-            'positions': ['ppc_president', 'ppc_vice_president', 'ppc_secretary', 'ppc_treasurer', 'ppc_auditor']
-        },
-        'parish_finance_council': {
-            'title': 'Parish Finance Council',
-            'icon': 'bi-calculator',
-            'positions': ['finance_council']
-        },
-        'administration': {
-            'title': 'Administration',
-            'icon': 'bi-person-badge',
-            'positions': ['parish_secretary', 'parish_administrator', 'social_communications']
-        },
-        'liturgical_ministries': {
-            'title': 'Liturgical Ministries',
-            'icon': 'bi-book',
-            'positions': ['lector', 'commentator', 'altar_servers', 'choir', 'extraordinary_ministers', 'ushers', 'collectors', 'sacristan', 'church_decorators']
-        },
-        'faith_formation': {
-            'title': 'Faith Formation',
-            'icon': 'bi-mortarboard',
-            'positions': ['catechists', 'religious_education']
-        },
-        'pastoral_ministries': {
-            'title': 'Pastoral Ministries',
-            'icon': 'bi-heart',
-            'positions': ['youth_ministry', 'family_ministry', 'womens_ministry', 'mens_ministry']
-        },
-        'coordinators': {
-            'title': 'Coordinators',
-            'icon': 'bi-people',
-            'positions': ['ministry_coordinators']
-        }
-    }
-    
-    # Fetch officers for each category
-    chart_data = {}
-    for key, category in hierarchy.items():
-        officers_in_category = ParishOfficer.objects.filter(
-            position__in=category['positions'],
-            status='active'
-        ).order_by('position')
-        
-        # Group officers by specific position
-        grouped_officers = {}
-        for officer in officers_in_category:
-            pos_display = officer.get_position_display()
-            if pos_display not in grouped_officers:
-                grouped_officers[pos_display] = []
-            grouped_officers[pos_display].append(officer)
-        
-        chart_data[key] = {
-            'title': category['title'],
-            'icon': category['icon'],
-            'groups': grouped_officers,
-            'count': officers_in_category.count()
-        }
-    
-    # Get parish priest for top-level display
-    parish_priest = ParishOfficer.objects.filter(position='parish_priest', status='active').first()
-    parochial_vicar = ParishOfficer.objects.filter(position='parochial_vicar', status='active').first()
-    
-    context = {
-        'chart_data': chart_data,
-        'parish_priest': parish_priest,
-        'parochial_vicar': parochial_vicar,
-        'total_officers': ParishOfficer.objects.filter(status='active').count(),
-    }
-    
-    return render(request, 'registry/officers/officers_chart.html', context)
 
 
 # ─── PRINT VIEWS ─────────────────────────────────────────────────────────────
@@ -1198,7 +1159,13 @@ def member_print(request, pk):
 
 @login_required
 def member_list_print(request):
-    members = Member.objects.filter(is_active=True).order_by('last_name', 'first_name')
+    parish_filter = get_user_parish_filter(request)
+    
+    if parish_filter:
+        members = Member.objects.filter(is_active=True, parish=parish_filter).order_by('last_name', 'first_name')
+    else:
+        members = Member.objects.filter(is_active=True).order_by('last_name', 'first_name')
+    
     return render(request, 'registry/members/print_member_list.html', {
         'members': members,
         'parish': _parish_ctx(),
@@ -1215,7 +1182,13 @@ def pledge_print(request, pk):
 
 @login_required
 def pledge_list_print(request):
-    pledges = Pledge.objects.select_related('member').order_by('member__last_name')
+    parish_filter = get_user_parish_filter(request)
+    
+    if parish_filter:
+        pledges = Pledge.objects.select_related('member').filter(member__parish=parish_filter).order_by('member__last_name')
+    else:
+        pledges = Pledge.objects.select_related('member').order_by('member__last_name')
+    
     return render(request, 'registry/pledges/print_pledge_list.html', {
         'pledges': pledges,
         'parish': _parish_ctx(),
@@ -1339,33 +1312,517 @@ def restore_database(request):
     return render(request, 'registry/restore.html')
 
 
-# ─── ADMIN-ONLY VIEWS (PARISH INFO) ─────────────────────────────────────────
+# ─── PARISH INFO (VIEWABLE BY ALL) ─────────────────────────────────────────
 
-@admin_required
+@officer_required
 def parish_info(request):
     info = ParishInfo.objects.first()
     churches = Church.objects.all().order_by('name')
-    if request.method == 'POST':
+    
+    # Only allow editing for admins
+    if request.method == 'POST' and request.user.is_superuser:
         form = ParishInfoForm(request.POST, request.FILES, instance=info)
         if form.is_valid():
             form.save()
             messages.success(request, 'Parish information updated successfully.')
             return redirect('parish_info')
+    elif request.method == 'POST':
+        messages.error(request, 'Only administrators can edit parish information.')
+        return redirect('parish_info')
     else:
         form = ParishInfoForm(instance=info)
+    
     return render(request, 'registry/info/detail.html', {
         'info': info,
-        'form': form,
+        'form': form if request.user.is_superuser else None,
         'churches': churches,
+        'is_officer': not request.user.is_superuser,
+        'user_parish': getattr(request, 'user_parish', None),
     })
 
 
-# ─── ADMIN-ONLY VIEWS (ORGANIZATIONS) ───────────────────────────────────────
+# ─── PARISHES (STAFF CAN VIEW THEIR OWN PARISH) ─────────────────────────────
 
-@admin_required
+@officer_required
+def parish_detail(request, pk):
+    parish = get_object_or_404(Parish, pk=pk)
+    parish_filter = get_user_parish_filter(request)
+    
+    # Check if officer has access to this parish
+    if not check_parish_access(request, parish):
+        messages.error(request, 'You do not have permission to view this parish.')
+        return redirect('dashboard')
+    
+    # Get officers
+    officers = parish.parish_officers.filter(is_active=True)
+    
+    # Get all priests assigned to this parish
+    priests = parish.priests.all()
+    
+    # Filter parameters
+    officer_position = request.GET.get('officer_position', '')
+    
+    if officer_position:
+        officers = officers.filter(position=officer_position)
+    
+    return render(request, 'registry/parishes/detail.html', {
+        'parish': parish,
+        'officers': officers,
+        'priests': priests,
+        'officer_position': officer_position,
+    })
+
+
+@officer_required
+def parish_member(request, pk):
+    """Display members belonging to a specific parish"""
+    parish = get_object_or_404(Parish, pk=pk)
+    parish_filter = get_user_parish_filter(request)
+    
+    # Check if officer has access to this parish
+    if not check_parish_access(request, parish):
+        messages.error(request, 'You do not have permission to view members of this parish.')
+        return redirect('dashboard')
+    
+    # Get members assigned to this parish
+    members = Member.objects.filter(parish=parish).order_by('last_name', 'first_name')
+    
+    # Search functionality
+    search_query = request.GET.get('search', '')
+    if search_query:
+        members = members.filter(
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query) |
+            Q(middle_name__icontains=search_query)
+        )
+    
+    # Status filter
+    status_filter = request.GET.get('status_filter', '')
+    if status_filter == 'active':
+        members = members.filter(is_active=True)
+    elif status_filter == 'inactive':
+        members = members.filter(is_active=False)
+    
+    # Calculate statistics
+    total_members = members.count()
+    active_members = members.filter(is_active=True).count()
+    male_members = members.filter(gender='M').count()
+    female_members = members.filter(gender='F').count()
+    
+    # Pagination
+    paginator = Paginator(members, 15)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    
+    return render(request, 'registry/parishes/parish_member.html', {
+        'parish': parish,
+        'members': page_obj,
+        'page_obj': page_obj,
+        'search_query': search_query,
+        'status_filter': status_filter,
+        'total_members': total_members,
+        'active_members': active_members,
+        'male_members': male_members,
+        'female_members': female_members,
+    })
+
+
+@officer_required
+def parish_officer_chart(request, pk):
+    """Display parish officers in an organizational chart"""
+    parish = get_object_or_404(Parish, pk=pk)
+    parish_filter = get_user_parish_filter(request)
+    
+    # Check if officer has access to this parish
+    if not check_parish_access(request, parish):
+        messages.error(request, 'You do not have permission to view this chart.')
+        return redirect('dashboard')
+    
+    # Get all active officers for this parish
+    officers = parish.parish_officers.filter(is_active=True)
+    
+    # Group officers by position
+    officers_by_position = {
+        'bishop': [],
+        'priest': [],
+        'deacon': [],
+        'senior_warden': [],
+        'junior_warden': [],
+        'treasurer': [],
+        'secretary': [],
+        'vestry_member': [],
+    }
+    
+    for officer in officers:
+        position = officer.position
+        if position in officers_by_position:
+            officers_by_position[position].append(officer)
+    
+    # Calculate total officers count
+    total_officers = sum(len(officers) for officers in officers_by_position.values())
+    
+    return render(request, 'registry/parishes/parish_officer_chart.html', {
+        'parish': parish,
+        'officers_by_position': officers_by_position,
+        'total_officers': total_officers,
+    })
+
+
+@officer_required
+def parish_priest_list(request, parish_pk):
+    """Display list of priests assigned to a specific parish"""
+    # Get the parish
+    parish = get_object_or_404(Parish, pk=parish_pk)
+    parish_filter = get_user_parish_filter(request)
+    
+    # Check if officer has access to this parish
+    if not check_parish_access(request, parish):
+        messages.error(request, 'You do not have permission to view priests of this parish.')
+        return redirect('dashboard')
+    
+    # Get all priests where parish field equals this parish
+    priests = ParishPriest.objects.filter(parish=parish)
+    
+    return render(request, 'registry/parishes/parish_priest_list.html', {
+        'parish': parish,
+        'priests': priests,
+    })
+
+
+# ─── PRIESTS (STAFF CAN CRUD PRIESTS IN THEIR PARISH) ───────────────────────
+
+@officer_required
+def priests_list(request):
+    from django.core.paginator import Paginator
+    
+    parish_filter = get_user_parish_filter(request)
+    q = request.GET.get('q', '')
+    
+    # Filter priests by parish for officers
+    if parish_filter:
+        priests = ParishPriest.objects.filter(parish=parish_filter)
+    else:
+        priests = ParishPriest.objects.all()
+    
+    # Search by name
+    if q:
+        priests = priests.filter(
+            Q(first_name__icontains=q) |
+            Q(last_name__icontains=q) |
+            Q(middle_name__icontains=q) |
+            Q(contact_number__icontains=q) |
+            Q(email__icontains=q)
+        )
+    
+    # Get churches for filter dropdown (only needed for admin)
+    churches = Church.objects.filter(is_active=True).order_by('name') if not parish_filter else []
+    
+    # Get parishes for filter dropdown (only needed for admin)
+    parishes = Parish.objects.filter(is_active=True).order_by('name') if not parish_filter else []
+    
+    # Pagination
+    paginator = Paginator(priests, 15)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    
+    return render(request, 'registry/priests/list.html', {
+        'priests': page_obj,
+        'page_obj': page_obj,
+        'q': q,
+        'churches': churches,
+        'parishes': parishes,
+        'is_officer': not request.user.is_superuser,
+        'user_parish': getattr(request, 'user_parish', None),
+    })
+
+
+@officer_required
+def priest_create(request):
+    parish_filter = get_user_parish_filter(request)
+    
+    if request.method == 'POST':
+        form = ParishPriestForm(request.POST, request.FILES)
+        if form.is_valid():
+            priest = form.save(commit=False)
+            
+            # For officers, automatically assign the priest to their parish
+            if parish_filter:
+                priest.parish = parish_filter
+            
+            # Handle image clearing if needed
+            if request.POST.get('clear_image') == 'on':
+                priest.image = None
+            priest.save()
+            messages.success(request, 'Parish priest added successfully.')
+            return redirect('priests_list')
+        else:
+            # Log form errors for debugging
+            for field, errors in form.errors.items():
+                for error in errors:
+                    print(f"Error in {field}: {error}")
+    else:
+        form = ParishPriestForm()
+    
+    return render(request, 'registry/priests/form.html', {
+        'form': form,
+        'title': 'Add Parish Priest',
+        'is_officer': not request.user.is_superuser,
+        'user_parish': getattr(request, 'user_parish', None),
+    })
+
+
+@officer_required
+def priest_edit(request, pk):
+    priest = get_object_or_404(ParishPriest, pk=pk)
+    parish_filter = get_user_parish_filter(request)
+    
+    # Check if officer has access to this priest
+    if not check_priest_access(request, priest):
+        messages.error(request, 'You do not have permission to edit this priest.')
+        return redirect('priests_list')
+    
+    if request.method == 'POST':
+        form = ParishPriestForm(request.POST, request.FILES, instance=priest)
+        if form.is_valid():
+            # Handle image clearing
+            if request.POST.get('clear_image') == 'on':
+                if priest.image:
+                    priest.image.delete(save=False)
+                form.instance.image = None
+            form.save()
+            messages.success(request, 'Parish priest updated successfully.')
+            return redirect('priest_detail', pk=priest.pk)
+        else:
+            # Log form errors for debugging
+            for field, errors in form.errors.items():
+                for error in errors:
+                    print(f"Error in {field}: {error}")
+    else:
+        form = ParishPriestForm(instance=priest)
+    
+    return render(request, 'registry/priests/form.html', {
+        'form': form,
+        'title': 'Edit Parish Priest',
+        'priest': priest,
+        'is_officer': not request.user.is_superuser,
+        'user_parish': getattr(request, 'user_parish', None),
+    })
+
+
+@officer_required
+def priest_detail(request, pk):
+    priest = get_object_or_404(ParishPriest, pk=pk)
+    parish_filter = get_user_parish_filter(request)
+    
+    # Check if officer has access to this priest
+    if not check_priest_access(request, priest):
+        messages.error(request, 'You do not have permission to view this priest.')
+        return redirect('priests_list')
+    
+    return render(request, 'registry/priests/detail.html', {'priest': priest})
+
+
+@officer_required
+def priest_deactivate(request, pk):
+    priest = get_object_or_404(ParishPriest, pk=pk)
+    parish_filter = get_user_parish_filter(request)
+    
+    # Check if officer has access to this priest
+    if not check_priest_access(request, priest):
+        messages.error(request, 'You do not have permission to deactivate this priest.')
+        return redirect('priests_list')
+    
+    if request.method == 'POST':
+        if priest.status == 'active':
+            priest.status = 'inactive'
+            messages.success(request, f'Fr. {priest.last_name} has been deactivated.')
+        else:
+            priest.status = 'active'
+            messages.success(request, f'Fr. {priest.last_name} has been reactivated.')
+        priest.save()
+        return redirect('priests_list')
+    return redirect('priest_detail', pk=pk)
+
+
+@officer_required
+def priest_archive(request):
+    from django.core.paginator import Paginator
+    parish_filter = get_user_parish_filter(request)
+    
+    q = request.GET.get('q', '')
+    
+    if parish_filter:
+        priests = ParishPriest.objects.filter(status='inactive', parish=parish_filter)
+    else:
+        priests = ParishPriest.objects.filter(status='inactive')
+    
+    if q:
+        priests = priests.filter(
+            Q(first_name__icontains=q) | Q(last_name__icontains=q) | Q(middle_name__icontains=q)
+        )
+    paginator = Paginator(priests, 15)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'registry/priests/archive.html', {'priests': page_obj, 'page_obj': page_obj, 'q': q})
+
+
+# ─── PARISH OFFICERS EP (STAFF CAN CRUD OFFICERS IN THEIR PARISH) ───────────
+
+@officer_required
+def officers_list(request):
+    from django.core.paginator import Paginator
+    
+    parish_filter = get_user_parish_filter(request)
+    q = request.GET.get('q', '')
+    
+    # Filter officers by parish for officers
+    if parish_filter:
+        officers = ParishOfficerEP.objects.filter(parish=parish_filter)
+    else:
+        officers = ParishOfficerEP.objects.all()
+    
+    if q:
+        officers = officers.filter(
+            Q(first_name__icontains=q) |
+            Q(last_name__icontains=q) |
+            Q(middle_name__icontains=q) |
+            Q(position__icontains=q) |
+            Q(email__icontains=q) |
+            Q(contact_number__icontains=q)
+        )
+    
+    paginator = Paginator(officers, 15)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'registry/officers/list.html', {
+        'officers': page_obj,
+        'page_obj': page_obj,
+        'q': q,
+        'is_officer': not request.user.is_superuser,
+        'user_parish': getattr(request, 'user_parish', None),
+    })
+
+
+@officer_required
+def officer_create(request):
+    parish_filter = get_user_parish_filter(request)
+    
+    if request.method == 'POST':
+        form = ParishOfficerEPForm(request.POST)
+        if form.is_valid():
+            officer = form.save(commit=False)
+            
+            # For officers, automatically assign to their parish
+            if parish_filter:
+                officer.parish = parish_filter
+            
+            officer.save()
+            messages.success(request, 'Parish officer added successfully.')
+            return redirect('officers_list')
+    else:
+        form = ParishOfficerEPForm()
+    
+    return render(request, 'registry/officers/form.html', {
+        'form': form,
+        'title': 'Add Parish Officer',
+        'is_officer': not request.user.is_superuser,
+        'user_parish': getattr(request, 'user_parish', None),
+    })
+
+
+@officer_required
+def officer_detail(request, pk):
+    officer = get_object_or_404(ParishOfficerEP, pk=pk)
+    parish_filter = get_user_parish_filter(request)
+    
+    # Check if officer has access to this parish officer
+    if not check_officer_ep_access(request, officer):
+        messages.error(request, 'You do not have permission to view this officer.')
+        return redirect('officers_list')
+    
+    return render(request, 'registry/officers/detail.html', {'officer': officer})
+
+
+@officer_required
+def officer_edit(request, pk):
+    officer = get_object_or_404(ParishOfficerEP, pk=pk)
+    parish_filter = get_user_parish_filter(request)
+    
+    # Check if officer has access to this parish officer
+    if not check_officer_ep_access(request, officer):
+        messages.error(request, 'You do not have permission to edit this officer.')
+        return redirect('officers_list')
+    
+    form = ParishOfficerEPForm(request.POST or None, instance=officer)
+    if form.is_valid():
+        form.save()
+        messages.success(request, 'Parish officer updated successfully.')
+        return redirect('officer_detail', pk=officer.pk)
+    
+    return render(request, 'registry/officers/form.html', {
+        'form': form,
+        'title': 'Edit Parish Officer',
+        'officer': officer,
+        'is_officer': not request.user.is_superuser,
+        'user_parish': getattr(request, 'user_parish', None),
+    })
+
+
+@officer_required
+def officer_deactivate(request, pk):
+    officer = get_object_or_404(ParishOfficerEP, pk=pk)
+    parish_filter = get_user_parish_filter(request)
+    
+    # Check if officer has access to this parish officer
+    if not check_officer_ep_access(request, officer):
+        messages.error(request, 'You do not have permission to deactivate this officer.')
+        return redirect('officers_list')
+    
+    if request.method == 'POST':
+        if officer.is_active:
+            officer.is_active = False
+            messages.success(request, f'{officer.full_name} has been deactivated.')
+        else:
+            officer.is_active = True
+            messages.success(request, f'{officer.full_name} has been reactivated.')
+        officer.save()
+        return redirect('officers_list')
+    return render(request, 'registry/officers/confirm_status.html', {'officer': officer})
+
+
+@officer_required
+def officer_archive(request):
+    from django.core.paginator import Paginator
+    parish_filter = get_user_parish_filter(request)
+    
+    q = request.GET.get('q', '')
+    
+    if parish_filter:
+        officers = ParishOfficerEP.objects.filter(is_active=False, parish=parish_filter)
+    else:
+        officers = ParishOfficerEP.objects.filter(is_active=False)
+    
+    if q:
+        officers = officers.filter(
+            Q(first_name__icontains=q) | Q(last_name__icontains=q) |
+            Q(middle_name__icontains=q) | Q(position__icontains=q)
+        )
+    paginator = Paginator(officers, 15)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'registry/officers/archive.html', {'officers': page_obj, 'page_obj': page_obj, 'q': q})
+
+
+# ─── ORGANIZATIONS (STAFF CAN VIEW, CREATE, EDIT, DELETE ORGANIZATIONS IN THEIR PARISH) ─────
+
+@officer_required
 def organization_list(request):
     q = request.GET.get('q', '')
     organizations = Organization.objects.all()
+    
+    # Get parish filter for filtering members
+    parish_filter = get_user_parish_filter(request)
+    
+    # Filter members based on parish for staff
+    if parish_filter:
+        all_members = Member.objects.filter(is_active=True, parish=parish_filter).order_by('last_name', 'first_name')
+    else:
+        all_members = Member.objects.filter(is_active=True).order_by('last_name', 'first_name')
     
     if q:
         organizations = organizations.filter(
@@ -1377,11 +1834,13 @@ def organization_list(request):
     return render(request, 'registry/organizations/list.html', {
         'organizations': organizations,
         'q': q,
-        'all_members': Member.objects.filter(is_active=True).order_by('last_name', 'first_name'),
+        'all_members': all_members,
+        'is_officer': not request.user.is_superuser,
+        'user_parish': getattr(request, 'user_parish', None),
     })
 
 
-@admin_required
+@officer_required
 def organization_create(request):
     form = OrganizationForm(request.POST or None)
     if form.is_valid():
@@ -1390,14 +1849,22 @@ def organization_create(request):
         return redirect('organization_list')
     return render(request, 'registry/organizations/form.html', {
         'form': form,
-        'title': 'Add New Organization'
+        'title': 'Add New Organization',
+        'is_officer': not request.user.is_superuser,
+        'user_parish': getattr(request, 'user_parish', None),
     })
 
 
-@admin_required
+@officer_required
 def organization_detail(request, pk):
     organization = get_object_or_404(Organization, pk=pk)
-    memberships = organization.memberships.select_related('member').all()
+    parish_filter = get_user_parish_filter(request)
+    
+    # For staff, filter memberships to only those from their parish
+    if parish_filter:
+        memberships = organization.memberships.select_related('member').filter(member__parish=parish_filter)
+    else:
+        memberships = organization.memberships.select_related('member').all()
     
     # Get filter parameters
     role_filter = request.GET.get('role', '')
@@ -1413,10 +1880,12 @@ def organization_detail(request, pk):
         'memberships': memberships,
         'role_filter': role_filter,
         'status_filter': status_filter,
+        'is_officer': not request.user.is_superuser,
+        'user_parish': getattr(request, 'user_parish', None),
     })
 
 
-@admin_required
+@officer_required
 def organization_edit(request, pk):
     organization = get_object_or_404(Organization, pk=pk)
     form = OrganizationForm(request.POST or None, instance=organization)
@@ -1427,11 +1896,13 @@ def organization_edit(request, pk):
     return render(request, 'registry/organizations/form.html', {
         'form': form,
         'title': 'Edit Organization',
-        'organization': organization
+        'organization': organization,
+        'is_officer': not request.user.is_superuser,
+        'user_parish': getattr(request, 'user_parish', None),
     })
 
 
-@admin_required
+@officer_required
 def organization_delete(request, pk):
     organization = get_object_or_404(Organization, pk=pk)
     if request.method == 'POST':
@@ -1443,16 +1914,28 @@ def organization_delete(request, pk):
     })
 
 
-# ─── ADMIN-ONLY VIEWS (ORGANIZATION MEMBERSHIPS) ────────────────────────────
+# ─── ORGANIZATION MEMBERSHIPS (STAFF CAN MANAGE MEMBERSHIPS FOR THEIR PARISH) ───
 
-@admin_required
+@officer_required
 def organization_add_member(request, org_pk):
     organization = get_object_or_404(Organization, pk=org_pk)
-    form = OrganizationMembershipForm(request.POST or None)
+    parish_filter = get_user_parish_filter(request)
+    
+    # For staff, filter members to only those from their parish
+    if parish_filter:
+        form = OrganizationMembershipForm(request.POST or None)
+        form.fields['member'].queryset = Member.objects.filter(is_active=True, parish=parish_filter).order_by('last_name', 'first_name')
+    else:
+        form = OrganizationMembershipForm(request.POST or None)
     
     if form.is_valid():
         membership = form.save(commit=False)
         membership.organization = organization
+        
+        # Check if member belongs to officer's parish
+        if parish_filter and membership.member.parish != parish_filter:
+            messages.error(request, 'You can only add members from your parish.')
+            return redirect('organization_detail', pk=organization.pk)
         
         # Check for duplicate membership
         if OrganizationMembership.objects.filter(
@@ -1468,13 +1951,22 @@ def organization_add_member(request, org_pk):
     return render(request, 'registry/organizations/membership_form.html', {
         'form': form,
         'organization': organization,
-        'title': f'Add Member to {organization.name}'
+        'title': f'Add Member to {organization.name}',
+        'is_officer': not request.user.is_superuser,
+        'user_parish': getattr(request, 'user_parish', None),
     })
 
 
-@admin_required
+@officer_required
 def membership_edit(request, pk):
     membership = get_object_or_404(OrganizationMembership, pk=pk)
+    parish_filter = get_user_parish_filter(request)
+    
+    # Check if member belongs to officer's parish
+    if parish_filter and membership.member.parish != parish_filter:
+        messages.error(request, 'You do not have permission to edit this membership.')
+        return redirect('organization_detail', pk=membership.organization.pk)
+    
     form = OrganizationMembershipForm(request.POST or None, instance=membership)
     
     if form.is_valid():
@@ -1486,13 +1978,22 @@ def membership_edit(request, pk):
         'form': form,
         'organization': membership.organization,
         'membership': membership,
-        'title': 'Edit Membership'
+        'title': 'Edit Membership',
+        'is_officer': not request.user.is_superuser,
+        'user_parish': getattr(request, 'user_parish', None),
     })
 
 
-@admin_required
+@officer_required
 def membership_delete(request, pk):
     membership = get_object_or_404(OrganizationMembership, pk=pk)
+    parish_filter = get_user_parish_filter(request)
+    
+    # Check if member belongs to officer's parish
+    if parish_filter and membership.member.parish != parish_filter:
+        messages.error(request, 'You do not have permission to delete this membership.')
+        return redirect('organization_detail', pk=membership.organization.pk)
+    
     organization_pk = membership.organization.pk
     member_name = membership.member.full_name
     org_name = membership.organization.name
@@ -1506,6 +2007,31 @@ def membership_delete(request, pk):
         'membership': membership
     })
 
+
+# ─── CATHEDRALS (STAFF CAN VIEW THEIR PARISH'S CATHEDRAL) ───────────────────
+
+@officer_required
+def cathedral_detail(request, pk):
+    """Display details of a specific cathedral"""
+    cathedral = get_object_or_404(Cathedral, pk=pk)
+    parish_filter = get_user_parish_filter(request)
+    
+    # Check if officer has access to this cathedral's parish
+    if parish_filter:
+        # Check if the cathedral's church has any parishes that the officer belongs to
+        has_access = Parish.objects.filter(church=cathedral.church, id=parish_filter.id).exists()
+        if not has_access:
+            messages.error(request, 'You do not have permission to view this cathedral.')
+            return redirect('dashboard')
+    
+    return render(request, 'registry/cathedrals/detail.html', {
+        'cathedral': cathedral,
+        'is_officer': not request.user.is_superuser,
+        'user_parish': getattr(request, 'user_parish', None),
+    })
+
+
+# ─── ADMIN-ONLY VIEWS (CHURCHES, CATHEDRAL CRUD, ETC) ───────────────────────
 
 @admin_required
 def church_list(request):
@@ -1677,31 +2203,8 @@ def parish_create(request):
         'title': 'Add New Parish'
     })
 
-@admin_required
-def parish_detail(request, pk):
-    parish = get_object_or_404(Parish, pk=pk)
-    
-    # Get officers
-    officers = parish.parish_officers.filter(is_active=True)
-    
-    # Get all priests assigned to this parish (no status filter)
-    priests = parish.priests.all()  # This will get all priests assigned to this parish
-    
-    # Filter parameters
-    officer_position = request.GET.get('officer_position', '')
-    
-    if officer_position:
-        officers = officers.filter(position=officer_position)
-    
-    return render(request, 'registry/parishes/detail.html', {
-        'parish': parish,
-        'officers': officers,
-        'priests': priests,
-        'officer_position': officer_position,
-    })
 
-
-@admin_required
+@login_required
 def parish_edit(request, pk):
     parish = get_object_or_404(Parish, pk=pk)
     form = ParishForm(request.POST or None, instance=parish)
@@ -1734,188 +2237,6 @@ def parish_delete(request, pk):
         'parish': parish
     })
 
-
-@admin_required
-def parish_officer_add(request, parish_pk):
-    parish = get_object_or_404(Parish, pk=parish_pk)
-    form = ParishOfficerEPForm(request.POST or None)
-    
-    if form.is_valid():
-        officer = form.save(commit=False)
-        officer.parish = parish
-        officer.save()
-        messages.success(request, f'{officer.full_name} has been added as {officer.get_position_display()} to {parish.name}.')
-        return redirect('parish_detail', pk=parish.pk)
-    
-    return render(request, 'registry/parishes/officer_form.html', {
-        'form': form,
-        'parish': parish,
-        'title': f'Add Officer to {parish.name}'
-    })
-
-
-@admin_required
-def parish_officer_edit(request, pk):
-    officer = get_object_or_404(ParishOfficerEP, pk=pk)
-    form = ParishOfficerEPForm(request.POST or None, instance=officer)
-    
-    if form.is_valid():
-        form.save()
-        messages.success(request, 'Officer information updated successfully.')
-        return redirect('parish_detail', pk=officer.parish.pk)
-    
-    return render(request, 'registry/parishes/officer_form.html', {
-        'form': form,
-        'officer': officer,
-        'parish': officer.parish,
-        'title': 'Edit Officer'
-    })
-
-
-@admin_required
-def parish_officer_delete(request, pk):
-    officer = get_object_or_404(ParishOfficerEP, pk=pk)
-    parish_pk = officer.parish.pk
-    
-    if request.method == 'POST':
-        officer.delete()
-        messages.success(request, 'Officer has been removed.')
-        return redirect('parish_detail', pk=parish_pk)
-    
-    return render(request, 'registry/parishes/confirm_officer_delete.html', {
-        'officer': officer
-    })
-
-@admin_required
-def get_parishes_by_church(request, church_id):
-    """API endpoint to get parishes for a specific church"""
-    try:
-        parishes = Parish.objects.filter(church_id=church_id, is_active=True).values('id', 'name')
-        return JsonResponse({'parishes': list(parishes)})
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
-    
-@admin_required
-def get_all_parishes(request):
-    """API endpoint to get all parishes"""
-    try:
-        parishes = Parish.objects.filter(is_active=True).values('id', 'name')
-        return JsonResponse({'parishes': list(parishes)})
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
-
-@admin_required
-def parish_officer_chart(request, pk):
-    """Display parish officers in an organizational chart"""
-    parish = get_object_or_404(Parish, pk=pk)
-    
-    # Get all active officers for this parish
-    officers = parish.parish_officers.filter(is_active=True)
-    
-    # Group officers by position
-    officers_by_position = {
-        'bishop': [],
-        'priest': [],
-        'deacon': [],
-        'senior_warden': [],
-        'junior_warden': [],
-        'treasurer': [],
-        'secretary': [],
-        'vestry_member': [],
-    }
-    
-    for officer in officers:
-        position = officer.position
-        if position in officers_by_position:
-            officers_by_position[position].append(officer)
-    
-    # Calculate total officers count
-    total_officers = sum(len(officers) for officers in officers_by_position.values())
-    
-    return render(request, 'registry/parishes/parish_officer_chart.html', {
-        'parish': parish,
-        'officers_by_position': officers_by_position,
-        'total_officers': total_officers,
-    })
-
-@admin_required
-def parish_member(request, pk):
-    """Display members belonging to a specific parish"""
-    parish = get_object_or_404(Parish, pk=pk)
-    
-    # Get members assigned to this parish
-    members = Member.objects.filter(parish=parish).order_by('last_name', 'first_name')
-    
-    # Search functionality
-    search_query = request.GET.get('search', '')
-    if search_query:
-        members = members.filter(
-            Q(first_name__icontains=search_query) |
-            Q(last_name__icontains=search_query) |
-            Q(middle_name__icontains=search_query)
-        )
-    
-    # Status filter
-    status_filter = request.GET.get('status_filter', '')
-    if status_filter == 'active':
-        members = members.filter(is_active=True)
-    elif status_filter == 'inactive':
-        members = members.filter(is_active=False)
-    
-    # Calculate statistics
-    total_members = members.count()
-    active_members = members.filter(is_active=True).count()
-    male_members = members.filter(gender='M').count()
-    female_members = members.filter(gender='F').count()
-    
-    # Pagination
-    paginator = Paginator(members, 15)
-    page_obj = paginator.get_page(request.GET.get('page'))
-    
-    return render(request, 'registry/parishes/parish_member.html', {
-        'parish': parish,
-        'members': page_obj,
-        'page_obj': page_obj,
-        'search_query': search_query,
-        'status_filter': status_filter,
-        'total_members': total_members,
-        'active_members': active_members,
-        'male_members': male_members,
-        'female_members': female_members,
-    })
-
-@admin_required
-def parish_priest_list(request, parish_pk):
-    """Display list of priests assigned to a specific parish"""
-    # Get the parish
-    parish = get_object_or_404(Parish, pk=parish_pk)
-    
-    # Get all priests where parish field equals this parish
-    priests = ParishPriest.objects.filter(parish=parish)
-    
-    return render(request, 'registry/parishes/parish_priest_list.html', {
-        'parish': parish,
-        'priests': priests,
-    })
-
-@admin_required
-def priest_remove_from_parish(request, pk):
-    """Remove a priest from their current parish assignment"""
-    priest = get_object_or_404(ParishPriest, pk=pk)
-    parish_pk = priest.parish.pk if priest.parish else None
-    
-    if request.method == 'POST':
-        priest_name = priest.full_name
-        priest.parish = None
-        priest.date_assigned = None
-        priest.save()
-        messages.success(request, f'Rev. {priest_name} has been removed from the parish.')
-        
-        if parish_pk:
-            return redirect('parish_priest_list', parish_pk=parish_pk)
-        return redirect('priests_list')
-    
-    return redirect('priests_list')
 
 @admin_required
 def cathedral_list(request):
@@ -1967,16 +2288,6 @@ def cathedral_list(request):
 
 
 @admin_required
-def cathedral_detail(request, pk):
-    """Display details of a specific cathedral"""
-    cathedral = get_object_or_404(Cathedral, pk=pk)
-    
-    return render(request, 'registry/cathedrals/detail.html', {
-        'cathedral': cathedral,
-    })
-
-
-@admin_required
 def cathedral_create(request):
     """Create a new cathedral - only for churches without a cathedral"""
     if request.method == 'POST':
@@ -2023,7 +2334,6 @@ def cathedral_create(request):
 def cathedral_edit(request, pk):
     """Edit an existing cathedral"""
     cathedral = get_object_or_404(Cathedral, pk=pk)
-    original_church = cathedral.church
     
     if request.method == 'POST':
         form = CathedralForm(request.POST, instance=cathedral)
@@ -2060,4 +2370,191 @@ def cathedral_delete(request, pk):
     
     return render(request, 'registry/cathedrals/confirm_delete.html', {
         'cathedral': cathedral
+    })
+
+
+@admin_required
+def get_parishes_by_church(request, church_id):
+    """API endpoint to get parishes for a specific church"""
+    try:
+        parishes = Parish.objects.filter(church_id=church_id, is_active=True).values('id', 'name')
+        return JsonResponse({'parishes': list(parishes)})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+    
+
+@admin_required
+def get_all_parishes(request):
+    """API endpoint to get all parishes"""
+    try:
+        parishes = Parish.objects.filter(is_active=True).values('id', 'name')
+        return JsonResponse({'parishes': list(parishes)})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+
+@admin_required
+def priest_remove_from_parish(request, pk):
+    """Remove a priest from their current parish assignment"""
+    priest = get_object_or_404(ParishPriest, pk=pk)
+    parish_pk = priest.parish.pk if priest.parish else None
+    
+    if request.method == 'POST':
+        priest_name = priest.full_name
+        priest.parish = None
+        priest.date_assigned = None
+        priest.save()
+        messages.success(request, f'Rev. {priest_name} has been removed from the parish.')
+        
+        if parish_pk:
+            return redirect('parish_priest_list', parish_pk=parish_pk)
+        return redirect('priests_list')
+    
+    return redirect('priests_list')
+
+
+@admin_required
+def priests_list_print(request):
+    priests = ParishPriest.objects.all().order_by('last_name', 'first_name')
+    return render(request, 'registry/priests/print_priest_list.html', {'priests': priests})
+
+
+@admin_required
+def officers_list_print(request):
+    officers = ParishOfficerEP.objects.all().order_by('last_name', 'first_name')
+    return render(request, 'registry/officers/print_officer_list.html', {'officers': officers})
+
+
+@login_required
+def officers_chart(request):
+    # Define hierarchy levels
+    hierarchy = {
+        'clergy': {
+            'title': 'Clergy',
+            'icon': 'bi-church',
+            'positions': ['parish_priest', 'parochial_vicar']
+        },
+        'parish_pastoral_council': {
+            'title': 'Parish Pastoral Council',
+            'icon': 'bi-building',
+            'positions': ['ppc_president', 'ppc_vice_president', 'ppc_secretary', 'ppc_treasurer', 'ppc_auditor']
+        },
+        'parish_finance_council': {
+            'title': 'Parish Finance Council',
+            'icon': 'bi-calculator',
+            'positions': ['finance_council']
+        },
+        'administration': {
+            'title': 'Administration',
+            'icon': 'bi-person-badge',
+            'positions': ['parish_secretary', 'parish_administrator', 'social_communications']
+        },
+        'liturgical_ministries': {
+            'title': 'Liturgical Ministries',
+            'icon': 'bi-book',
+            'positions': ['lector', 'commentator', 'altar_servers', 'choir', 'extraordinary_ministers', 'ushers', 'collectors', 'sacristan', 'church_decorators']
+        },
+        'faith_formation': {
+            'title': 'Faith Formation',
+            'icon': 'bi-mortarboard',
+            'positions': ['catechists', 'religious_education']
+        },
+        'pastoral_ministries': {
+            'title': 'Pastoral Ministries',
+            'icon': 'bi-heart',
+            'positions': ['youth_ministry', 'family_ministry', 'womens_ministry', 'mens_ministry']
+        },
+        'coordinators': {
+            'title': 'Coordinators',
+            'icon': 'bi-people',
+            'positions': ['ministry_coordinators']
+        }
+    }
+    
+    # Fetch officers for each category
+    chart_data = {}
+    for key, category in hierarchy.items():
+        officers_in_category = ParishOfficer.objects.filter(
+            position__in=category['positions'],
+            status='active'
+        ).order_by('position')
+        
+        # Group officers by specific position
+        grouped_officers = {}
+        for officer in officers_in_category:
+            pos_display = officer.get_position_display()
+            if pos_display not in grouped_officers:
+                grouped_officers[pos_display] = []
+            grouped_officers[pos_display].append(officer)
+        
+        chart_data[key] = {
+            'title': category['title'],
+            'icon': category['icon'],
+            'groups': grouped_officers,
+            'count': officers_in_category.count()
+        }
+    
+    # Get parish priest for top-level display
+    parish_priest = ParishOfficer.objects.filter(position='parish_priest', status='active').first()
+    parochial_vicar = ParishOfficer.objects.filter(position='parochial_vicar', status='active').first()
+    
+    context = {
+        'chart_data': chart_data,
+        'parish_priest': parish_priest,
+        'parochial_vicar': parochial_vicar,
+        'total_officers': ParishOfficer.objects.filter(status='active').count(),
+    }
+    
+    return render(request, 'registry/officers/officers_chart.html', context)
+
+
+@login_required
+def parish_officer_add(request, parish_pk):
+    parish = get_object_or_404(Parish, pk=parish_pk)
+    form = ParishOfficerEPForm(request.POST or None)
+    
+    if form.is_valid():
+        officer = form.save(commit=False)
+        officer.parish = parish
+        officer.save()
+        messages.success(request, f'{officer.full_name} has been added as {officer.get_position_display()} to {parish.name}.')
+        return redirect('parish_detail', pk=parish.pk)
+    
+    return render(request, 'registry/parishes/officer_form.html', {
+        'form': form,
+        'parish': parish,
+        'title': f'Add Officer to {parish.name}'
+    })
+
+
+@login_required
+def parish_officer_edit(request, pk):
+    officer = get_object_or_404(ParishOfficerEP, pk=pk)
+    form = ParishOfficerEPForm(request.POST or None, instance=officer)
+    
+    if form.is_valid():
+        form.save()
+        messages.success(request, 'Officer information updated successfully.')
+        return redirect('parish_detail', pk=officer.parish.pk)
+    
+    return render(request, 'registry/parishes/officer_form.html', {
+        'form': form,
+        'officer': officer,
+        'parish': officer.parish,
+        'title': 'Edit Officer'
+    })
+
+
+@login_required
+def parish_officer_delete(request, pk):
+    officer = get_object_or_404(ParishOfficerEP, pk=pk)
+    parish_pk = officer.parish.pk
+    
+    if request.method == 'POST':
+        officer.delete()
+        messages.success(request, 'Officer has been removed.')
+        return redirect('parish_detail', pk=parish_pk)
+    
+    return render(request, 'registry/parishes/confirm_officer_delete.html', {
+        'officer': officer
     })
