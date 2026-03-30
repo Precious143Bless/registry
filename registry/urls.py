@@ -143,6 +143,14 @@ urlpatterns = [
     path('parishes/<int:pk>/officer-chart/', views.parish_officer_chart, name='parish_officer_chart'),
     path('parishes/<int:pk>/members/', views.parish_member, name='parish_member'),
 
+    # User Management (Admin only)
+    path('users/', views.user_list, name='user_list'),
+    path('users/archive/', views.user_archive, name='user_archive'),
+    path('users/new/', views.user_create, name='user_create'),
+    path('users/<int:pk>/edit/', views.user_edit, name='user_edit'),
+    path('users/<int:pk>/toggle-status/', views.user_toggle_status, name='user_toggle_status'),
+    path('users/<int:pk>/delete/', views.user_delete, name='user_delete'),
+
     # Cathedrals
     path('cathedrals/', views.cathedral_list, name='cathedral_list'),
     path('cathedrals/new/', views.cathedral_create, name='cathedral_create'),

@@ -1,0 +1,168 @@
+{% extends 'registry/base.html' %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm" style="border-radius:12px;">
+            <div class="card-header bg-white border-0 pt-4 px-4">
+                <h5 class="fw-bold mb-0" style="color:#4e2a1e;">
+                    <i class="bi bi-person-gear me-2" style="color:#c9a84c;"></i>{{ title }}
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" novalidate id="userForm">
+                    {% csrf_token %}
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">First Name <span class="text-danger">*</span></label>
+                            <input type="text" name="first_name" class="form-control"
+                                value="{{ target_user.first_name|default:'' }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Last Name <span class="text-danger">*</span></label>
+                            <input type="text" name="last_name" class="form-control"
+                                value="{{ target_user.last_name|default:'' }}" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold">Email <span class="text-danger">*</span></label>
+                            <input type="email" name="email" class="form-control"
+                                value="{{ target_user.email|default:'' }}" required>
+                        </div>
+
+                        <!-- Role -->
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold">Role <span class="text-danger">*</span></label>
+                            <div class="d-flex gap-3 mt-1">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="role" id="roleAdmin" value="admin"
+                                        {% if current_role == 'admin' %}checked{% endif %}
+                                        onchange="toggleParishField()">
+                                    <label class="form-check-label" for="roleAdmin">
+                                        <i class="bi bi-shield-fill me-1" style="color:#92400e;"></i>Admin
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="role" id="roleStaff" value="staff"
+                                        {% if current_role != 'admin' %}checked{% endif %}
+                                        onchange="toggleParishField()">
+                                    <label class="form-check-label" for="roleStaff">
+                                        <i class="bi bi-person-fill me-1" style="color:#0369a1;"></i>Staff
+                                    </label>
+                                </div>
+                            </div>
+                            <small class="text-muted">Admin has full access. Staff is limited to their assigned parish.</small>
+                        </div>
+
+                        <!-- Parish (Staff only) -->
+                        <div class="col-12" id="parishField" style="display:{% if current_role == 'admin' %}none{% else %}block{% endif %};">
+                            <label class="form-label small fw-semibold">Assigned Parish</label>
+                            <select name="parish_id" class="form-select">
+                                <option value="">— Select Parish —</option>
+                                {% for p in parishes %}
+                                <option value="{{ p.pk }}"
+                                    {% if officer and officer.parish_id == p.pk %}selected{% endif %}>
+                                    {{ p.name }} ({{ p.church.name }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted">Required for staff to access their parish data.</small>
+                        </div>
+
+                        <!-- Password -->
+                        <div class="col-12"><hr class="my-1"></div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">
+                                {% if target_user %}New Password{% else %}Password <span class="text-danger">*</span>{% endif %}
+                            </label>
+                            <div class="input-group">
+                                <input type="password" name="password" id="passwordField" class="form-control"
+                                    placeholder="{% if target_user %}Leave blank to keep current{% else %}Min. 8 characters{% endif %}">
+                                <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('passwordField', 'eyeIcon1')">
+                                    <i class="bi bi-eye" id="eyeIcon1"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Confirm Password</label>
+                            <div class="input-group">
+                                <input type="password" name="confirm_password" id="confirmPasswordField" class="form-control"
+                                    placeholder="Repeat password">
+                                <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('confirmPasswordField', 'eyeIcon2')">
+                                    <i class="bi bi-eye" id="eyeIcon2"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 justify-content-end mt-4">
+                        <a href="{% url 'user_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="button" class="btn btn-primary-church" onclick="showSaveConfirm()">
+                            <i class="bi bi-check-lg me-1"></i>
+                            {% if target_user %}Save Changes{% else %}Create User{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Save Confirmation Modal -->
+<div class="modal fade" id="saveModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-person-gear me-2"></i>{% if target_user %}Save Changes{% else %}Create User{% endif %}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="warning-icon">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <p class="mb-0">
+                    {% if target_user %}
+                    Are you sure you want to save changes to this user?
+                    {% else %}
+                    Are you sure you want to create this new user?
+                    {% endif %}
+                </p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-confirm text-white" onclick="document.getElementById('userForm').submit()">
+                    <i class="bi bi-check-lg me-1"></i>{% if target_user %}Save Changes{% else %}Create User{% endif %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showSaveConfirm() {
+    new bootstrap.Modal(document.getElementById('saveModal')).show();
+}
+
+function toggleParishField() {
+    const isStaff = document.getElementById('roleStaff').checked;
+    document.getElementById('parishField').style.display = isStaff ? 'block' : 'none';
+}
+
+function togglePassword(fieldId, iconId) {
+    const field = document.getElementById(fieldId);
+    const icon = document.getElementById(iconId);
+    if (field.type === 'password') {
+        field.type = 'text';
+        icon.classList.replace('bi-eye', 'bi-eye-slash');
+    } else {
+        field.type = 'password';
+        icon.classList.replace('bi-eye-slash', 'bi-eye');
+    }
+}
+</script>
+{% endblock %}

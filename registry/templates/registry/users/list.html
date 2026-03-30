@@ -1,0 +1,174 @@
+{% extends 'registry/base.html' %}
+{% block page_title %}User Management{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h5 class="fw-bold mb-0" style="color:#4e2a1e;">User Management</h5>
+        <small class="text-muted">Manage system users and their roles</small>
+    </div>
+    <a href="{% url 'user_create' %}" class="btn btn-sm btn-primary-church">
+        <i class="bi bi-person-plus me-1"></i>Add User
+    </a>
+</div>
+
+<!-- Filters -->
+<div class="card border-0 shadow-sm mb-4" style="border-radius:12px;">
+    <div class="card-body py-3">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="Search by name, email, username...">
+            </div>
+            <div class="col-md-3">
+                <select name="role" class="form-select form-select-sm">
+                    <option value="">All Roles</option>
+                    <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Admin</option>
+                    <option value="staff" {% if role_filter == 'staff' %}selected{% endif %}>Staff</option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-sm btn-primary-church">
+                    <i class="bi bi-search me-1"></i>Filter
+                </button>
+                <a href="{% url 'user_list' %}" class="btn btn-sm btn-outline-secondary">Clear</a>
+                <a href="{% url 'user_archive' %}" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-archive me-1"></i>Archive
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="card border-0 shadow-sm table-card">
+    <div class="table-responsive">
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Parish</th>
+                    <th>Status</th>
+                    <th>Date Joined</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td class="text-muted small">{{ forloop.counter }}</td>
+                    <td class="fw-semibold">{{ u.get_full_name|default:u.username }}</td>
+                    <td class="small text-muted">{{ u.username }}</td>
+                    <td class="small">{{ u.email|default:"—" }}</td>
+                    <td>
+                        {% if u.is_superuser %}
+                        <span class="badge" style="background:#fef3c7;color:#92400e;">
+                            <i class="bi bi-shield-fill me-1"></i>Admin
+                        </span>
+                        {% else %}
+                        <span class="badge" style="background:#e0f2fe;color:#0369a1;">
+                            <i class="bi bi-person-fill me-1"></i>Staff
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="small text-muted">{{ u.parish_display }}</td>
+                    <td>
+                        {% if u.is_active %}
+                        <span class="badge badge-paid">Active</span>
+                        {% else %}
+                        <span class="badge badge-unpaid">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td class="small text-muted">{{ u.date_joined|date:"M d, Y" }}</td>
+                    <td>
+                        <div class="d-flex gap-1">
+                            <a href="{% url 'user_edit' u.pk %}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            {% if u != request.user %}
+                            <button class="btn btn-sm {% if u.is_active %}btn-outline-warning{% else %}btn-outline-success{% endif %}"
+                                title="{% if u.is_active %}Deactivate{% else %}Activate{% endif %}"
+                                onclick="confirmToggle({{ u.pk }}, '{{ u.get_full_name|escapejs }}', {{ u.is_active|yesno:'true,false' }})">
+                                <i class="bi {% if u.is_active %}bi-person-dash{% else %}bi-person-check{% endif %}"></i>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="text-center text-muted py-5">
+                        <i class="bi bi-people fs-2 d-block mb-2" style="color:#c9a84c;"></i>
+                        No users found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% if page_obj.has_other_pages %}
+    <div class="card-footer bg-white border-0 d-flex justify-content-center py-3">
+        <nav>
+            <ul class="pagination pagination-sm mb-0">
+                {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ q }}&role={{ role_filter }}&status={{ status_filter }}">«</a></li>
+                {% endif %}
+                {% for num in page_obj.paginator.page_range %}
+                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}&q={{ q }}&role={{ role_filter }}&status={{ status_filter }}">{{ num }}</a>
+                </li>
+                {% endfor %}
+                {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ q }}&role={{ role_filter }}&status={{ status_filter }}">»</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Toggle Status Confirmation Modal -->
+<div class="modal fade" id="toggleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="toggleModalTitle">
+                    <i class="bi bi-person-dash me-2"></i>Deactivate User
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="warning-icon">
+                    <i class="bi bi-person-dash-fill" id="toggleIcon"></i>
+                </div>
+                <p id="toggleMsg" class="mb-0">Are you sure?</p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" id="toggleForm" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-confirm text-white" id="toggleBtn">Confirm</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmToggle(id, name, isActive) {
+    const action = isActive ? 'Deactivate' : 'Activate';
+    const icon = isActive ? 'bi-person-dash-fill' : 'bi-person-check-fill';
+    document.getElementById('toggleModalTitle').innerHTML = `<i class="bi ${icon} me-2"></i>${action} User`;
+    document.getElementById('toggleIcon').className = `bi ${icon}`;
+    document.getElementById('toggleMsg').innerHTML = `Are you sure you want to <strong>${action.toLowerCase()}</strong> <strong>${name}</strong>?`;
+    document.getElementById('toggleBtn').textContent = action;
+    document.getElementById('toggleForm').action = `/users/${id}/toggle-status/`;
+    new bootstrap.Modal(document.getElementById('toggleModal')).show();
+}
+</script>
+{% endblock %}

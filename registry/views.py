@@ -2559,3 +2559,270 @@ def parish_officer_delete(request, pk):
     return render(request, 'registry/parishes/confirm_officer_delete.html', {
         'officer': officer
     })
+
+
+# ─── USER MANAGEMENT (ADMIN ONLY) ────────────────────────────────────────────
+
+@login_required
+@admin_required
+def user_list(request):
+    q = request.GET.get('q', '')
+    role_filter = request.GET.get('role', '')
+    status_filter = request.GET.get('status', '')
+
+    users = User.objects.filter(is_active=True).order_by('-date_joined')
+
+    if q:
+        users = users.filter(
+            Q(first_name__icontains=q) | Q(last_name__icontains=q) |
+            Q(username__icontains=q) | Q(email__icontains=q)
+        )
+    if role_filter == 'admin':
+        users = users.filter(is_superuser=True)
+    elif role_filter == 'staff':
+        users = users.filter(is_superuser=False)
+    if status_filter == 'active':
+        users = users.filter(is_active=True)
+    elif status_filter == 'inactive':
+        users = users.filter(is_active=False)
+
+    paginator = Paginator(users, 15)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
+    # Attach parish_display to each user for the template
+    emails = [u.email for u in page_obj if u.email]
+    officers = ParishOfficerEP.objects.filter(email__in=emails, is_active=True).select_related('parish')
+    parish_map = {o.email: o.parish.name for o in officers}
+    for u in page_obj:
+        u.parish_display = parish_map.get(u.email, '—')
+
+    return render(request, 'registry/users/list.html', {
+        'users': page_obj,
+        'page_obj': page_obj,
+        'q': q,
+        'role_filter': role_filter,
+        'status_filter': status_filter,
+    })
+
+
+@login_required
+@admin_required
+def user_create(request):
+    if request.method == 'POST':
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        email = request.POST.get('email', '').strip()
+        password = request.POST.get('password', '')
+        confirm_password = request.POST.get('confirm_password', '')
+        role = request.POST.get('role', 'staff')
+        parish_id = request.POST.get('parish_id', '')
+
+        errors = []
+        if not first_name or not last_name:
+            errors.append('First and last name are required.')
+        if not email:
+            errors.append('Email is required.')
+        elif User.objects.filter(email=email).exists():
+            errors.append('A user with this email already exists.')
+        if len(password) < 8:
+            errors.append('Password must be at least 8 characters.')
+        if password != confirm_password:
+            errors.append('Passwords do not match.')
+
+        if errors:
+            for e in errors:
+                messages.error(request, e)
+        else:
+            username = email.split('@')[0]
+            base = username
+            counter = 1
+            while User.objects.filter(username=username).exists():
+                username = f"{base}{counter}"
+                counter += 1
+
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                first_name=first_name,
+                last_name=last_name,
+                password=password,
+            )
+            if role == 'admin':
+                user.is_superuser = True
+                user.is_staff = True
+            else:
+                user.is_superuser = False
+                user.is_staff = False
+            user.save()
+
+            # If staff role and parish selected, create/link ParishOfficerEP
+            if role == 'staff' and parish_id:
+                try:
+                    parish = Parish.objects.get(pk=parish_id)
+                    ParishOfficerEP.objects.get_or_create(
+                        email=email,
+                        defaults={
+                            'first_name': first_name,
+                            'last_name': last_name,
+                            'parish': parish,
+                            'position': 'secretary',
+                            'date_assigned': datetime.now().date(),
+                            'is_active': True,
+                        }
+                    )
+                except Parish.DoesNotExist:
+                    pass
+
+            messages.success(request, f'User {user.get_full_name()} created successfully.')
+            return redirect('user_list')
+
+    parishes = Parish.objects.filter(is_active=True).order_by('name')
+    return render(request, 'registry/users/form.html', {
+        'title': 'Add New User',
+        'parishes': parishes,
+    })
+
+
+@login_required
+@admin_required
+def user_edit(request, pk):
+    target_user = get_object_or_404(User, pk=pk)
+
+    if request.method == 'POST':
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        email = request.POST.get('email', '').strip()
+        role = request.POST.get('role', 'staff')
+        parish_id = request.POST.get('parish_id', '')
+        new_password = request.POST.get('new_password', '')
+        confirm_password = request.POST.get('confirm_password', '')
+
+        errors = []
+        if not first_name or not last_name:
+            errors.append('First and last name are required.')
+        if not email:
+            errors.append('Email is required.')
+        elif User.objects.filter(email=email).exclude(pk=pk).exists():
+            errors.append('Another user with this email already exists.')
+        if new_password and len(new_password) < 8:
+            errors.append('Password must be at least 8 characters.')
+        if new_password and new_password != confirm_password:
+            errors.append('Passwords do not match.')
+
+        if errors:
+            for e in errors:
+                messages.error(request, e)
+        else:
+            target_user.first_name = first_name
+            target_user.last_name = last_name
+            target_user.email = email
+            if role == 'admin':
+                target_user.is_superuser = True
+                target_user.is_staff = True
+            else:
+                target_user.is_superuser = False
+                target_user.is_staff = False
+            if new_password:
+                target_user.set_password(new_password)
+            target_user.save()
+
+            # Sync ParishOfficerEP record
+            if role == 'staff' and parish_id:
+                try:
+                    parish = Parish.objects.get(pk=parish_id)
+                    officer = ParishOfficerEP.objects.filter(email=email).first()
+                    if officer:
+                        officer.first_name = first_name
+                        officer.last_name = last_name
+                        officer.parish = parish
+                        officer.is_active = True
+                        officer.save()
+                    else:
+                        ParishOfficerEP.objects.create(
+                            email=email,
+                            first_name=first_name,
+                            last_name=last_name,
+                            parish=parish,
+                            position='secretary',
+                            date_assigned=datetime.now().date(),
+                            is_active=True,
+                        )
+                except Parish.DoesNotExist:
+                    pass
+            elif role == 'admin':
+                # Deactivate any officer record if promoted to admin
+                ParishOfficerEP.objects.filter(email=email).update(is_active=False)
+
+            messages.success(request, f'User {target_user.get_full_name()} updated successfully.')
+            return redirect('user_list')
+
+    parishes = Parish.objects.filter(is_active=True).order_by('name')
+    officer = ParishOfficerEP.objects.filter(email=target_user.email).first()
+    current_role = 'admin' if target_user.is_superuser else 'staff'
+
+    return render(request, 'registry/users/form.html', {
+        'title': 'Edit User',
+        'target_user': target_user,
+        'current_role': current_role,
+        'parishes': parishes,
+        'officer': officer,
+    })
+
+
+@login_required
+@admin_required
+def user_toggle_status(request, pk):
+    if request.method == 'POST':
+        target_user = get_object_or_404(User, pk=pk)
+        # Prevent deactivating yourself
+        if target_user == request.user:
+            messages.error(request, 'You cannot deactivate your own account.')
+            return redirect('user_list')
+        target_user.is_active = not target_user.is_active
+        target_user.save()
+        status = 'activated' if target_user.is_active else 'deactivated'
+        messages.success(request, f'User {target_user.get_full_name()} has been {status}.')
+    return redirect('user_list')
+
+
+@login_required
+@admin_required
+def user_delete(request, pk):
+    target_user = get_object_or_404(User, pk=pk)
+    if target_user == request.user:
+        messages.error(request, 'You cannot delete your own account.')
+        return redirect('user_list')
+    if request.method == 'POST':
+        name = target_user.get_full_name() or target_user.username
+        target_user.delete()
+        messages.success(request, f'User {name} has been deleted.')
+        return redirect('user_list')
+    return redirect('user_list')
+
+
+@login_required
+@admin_required
+def user_archive(request):
+    q = request.GET.get('q', '')
+    users = User.objects.filter(is_active=False).order_by('-date_joined')
+
+    if q:
+        users = users.filter(
+            Q(first_name__icontains=q) | Q(last_name__icontains=q) |
+            Q(username__icontains=q) | Q(email__icontains=q)
+        )
+
+    paginator = Paginator(users, 15)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
+    emails = [u.email for u in page_obj if u.email]
+    officers = ParishOfficerEP.objects.filter(email__in=emails).select_related('parish')
+    parish_map = {o.email: o.parish.name for o in officers}
+    for u in page_obj:
+        u.parish_display = parish_map.get(u.email, '—')
+
+    return render(request, 'registry/users/archive.html', {
+        'users': page_obj,
+        'page_obj': page_obj,
+        'q': q,
+    })
