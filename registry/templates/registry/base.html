@@ -277,9 +277,10 @@
         }
 
         /* Collapsible sidebar nav */
+        #sidebar .nav-item { margin: 0; padding: 0; }
         .nav-collapse-btn {
             color: rgba(255,255,255,0.85);
-            padding: 0.48rem 1rem;
+            padding: 0.45rem 1rem;
             border-radius: 6px;
             margin: 1px 0.6rem;
             font-size: 0.8rem;
@@ -292,7 +293,7 @@
             text-align: left;
             cursor: pointer;
             transition: background 0.2s, color 0.2s;
-            min-height: 34px;
+            min-height: 32px;
         }
         .nav-collapse-btn:hover,
         .nav-collapse-btn[aria-expanded="true"] {
@@ -311,19 +312,19 @@
             list-style: none;
             padding: 0;
             margin: 0;
+            overflow: hidden;
         }
-        .nav-sub.show {
-            padding: 2px 0 4px;
-        }
+        .nav-sub.show { padding: 0 0 2px; }
         .nav-sub .nav-link {
-            padding: 0.3rem 1rem 0.3rem 2.6rem;
-            font-size: 0.77rem;
+            padding: 0.28rem 1rem 0.28rem 2.5rem;
+            font-size: 0.76rem;
             color: rgba(255,255,255,0.6);
             border-radius: 5px;
             margin: 1px 0.6rem;
             display: flex;
             align-items: center;
             gap: 0.4rem;
+            min-height: 28px;
         }
         .nav-sub .nav-link::before {
             content: '';
@@ -374,7 +375,7 @@
     </div>
     {% endif %}
     
-    <ul class="nav flex-column mt-2" style="padding-bottom: 1rem;">
+    <ul class="nav flex-column mt-1" style="padding-bottom: 1rem;">
         {% if user.is_superuser %}
 
         <!-- Dashboard -->
