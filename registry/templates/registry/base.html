@@ -411,7 +411,7 @@
                 <li><a href="{% url 'cathedral_list' %}" class="nav-link {% if 'cathedral' in request.resolver_match.url_name %}active{% endif %}">Cathedrals</a></li>
                 <li><a href="{% url 'parish_list' %}" class="nav-link {% if request.resolver_match.url_name == 'parish_list' or request.resolver_match.url_name == 'parish_detail' or request.resolver_match.url_name == 'parish_create' or request.resolver_match.url_name == 'parish_edit' %}active{% endif %}">Parishes</a></li>
                 <li><a href="{% url 'priests_list' %}" class="nav-link {% if 'priest' in request.resolver_match.url_name %}active{% endif %}">Priests</a></li>
-                <li><a href="{% url 'officers_list' %}" class="nav-link {% if 'officer' in request.resolver_match.url_name %}active{% endif %}">Officers</a></li>
+                {% comment %} comment out muna to since wala pang confirm sa officers ng the whole church since ang meron lang na officers ay per parish<li><a href="{% url 'officers_list' %}" class="nav-link {% if 'officer' in request.resolver_match.url_name %}active{% endif %}">Officers</a></li> {% endcomment %}
                 <li><a href="{% url 'organization_list' %}" class="nav-link {% if 'organization' in request.resolver_match.url_name %}active{% endif %}">Ministries</a></li>
                 <li><a href="{% url 'parish_info' %}" class="nav-link {% if request.resolver_match.url_name == 'parish_info' %}active{% endif %}">Parish Info</a></li>
             </ul>
