@@ -3,59 +3,79 @@
 
 {% block content %}
 <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
-    <div class="card-header bg-white border-0 px-4 pt-3 pb-3 d-flex align-items-center justify-content-between">
+    <div class="card-header bg-white border-0 px-4 pt-3 pb-3 d-flex flex-wrap align-items-center justify-content-between gap-2">
         <h6 class="fw-bold mb-0" style="color:#4e2a1e;">
             <i class="bi bi-table me-2" style="color:#c9a84c;"></i>Pledge Monthly Summary
         </h6>
-        <div class="d-flex gap-2">
+        <div class="d-flex flex-wrap gap-2 align-items-center no-print">
+            <form method="get" class="d-flex gap-2 align-items-center">
+                <select name="year" class="form-select form-select-sm" style="width:auto;" onchange="this.form.submit()">
+                    <option value="" {% if not selected_year %}selected{% endif %}>All Years</option>
+                    {% for y in all_years %}
+                    <option value="{{ y }}" {% if selected_year == y|stringformat:"s" %}selected{% endif %}>{{ y }}</option>
+                    {% endfor %}
+                </select>
+                <select name="month" class="form-select form-select-sm" style="width:auto;" onchange="this.form.submit()">
+                    <option value="">All Months</option>
+                    {% for num, name in month_choices %}
+                    <option value="{{ num }}" {% if selected_month == num|stringformat:"s" %}selected{% endif %}>{{ name }}</option>
+                    {% endfor %}
+                </select>
+                {% if selected_month %}
+                <a href="{% url 'pledge_summary' %}" class="btn btn-sm btn-outline-danger"><i class="bi bi-x"></i> Clear</a>
+                {% endif %}
+            </form>
             <a href="{% url 'pledge_list' %}?tab=pledges" class="btn btn-sm btn-outline-secondary">
                 <i class="bi bi-arrow-left me-1"></i>Back
             </a>
-            <button onclick="window.print()" class="btn btn-sm btn-primary-church no-print">
-                <i class="bi bi-printer me-1"></i>Print Summary
+            <button onclick="window.print()" class="btn btn-sm btn-primary-church">
+                <i class="bi bi-printer me-1"></i>Print
             </button>
         </div>
     </div>
 
     <div class="card-body px-4 pb-2">
-        <div class="alert py-2 px-3 mb-3 small" style="background:#fef3c7;border-left:4px solid #c9a84c;border-radius:6px;color:#92400e;">
+        <div class="alert py-2 px-3 mb-0 small" style="background:#fef3c7;border-left:4px solid #c9a84c;border-radius:6px;color:#92400e;">
             <i class="bi bi-info-circle me-1"></i>
-            Member names are not displayed for privacy. Members are identified by their registration ID number only.
+            Member names are hidden for privacy — identified by registration ID only.
+            {% if selected_year %} Showing year <strong>{{ selected_year }}</strong>.{% endif %}
+            {% if selected_month %}{% for num, name in month_choices %}{% if num|stringformat:"s" == selected_month %} Month: <strong>{{ name }}</strong>.{% endif %}{% endfor %}{% endif %}
+            Select "All Years" to see all data across years.
         </div>
     </div>
 
     {% if rows %}
     <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table mb-0" id="summaryTable">
-                <thead>
+        <div style="overflow-x:auto;overflow-y:auto;max-height:65vh;">
+            <table class="table table-sm mb-0" style="font-size:0.82rem;white-space:nowrap;border-collapse:collapse;">
+                <thead style="position:sticky;top:0;z-index:2;">
                     <tr>
-                        <th style="background:#f5ede8;color:#4e2a1e;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.5px;padding:8px 12px;">Member ID</th>
+                        <th style="background:#f5ede8;color:#4e2a1e;padding:7px 12px;position:sticky;left:0;z-index:3;min-width:90px;">Member ID</th>
                         {% for month in months %}
-                        <th style="background:#f5ede8;color:#4e2a1e;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.5px;padding:8px 12px;text-align:right;">{{ month }}</th>
+                        <th style="background:#f5ede8;color:#4e2a1e;padding:7px 10px;text-align:right;white-space:nowrap;">{{ month }}</th>
                         {% endfor %}
-                        <th style="background:#f5ede8;color:#4e2a1e;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.5px;padding:8px 12px;text-align:right;">Total</th>
+                        <th style="background:#e8d5c8;color:#4e2a1e;padding:7px 12px;text-align:right;position:sticky;right:0;z-index:3;">Total</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for row in rows %}
                     <tr>
-                        <td class="fw-bold" style="font-family:monospace;font-size:0.95rem;color:#4e2a1e;padding:7px 12px;">{{ row.display_id }}</td>
+                        <td class="fw-bold" style="font-family:monospace;color:#4e2a1e;padding:6px 12px;position:sticky;left:0;background:#fff;z-index:1;border-right:1px solid #e8d5c8;">{{ row.display_id }}</td>
                         {% for amount in row.monthly %}
-                        <td style="text-align:right;padding:7px 12px;">
-                            {% if amount %}<span style="color:#4e2a1e;">&#8369;{{ amount|floatformat:2 }}</span>
-                            {% else %}<span class="text-muted">—</span>{% endif %}
+                        <td style="text-align:right;padding:6px 10px;">
+                            {% if amount %}&#8369;{{ amount|floatformat:2 }}
+                            {% else %}<span class="text-muted" style="font-size:0.75rem;">—</span>{% endif %}
                         </td>
                         {% endfor %}
-                        <td style="text-align:right;font-weight:bold;color:#4e2a1e;padding:7px 12px;">&#8369;{{ row.total|floatformat:2 }}</td>
+                        <td style="text-align:right;font-weight:bold;color:#4e2a1e;padding:6px 12px;position:sticky;right:0;background:#fdf8f6;border-left:1px solid #e8d5c8;">&#8369;{{ row.total|floatformat:2 }}</td>
                     </tr>
                     {% endfor %}
-                    <tr style="background:#f5ede8;font-weight:bold;">
-                        <td style="padding:8px 12px;color:#4e2a1e;">Monthly Total</td>
+                    <tr style="background:#f5ede8;font-weight:bold;position:sticky;bottom:0;">
+                        <td style="padding:7px 12px;color:#4e2a1e;position:sticky;left:0;background:#f5ede8;z-index:3;">Monthly Total</td>
                         {% for ct in col_totals %}
-                        <td style="text-align:right;padding:8px 12px;color:#4e2a1e;">&#8369;{{ ct|floatformat:2 }}</td>
+                        <td style="text-align:right;padding:7px 10px;color:#4e2a1e;">&#8369;{{ ct|floatformat:2 }}</td>
                         {% endfor %}
-                        <td style="text-align:right;padding:8px 12px;font-size:1rem;color:#4e2a1e;">&#8369;{{ grand_total|floatformat:2 }}</td>
+                        <td style="text-align:right;padding:7px 12px;color:#4e2a1e;font-size:0.95rem;position:sticky;right:0;background:#e8d5c8;">&#8369;{{ grand_total|floatformat:2 }}</td>
                     </tr>
                 </tbody>
             </table>
@@ -66,7 +86,7 @@
     </div>
     {% else %}
     <div class="card-body text-center text-muted py-5">
-        <i class="bi bi-table fs-2 d-block mb-2"></i>No pledge records found.
+        <i class="bi bi-table fs-2 d-block mb-2"></i>No pledge records found{% if selected_year or selected_month %} for the selected filter{% endif %}.
     </div>
     {% endif %}
 </div>
@@ -77,7 +97,9 @@
 @media print {
     .no-print, #sidebar, .topbar { display: none !important; }
     #main-content { margin-left: 0 !important; }
-    .card { box-shadow: none !important; border: 1px solid #ccc !important; }
+    .card { box-shadow: none !important; }
+    .table-responsive { max-height: none !important; overflow: visible !important; }
+    thead th, tbody td { position: static !important; }
 }
 </style>
 {% endblock %}

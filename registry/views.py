@@ -1437,19 +1437,37 @@ def pledge_list_print(request):
 @login_required
 def pledge_summary(request):
     parish_filter = get_user_parish_filter(request)
+    selected_year = request.GET.get('year', None)
+    selected_month = request.GET.get('month', '')
+    # first visit (no params at all) → default to current year
+    # explicit "All Years" → year='' in GET → show all
+    first_visit = 'year' not in request.GET and 'month' not in request.GET
 
     if parish_filter:
         pledges = Pledge.objects.select_related('member').filter(member__parish=parish_filter)
     else:
         pledges = Pledge.objects.select_related('member')
 
-    # Build per-member per-month summary
     from collections import defaultdict
     import calendar
+    from datetime import date as _date
 
-    # Gather all months that have pledges
+    all_years = sorted(set(p.date_created.year for p in pledges), reverse=True)
+
+    if first_visit:
+        selected_year = str(_date.today().year)
+    elif selected_year == '' or selected_year is None:
+        selected_year = ''  # show all years
+
+    # Apply filters
+    if selected_year:
+        pledges = pledges.filter(date_created__year=selected_year)
+    if selected_month:
+        pledges = pledges.filter(date_created__month=selected_month)
+
+    # Build per-member per-month summary
     months_set = set()
-    member_data = {}  # member_id -> {month_key -> total}
+    member_data = {}
 
     for p in pledges:
         month_key = (p.date_created.year, p.date_created.month)
@@ -1461,11 +1479,8 @@ def pledge_summary(request):
 
     months = sorted(months_set)
 
-    # Build rows
     rows = []
     for mid, data in sorted(member_data.items()):
-        member = data['member']
-        # Format ID: zero-pad to at least 2 digits, 3 if >= 100
         if mid >= 100:
             display_id = str(mid).zfill(3)
         else:
@@ -1476,13 +1491,11 @@ def pledge_summary(request):
         row['total'] = sum(row['monthly'])
         rows.append(row)
 
-    # Column totals
-    col_totals = []
-    for i, m in enumerate(months):
-        col_totals.append(sum(r['monthly'][i] for r in rows))
+    col_totals = [sum(r['monthly'][i] for r in rows) for i, _ in enumerate(months)]
     grand_total = sum(col_totals)
-
     month_labels = [f"{calendar.month_abbr[m[1]]} {m[0]}" for m in months]
+
+    month_choices = [(i, calendar.month_name[i]) for i in range(1, 13)]
 
     return render(request, 'registry/accounting/pledges/summary.html', {
         'rows': rows,
@@ -1490,6 +1503,10 @@ def pledge_summary(request):
         'col_totals': col_totals,
         'grand_total': grand_total,
         'parish': _parish_ctx(),
+        'all_years': all_years,
+        'selected_year': selected_year,
+        'selected_month': selected_month,
+        'month_choices': month_choices,
     })
     parish_filter = get_user_parish_filter(request)
     
