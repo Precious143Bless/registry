@@ -1,0 +1,60 @@
+{% extends 'registry/member_base.html' %}
+
+{% block title %}My Pledges{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header bg-white">
+        <h4 class="mb-0"><i class="bi bi-credit-card me-2"></i>My Pledges</h4>
+    </div>
+    <div class="card-body">
+        {% if pledges %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th>Amount Pledged</th>
+                            <th>Amount Paid</th>
+                            <th>Balance</th>
+                            <th>Due Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pledge in pledges %}
+                        <tr>
+                            <td>{{ pledge.description }}</td>
+                            <td>₱{{ pledge.amount_pledged|floatformat:2 }}</td>
+                            <td>₱{{ pledge.total_paid|floatformat:2 }}</td>
+                            <td>₱{{ pledge.balance|floatformat:2 }}</td>
+                            <td>{{ pledge.due_date|date:"M d, Y" }}</td>
+                            <td>
+                                {% if pledge.status == 'paid' %}
+                                    <span class="badge bg-success">Fully Paid</span>
+                                {% elif pledge.status == 'partial' %}
+                                    <span class="badge bg-warning">Partially Paid</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Unpaid</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'member_pledge_detail' pledge.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i> View Details
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-credit-card fs-1 text-muted"></i>
+                <p class="text-muted mt-3">You don't have any pledges yet.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

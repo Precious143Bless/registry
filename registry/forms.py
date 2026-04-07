@@ -58,39 +58,74 @@ def validate_address_length(value):
     if len(value.strip()) > 500:
         raise ValidationError('Address cannot exceed 500 characters.')
 
-# ─── REGISTRATION FORM ─────────────────────────────────────────────────────────────
 
-class ParishOfficerRegistrationForm(forms.Form):
+class MemberProfileForm(forms.ModelForm):
+    """Form for members to edit their own profile"""
+    
+    class Meta:
+        model = Member
+        fields = ['first_name', 'middle_name', 'last_name', 'contact_number', 'email', 'address']
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'middle_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'contact_number': forms.TextInput(attrs={
+                'class': 'form-control', 
+                'placeholder': '09XXXXXXXXX',
+                'maxlength': '11',
+            }),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+    
+    def clean_contact_number(self):
+        value = self.cleaned_data.get('contact_number', '').strip()
+        if value:
+            import re
+            if not re.match(r'^09\d{9}$', value):
+                raise ValidationError('Enter a valid 11-digit Philippine mobile number starting with 09.')
+        return value
+
+class UnifiedRegistrationForm(forms.Form):    
     first_name = forms.CharField(
         max_length=100,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Enter your first name'
+            'placeholder': 'First name'
         })
     )
     last_name = forms.CharField(
         max_length=100,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Enter your last name'
+            'placeholder': 'Last name'
         })
     )
     email = forms.EmailField(
         widget=forms.EmailInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Enter your registered email'
+            'placeholder': 'your@email.com'
         })
     )
     password = forms.CharField(
         widget=forms.PasswordInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Create a password (min. 8 characters)'
+            'id': 'passwordInput',
+            'placeholder': 'Create password'
         })
     )
     confirm_password = forms.CharField(
         widget=forms.PasswordInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Confirm your password'
+            'id': 'confirmPasswordInput',
+            'placeholder': 'Confirm password'
+        })
+    )
+    date_of_birth = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={
+            'type': 'date',
+            'class': 'form-control'
         })
     )
     
@@ -102,7 +137,6 @@ class ParishOfficerRegistrationForm(forms.Form):
         if password and confirm_password and password != confirm_password:
             raise ValidationError("Passwords don't match")
         
-        # Check password length
         if password and len(password) < 8:
             raise ValidationError("Password must be at least 8 characters long")
         
@@ -110,17 +144,84 @@ class ParishOfficerRegistrationForm(forms.Form):
     
     def clean_email(self):
         email = self.cleaned_data.get('email')
+        
         if email:
-            # Check if email exists in ParishOfficer
-            if not ParishOfficerEP.objects.filter(email=email).exists():
-                raise ValidationError('This email is not registered as a parish officer.')
-            
             # Check if user already exists
             if User.objects.filter(email=email).exists():
                 raise ValidationError('An account with this email already exists. Please login instead.')
         
         return email
-
+    
+    def clean_first_name(self):
+        value = self.cleaned_data.get('first_name', '').strip()
+        if not value:
+            raise ValidationError('First name is required.')
+        return value.title()
+    
+    def clean_last_name(self):
+        value = self.cleaned_data.get('last_name', '').strip()
+        if not value:
+            raise ValidationError('Last name is required.')
+        return value.title()
+    
+    def get_user_type_and_record(self):
+        """Automatically detect if the user is a Member or Parish Priest"""
+        first_name = self.cleaned_data.get('first_name', '').strip()
+        last_name = self.cleaned_data.get('last_name', '').strip()
+        email = self.cleaned_data.get('email', '').strip()
+        date_of_birth = self.cleaned_data.get('date_of_birth')
+        
+        # First, try to find as Parish Priest
+        priest_match = None
+        # Match by email (primary method)
+        if email:
+            priest_match = ParishPriest.objects.filter(
+                email__iexact=email,
+                status='active'
+            ).first()
+        
+        # If not found by email, try by name
+        if not priest_match:
+            priest_match = ParishPriest.objects.filter(
+                first_name__iexact=first_name,
+                last_name__iexact=last_name,
+                status='active'
+            ).first()
+        
+        if priest_match:
+            return 'priest', priest_match
+        
+        # Then, try to find as Member
+        member_match = None
+        # Match by email (primary method)
+        if email:
+            member_match = Member.objects.filter(
+                email__iexact=email,
+                is_active=True
+            ).first()
+        
+        # If not found by email, try by name + birthday
+        if not member_match and date_of_birth:
+            member_match = Member.objects.filter(
+                first_name__iexact=first_name,
+                last_name__iexact=last_name,
+                birthday=date_of_birth,
+                is_active=True
+            ).first()
+        
+        # If still not found, try by name only
+        if not member_match:
+            member_match = Member.objects.filter(
+                first_name__iexact=first_name,
+                last_name__iexact=last_name,
+                is_active=True
+            ).first()
+        
+        if member_match:
+            return 'member', member_match
+        
+        # No match found
+        return None, None
 
 # ─── MEMBER FORM ─────────────────────────────────────────────────────────────
 

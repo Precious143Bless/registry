@@ -2,6 +2,14 @@ from django.db import models
 
 
 class Member(models.Model):
+    user = models.OneToOneField(
+        'auth.User', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='member_profile'
+    )
+
     GENDER_CHOICES = [('M', 'Male'), ('F', 'Female')]
     CIVIL_STATUS_CHOICES = [
         ('single', 'Single'),
@@ -222,6 +230,14 @@ class PledgePayment(models.Model):
         self.pledge.update_status()
 
 class ParishPriest(models.Model):
+    user = models.OneToOneField(
+        'auth.User', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='priest_profile'
+    )
+    
     STATUS_CHOICES = [
         ('active', 'Active'),
         ('inactive', 'Inactive'),

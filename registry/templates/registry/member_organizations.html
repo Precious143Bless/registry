@@ -1,0 +1,451 @@
+{% extends 'registry/member_base.html' %}
+{% load static %}
+
+{% block title %}My Organizations — Parish Registry{% endblock %}
+
+{% block page_title %}My Organizations & Ministries{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Header Section -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-1" style="color: var(--primary-dark);">
+                <i class="bi bi-people-fill me-2" style="color: var(--gold);"></i>My Organizations
+            </h4>
+            <p class="text-muted small mb-0">View and manage your memberships in parish ministries and organizations</p>
+        </div>
+        <div>
+            <button class="btn btn-primary-church" data-bs-toggle="modal" data-bs-target="#joinOrganizationModal">
+                <i class="bi bi-plus-circle me-1"></i> Join Organization
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-lg-3">
+            <div class="card stat-card h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="icon-box me-3" style="background: rgba(107, 58, 42, 0.1); color: var(--primary);">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-muted mb-1 small">Active Memberships</h6>
+                        <h3 class="mb-0 fw-bold" style="color: var(--primary-dark);">{{ active_memberships|default:0 }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card stat-card h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="icon-box me-3" style="background: rgba(201, 168, 76, 0.15); color: var(--gold);">
+                        <i class="bi bi-person-badge"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-muted mb-1 small">Leadership Roles</h6>
+                        <h3 class="mb-0 fw-bold" style="color: var(--primary-dark);">{{ leadership_count|default:0 }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card stat-card h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="icon-box me-3" style="background: rgba(107, 58, 42, 0.08); color: var(--primary);">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-muted mb-1 small">Past Memberships</h6>
+                        <h3 class="mb-0 fw-bold" style="color: var(--primary-dark);">{{ past_memberships|default:0 }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card stat-card h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="icon-box me-3" style="background: rgba(201, 168, 76, 0.1); color: #b8860b;">
+                        <i class="bi bi-calendar-week"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-muted mb-1 small">Total Organizations</h6>
+                        <h3 class="mb-0 fw-bold" style="color: var(--primary-dark);">{{ total_organizations|default:0 }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Memberships Section -->
+    <div class="card table-card mb-4">
+        <div class="card-header bg-white border-bottom-0 pt-3 pb-0 px-4">
+            <h5 class="mb-0" style="color: var(--primary-dark);">
+                <i class="bi bi-star-fill me-2" style="color: var(--gold); font-size: 0.9rem;"></i>Active Memberships
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            {% if active_membership_list %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Organization</th>
+                            <th>Type / Category</th>
+                            <th>Role</th>
+                            <th>Joined Date</th>
+                            <th>Status</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for membership in active_membership_list %}
+                        <tr>
+                            <td class="fw-semibold">
+                                <i class="bi bi-{{ membership.organization.icon|default:'people' }} me-2" style="color: var(--primary);"></i>
+                                {{ membership.organization.name }}
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark px-2 py-1">
+                                    {{ membership.organization.category|default:"Ministry" }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if membership.role %}
+                                    <span class="badge" style="background: var(--primary-light); color: var(--primary-dark);">
+                                        {{ membership.role }}
+                                    </span>
+                                {% else %}
+                                    <span class="text-muted small">Member</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ membership.joined_date|date:"M d, Y" }}</td>
+                            <td>
+                                <span class="badge badge-paid px-2 py-1">
+                                    <i class="bi bi-check-circle-fill me-1" style="font-size: 0.7rem;"></i>Active
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <div class="btn-group" role="group">
+                                    <button class="btn btn-sm btn-outline-secondary" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#viewOrganizationModal"
+                                            data-org-id="{{ membership.organization.id }}"
+                                            data-org-name="{{ membership.organization.name }}"
+                                            data-org-description="{{ membership.organization.description|default:'No description available.' }}"
+                                            data-org-category="{{ membership.organization.category|default:'Ministry' }}"
+                                            data-org-role="{{ membership.role|default:'Member' }}"
+                                            data-org-joined="{{ membership.joined_date|date:'M d, Y' }}">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" 
+                                            onclick="showLeaveConfirmModal('{{ membership.organization.id }}', '{{ membership.organization.name|escapejs }}')">
+                                        <i class="bi bi-box-arrow-right"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-people fs-1 text-muted mb-3 d-block"></i>
+                <h6 class="text-muted">You are not currently active in any organizations</h6>
+                <p class="small text-muted">Join a ministry or organization to get involved in parish life.</p>
+                <button class="btn btn-primary-church btn-sm mt-2" data-bs-toggle="modal" data-bs-target="#joinOrganizationModal">
+                    <i class="bi bi-plus-circle"></i> Browse Organizations
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Past Memberships Section -->
+    {% if past_membership_list %}
+    <div class="card table-card">
+        <div class="card-header bg-white border-bottom-0 pt-3 pb-0 px-4">
+            <h5 class="mb-0 text-muted">
+                <i class="bi bi-clock-history me-2"></i>Past Memberships
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Organization</th>
+                            <th>Role</th>
+                            <th>Period</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for membership in past_membership_list %}
+                        <tr>
+                            <td>
+                                <i class="bi bi-{{ membership.organization.icon|default:'building' }} me-2" style="color: var(--primary);"></i>
+                                {{ membership.organization.name }}
+                            </td>
+                            <td>
+                                {% if membership.role %}
+                                    <span class="badge bg-secondary bg-opacity-25 text-dark">{{ membership.role }}</span>
+                                {% else %}
+                                    <span class="text-muted small">Member</span>
+                                {% endif %}
+                            </td>
+                            <td class="small">
+                                {{ membership.joined_date|date:"M Y" }} - 
+                                {% if membership.left_date %}
+                                    {{ membership.left_date|date:"M Y" }}
+                                {% else %}
+                                    <span class="text-muted">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary bg-opacity-50 text-dark px-2 py-1">Inactive</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Join Organization Modal -->
+    <div class="modal fade" id="joinOrganizationModal" tabindex="-1" aria-labelledby="joinOrganizationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="joinOrganizationModalLabel">
+                        <i class="bi bi-plus-circle me-2"></i>Join an Organization
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-3">Select an organization to request membership. You'll be notified once your request is reviewed.</p>
+                    
+                    {% if available_organizations %}
+                    <div class="row g-3">
+                        {% for org in available_organizations %}
+                        <div class="col-md-6">
+                            <div class="card h-100 border-0 shadow-sm" style="border-radius: 12px;">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-start mb-2">
+                                        <div class="icon-box me-2" style="width: 40px; height: 40px; background: var(--primary-light); color: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="bi bi-{{ org.icon|default:'people' }} fs-5"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-0 fw-semibold" style="color: var(--primary-dark);">{{ org.name }}</h6>
+                                            <small class="text-muted">{{ org.category|default:"Ministry" }}</small>
+                                        </div>
+                                    </div>
+                                    <p class="small text-muted mb-2">{{ org.description|truncatechars:80|default:"No description available." }}</p>
+                                    <div class="d-flex justify-content-between align-items-center mt-2">
+                                        <small class="text-muted">
+                                            <i class="bi bi-people me-1"></i> Active members
+                                        </small>
+                                        <button class="btn btn-sm btn-primary-church" onclick="requestJoinOrganization({{ org.id }}, '{{ org.name|escapejs }}')">
+                                            Request to Join
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-inbox fs-1 text-muted mb-2 d-block"></i>
+                        <p class="text-muted mb-0">No additional organizations available to join at this time.</p>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Organization Details Modal -->
+    <div class="modal fade" id="viewOrganizationModal" tabindex="-1" aria-labelledby="viewOrganizationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="viewOrganizationModalLabel">
+                        <i class="bi bi-building me-2"></i>Organization Details
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-3">
+                        <div class="icon-box mx-auto mb-2" style="width: 60px; height: 60px; background: var(--primary-light); color: var(--primary); border-radius: 30px; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-building fs-3"></i>
+                        </div>
+                        <h5 id="orgDetailName" class="mb-1" style="color: var(--primary-dark);">Organization Name</h5>
+                        <span id="orgDetailCategory" class="badge bg-light text-dark px-2 py-1">Ministry</span>
+                    </div>
+                    <div class="mb-3">
+                        <label class="fw-semibold small text-muted mb-1">Description</label>
+                        <p id="orgDetailDescription" class="small text-secondary mb-0">Loading...</p>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <label class="fw-semibold small text-muted mb-1">Your Role</label>
+                            <p id="orgDetailRole" class="small fw-semibold" style="color: var(--primary);">-</p>
+                        </div>
+                        <div class="col-6">
+                            <label class="fw-semibold small text-muted mb-1">Joined Date</label>
+                            <p id="orgDetailJoined" class="small">-</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Toast / Notification placeholder -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
+        <div id="actionToast" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="4000">
+            <div class="d-flex">
+                <div class="toast-body" id="toastMessage">
+                    Action completed successfully.
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for modals and join requests -->
+<script>
+    // View organization modal handler
+    const viewOrgModal = document.getElementById('viewOrganizationModal');
+    if (viewOrgModal) {
+        viewOrgModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const orgName = button.getAttribute('data-org-name');
+            const orgDescription = button.getAttribute('data-org-description');
+            const orgCategory = button.getAttribute('data-org-category');
+            const orgRole = button.getAttribute('data-org-role');
+            const orgJoined = button.getAttribute('data-org-joined');
+            
+            document.getElementById('orgDetailName').textContent = orgName;
+            document.getElementById('orgDetailDescription').textContent = orgDescription;
+            document.getElementById('orgDetailCategory').textContent = orgCategory;
+            document.getElementById('orgDetailRole').textContent = orgRole;
+            document.getElementById('orgDetailJoined').textContent = orgJoined;
+        });
+    }
+
+    // Request to join organization
+    function requestJoinOrganization(orgId, orgName) {
+        // Disable button to prevent double submission (optional)
+        const btn = event?.target;
+        if (btn) btn.disabled = true;
+        
+        fetch(`/member/organizations/request-join/${orgId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({ organization_id: orgId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToastMessage(`Request sent to join "${orgName}". You'll be notified once approved.`, 'success');
+                // Optionally reload page after a short delay
+                setTimeout(() => location.reload(), 2000);
+            } else {
+                showToastMessage(data.message || 'Unable to send request. Please try again.', 'danger');
+                if (btn) btn.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToastMessage('An error occurred. Please try again.', 'danger');
+            if (btn) btn.disabled = false;
+        });
+    }
+
+    // Leave organization confirmation
+    function showLeaveConfirmModal(orgId, orgName) {
+        showConfirmModal(`Are you sure you want to leave "${orgName}"? You will lose access to this organization's activities.`, function() {
+            leaveOrganization(orgId, orgName);
+        });
+    }
+
+    function leaveOrganization(orgId, orgName) {
+        fetch(`/member/organizations/leave/${orgId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({ organization_id: orgId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToastMessage(`You have left "${orgName}".`, 'info');
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showToastMessage(data.message || 'Unable to leave organization. Please try again.', 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToastMessage('An error occurred. Please try again.', 'danger');
+        });
+    }
+
+    // Helper: show toast message
+    function showToastMessage(message, type = 'success') {
+        const toastEl = document.getElementById('actionToast');
+        const toastBody = document.getElementById('toastMessage');
+        toastBody.textContent = message;
+        
+        // Change background based on type
+        toastEl.classList.remove('bg-success', 'bg-danger', 'bg-warning', 'bg-info');
+        if (type === 'success') toastEl.classList.add('bg-success');
+        else if (type === 'danger') toastEl.classList.add('bg-danger');
+        else if (type === 'info') toastEl.classList.add('bg-info');
+        else toastEl.classList.add('bg-secondary');
+        
+        const toast = new bootstrap.Toast(toastEl);
+        toast.show();
+    }
+
+    // Helper: get CSRF cookie
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Additional page-specific scripts if needed -->
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends 'registry/member_base.html' %}
+
+{% block title %}My Sacraments{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white">
+                <h4 class="mb-0"><i class="bi bi-book me-2"></i>My Sacramental Records</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Baptism -->
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5><i class="bi bi-droplet text-primary me-2"></i>Baptism</h5>
+                                {% if baptism %}
+                                    <p class="mb-1"><strong>Date:</strong> {{ baptism.date_baptized|date:"F d, Y" }}</p>
+                                    <p class="mb-1"><strong>Priest:</strong> {{ baptism.priest }}</p>
+                                    <p class="mb-0"><strong>Birth Certificate:</strong> {{ baptism.birth_certificate_no|default:"N/A" }}</p>
+                                {% else %}
+                                    <p class="text-muted">No baptism record found.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Confirmation -->
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5><i class="bi bi-star-fill text-success me-2"></i>Confirmation</h5>
+                                {% if confirmation %}
+                                    <p class="mb-1"><strong>Date:</strong> {{ confirmation.date_confirmed|date:"F d, Y" }}</p>
+                                    <p class="mb-1"><strong>Bishop:</strong> {{ confirmation.bishop }}</p>
+                                    <p class="mb-0"><strong>Confirmation Name:</strong> {{ confirmation.confirmation_name }}</p>
+                                {% else %}
+                                    <p class="text-muted">No confirmation record found.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- First Holy Communion -->
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5><i class="bi bi-cup-straw text-info me-2"></i>First Holy Communion</h5>
+                                {% if communion %}
+                                    <p class="mb-1"><strong>Date:</strong> {{ communion.date_received|date:"F d, Y" }}</p>
+                                    <p class="mb-0"><strong>Priest:</strong> {{ communion.priest }}</p>
+                                {% else %}
+                                    <p class="text-muted">No first communion record found.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Last Rites -->
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5><i class="bi bi-heart text-warning me-2"></i>Last Rites</h5>
+                                {% if last_rites %}
+                                    <p class="mb-1"><strong>Date:</strong> {{ last_rites.date_administered|date:"F d, Y" }}</p>
+                                    <p class="mb-0"><strong>Priest:</strong> {{ last_rites.priest }}</p>
+                                {% else %}
+                                    <p class="text-muted">No last rites record found.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Marriages -->
+                <div class="mt-4">
+                    <h5><i class="bi bi-heart-fill text-danger me-2"></i>Marriages</h5>
+                    {% if marriages %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Spouse</th>
+                                        <th>Date Married</th>
+                                        <th>Priest</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for marriage in marriages %}
+                                    <tr>
+                                        <td>{{ marriage.spouse_name }}</td>
+                                        <td>{{ marriage.date_married|date:"F d, Y" }}</td>
+                                        <td>{{ marriage.priest }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No marriage records found.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

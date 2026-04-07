@@ -1,24 +1,22 @@
-# middleware.py
 from django.utils.deprecation import MiddlewareMixin
 from .models import ParishOfficerEP
 
 
-class ParishOfficerMiddleware(MiddlewareMixin):
-    """
-    Middleware to attach parish officer information to request
-    """
+class ParishPriestMiddleware(MiddlewareMixin):
+    """Middleware to attach parish priest information to request"""
+    
     def process_request(self, request):
         if request.user.is_authenticated and not request.user.is_superuser:
             try:
-                officer = ParishOfficerEP.objects.filter(
+                priest = ParishPriest.objects.filter(
                     email=request.user.email, 
-                    is_active=True
+                    status='active'
                 ).first()
-                if officer:
-                    request.parish_officer = officer
-                    request.user_parish = officer.parish
-                    print(f"Middleware: Attached parish '{officer.parish.name}' to user {request.user.email}")
+                if priest:
+                    request.parish_priest = priest
+                    request.user_parish = priest.parish
+                    print(f"Middleware: Attached parish '{priest.parish.name}' to priest {request.user.email}")
                 else:
-                    print(f"Middleware: No active officer found for {request.user.email}")
+                    print(f"Middleware: No active priest found for {request.user.email}")
             except Exception as e:
                 print(f"Middleware error: {e}")

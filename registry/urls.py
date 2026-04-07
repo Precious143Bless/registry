@@ -157,6 +157,15 @@ urlpatterns = [
     path('cathedrals/<int:pk>/', views.cathedral_detail, name='cathedral_detail'),
     path('cathedrals/<int:pk>/edit/', views.cathedral_edit, name='cathedral_edit'),
     path('cathedrals/<int:pk>/delete/', views.cathedral_delete, name='cathedral_delete'),
+    
+    # Member Portal
+    path('member/dashboard/', views.member_dashboard, name='member_dashboard'),
+    path('member/profile/', views.member_profile, name='member_profile'),
+    path('member/change-password/', views.member_change_password, name='member_change_password'),
+    path('member/pledges/', views.member_pledges, name='member_pledges'),
+    path('member/pledges/<int:pk>/', views.member_pledge_detail, name='member_pledge_detail'),
+    path('member/sacraments/', views.member_sacraments, name='member_sacraments'),
+    path('member/organizations/', views.member_organizations, name='member_organizations'),
 ]
 
 # Serve media files in development

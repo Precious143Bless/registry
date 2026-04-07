@@ -33,7 +33,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'registry.middleware.ParishOfficerMiddleware',
+    'registry.middleware.ParishPriestMiddleware',
 ]
 
 ROOT_URLCONF = 'church_registry.urls'
