@@ -416,6 +416,66 @@ def member_dashboard(request):
     
     return render(request, 'registry/member_dashboard.html', context)
 
+@login_required
+def priest_profile(request):
+    """View and edit priest profile for logged-in priest"""
+    # Check if user has a priest profile
+    if not hasattr(request.user, 'priest_profile'):
+        messages.error(request, 'Access denied. Priest access only.')
+        return redirect('dashboard')
+    
+    priest = request.user.priest_profile
+    
+    # Get assignment history
+    assignment_history = []
+    
+    # Add current assignment
+    current_assignment = {
+        'parish_name': priest.parish.name if priest.parish else None,
+        'church_name': priest.church.name if priest.church else None,
+        'date_assigned': priest.date_assigned,
+        'date_departed': None,
+        'remarks': priest.remarks,
+        'is_current': True
+    }
+    
+    if current_assignment['parish_name'] or current_assignment['church_name']:
+        assignment_history.append(current_assignment)
+    
+    # You can add historical assignments here from a separate model if you have one
+    # For now, we only show current assignment
+    
+    if request.method == 'POST':
+        form = ParishPriestForm(request.POST, request.FILES, instance=priest)
+        if form.is_valid():
+            # Handle image clearing
+            if request.POST.get('clear_image') == 'on':
+                if priest.image:
+                    priest.image.delete(save=False)
+                form.instance.image = None
+            form.save()
+            
+            # Update user's name if changed
+            request.user.first_name = priest.first_name
+            request.user.last_name = priest.last_name
+            request.user.save()
+            
+            messages.success(request, 'Your profile has been updated successfully.')
+            return redirect('priest_profile')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field.replace("_", " ").title()}: {error}')
+    else:
+        form = ParishPriestForm(instance=priest)
+    
+    context = {
+        'priest': priest,
+        'form': form,
+        'assignment_history': assignment_history,
+    }
+    
+    return render(request, 'registry/priests/priest_profile.html', context)
 
 @login_required
 def member_profile(request):

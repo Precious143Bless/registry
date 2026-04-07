@@ -113,6 +113,7 @@ urlpatterns = [
     path('priests/<int:pk>/deactivate/', views.priest_deactivate, name='priest_deactivate'),
     path('api/parishes/by-church/<int:church_id>/', views.get_parishes_by_church, name='get_parishes_by_church'),
     path('api/parishes/all/', views.get_all_parishes, name='get_all_parishes'),
+    path('priest/profile/', views.priest_profile, name='priest_profile'),  
 
     # Parish Officers
     path('officers/', views.officers_list, name='officers_list'),
