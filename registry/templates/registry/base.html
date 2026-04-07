@@ -519,8 +519,20 @@
                                     <div class="text-muted" style="font-size: 0.65rem;">
                                         {{ notification.created_at|date:"M d, Y g:i A" }}
                                     </div>
+                                    {% if notification.notification_type == 'payment_pending' and notification.related_payment %}
+                                    <div class="mt-1 d-flex gap-1">
+                                        <button class="btn btn-sm btn-success py-0 px-2" style="font-size:0.7rem;"
+                                                onclick="handlePayment({{ notification.related_payment.id }}, 'approve', {{ notification.id }}, this)">
+                                            <i class="bi bi-check-circle me-1"></i>Approve
+                                        </button>
+                                        <button class="btn btn-sm btn-danger py-0 px-2" style="font-size:0.7rem;"
+                                                onclick="handlePayment({{ notification.related_payment.id }}, 'reject', {{ notification.id }}, this)">
+                                            <i class="bi bi-x-circle me-1"></i>Reject
+                                        </button>
+                                    </div>
+                                    {% endif %}
                                 </div>
-                                <button class="btn btn-sm btn-outline-secondary btn-sm p-1 flex-shrink-0" onclick="markNotificationRead({{ notification.id }}, this.closest('.notification-item'))" title="Mark as read">
+                                <button class="btn btn-sm btn-outline-secondary p-1 flex-shrink-0" onclick="markNotificationRead({{ notification.id }}, this.closest('.notification-item'))" title="Mark as read">
                                     <i class="bi bi-check"></i>
                                 </button>
                             </div>
@@ -672,6 +684,30 @@ function markNotificationRead(notificationId, element) {
         }
     })
     .catch(error => console.error('Error:', error));
+}
+
+function handlePayment(paymentId, action, notificationId, btn) {
+    const url = `/payments/${paymentId}/${action}/`;
+    const notifItem = btn.closest('.notification-item');
+    btn.disabled = true;
+    fetch(url, {
+        method: 'POST',
+        headers: {'X-CSRFToken': document.cookie.match(/csrftoken=([^;]+)/)?.[1] || ''},
+        credentials: 'same-origin'
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            // Mark notification read and remove from DOM
+            fetch(`/notifications/${notificationId}/read/`, {
+                method: 'POST',
+                credentials: 'same-origin'
+            });
+            if (notifItem) notifItem.remove();
+            updateNotificationCount();
+        }
+    })
+    .catch(err => { btn.disabled = false; console.error(err); });
 }
 
 function markAllNotificationsRead() {

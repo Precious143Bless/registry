@@ -646,7 +646,7 @@ class PledgePaymentForm(forms.ModelForm):
 
     class Meta:
         model = PledgePayment
-        exclude = ['pledge']
+        exclude = ['pledge', 'status', 'submitted_by_member']
         widgets = {
             'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '1', 'placeholder': '0.00'}),
             'notes':  forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Optional notes'}),

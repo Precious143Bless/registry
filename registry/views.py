@@ -1,3 +1,4 @@
+from django.db import models as django_models
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
@@ -568,7 +569,7 @@ def member_pledge_detail(request, pk):
 
 @login_required
 def member_pledge_add_payment(request, pk):
-    """Allow member to add a payment to their own pledge"""
+    """Allow member to add a payment — saved as pending until staff approves"""
     if not hasattr(request.user, 'member_profile'):
         messages.error(request, 'Access denied.')
         return redirect('login')
@@ -580,14 +581,50 @@ def member_pledge_add_payment(request, pk):
         if form.is_valid():
             payment = form.save(commit=False)
             payment.pledge = pledge
+            payment.status = 'pending'
+            payment.submitted_by_member = True
             payment.save()
-            messages.success(request, 'Payment recorded successfully.')
+
+            # Notify all staff/admin users
+            staff_users = User.objects.filter(is_active=True).filter(
+                django_models.Q(is_superuser=True) | django_models.Q(is_staff=True)
+            )
+            member = request.user.member_profile
+            for staff_user in staff_users:
+                Notification.objects.create(
+                    user=staff_user,
+                    notification_type='payment_pending',
+                    title='Payment Approval Required',
+                    message=f'{member.full_name} submitted a payment of ₱{payment.amount:.2f} for "{pledge.description}"',
+                    related_pledge=pledge,
+                    related_payment=payment,
+                )
+
+            messages.success(request, 'Payment submitted and is pending approval by staff.')
         else:
             for field, errors in form.errors.items():
                 for error in errors:
                     messages.error(request, f'{field.replace("_", " ").title()}: {error}')
 
     return redirect('member_pledge_detail', pk=pk)
+
+
+@login_required
+def member_pledge_detail(request, pk):
+    """View single pledge details"""
+    if not hasattr(request.user, 'member_profile'):
+        messages.error(request, 'Access denied.')
+        return redirect('login')
+
+    pledge = get_object_or_404(Pledge, pk=pk, member=request.user.member_profile)
+    payments = pledge.payments.filter(status='approved').order_by('-date_paid')
+    pending_payments = pledge.payments.filter(status='pending').order_by('-date_paid')
+
+    return render(request, 'registry/member_pledge_detail.html', {
+        'pledge': pledge,
+        'payments': payments,
+        'pending_payments': pending_payments,
+    })
 
 
 @login_required
@@ -721,6 +758,58 @@ def mark_all_notifications_read(request):
     if request.method == 'POST':
         Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
         return JsonResponse({'success': True})
+    return JsonResponse({'success': False}, status=400)
+
+
+@login_required
+@priest_required
+@csrf_exempt
+def approve_payment(request, payment_id):
+    """Staff approves a pending member payment"""
+    if request.method == 'POST':
+        payment = get_object_or_404(PledgePayment, id=payment_id, status='pending')
+        payment.status = 'approved'
+        payment.save()
+        # Mark related staff notification as read
+        Notification.objects.filter(related_payment=payment, user=request.user).update(is_read=True)
+        # Notify the member
+        member_user = payment.pledge.member.user
+        if member_user:
+            Notification.objects.create(
+                user=member_user,
+                notification_type='payment_pending',
+                title='Payment Approved',
+                message=f'Your payment of ₱{payment.amount:.2f} for "{payment.pledge.description}" has been approved.',
+                related_pledge=payment.pledge,
+                related_payment=payment,
+            )
+        return JsonResponse({'success': True, 'message': 'Payment approved.'})
+    return JsonResponse({'success': False}, status=400)
+
+
+@login_required
+@priest_required
+@csrf_exempt
+def reject_payment(request, payment_id):
+    """Staff rejects a pending member payment"""
+    if request.method == 'POST':
+        payment = get_object_or_404(PledgePayment, id=payment_id, status='pending')
+        payment.status = 'rejected'
+        payment.save()
+        # Mark related staff notification as read
+        Notification.objects.filter(related_payment=payment, user=request.user).update(is_read=True)
+        # Notify the member
+        member_user = payment.pledge.member.user
+        if member_user:
+            Notification.objects.create(
+                user=member_user,
+                notification_type='payment_pending',
+                title='Payment Rejected',
+                message=f'Your payment of ₱{payment.amount:.2f} for "{payment.pledge.description}" was rejected. Please contact the parish office.',
+                related_pledge=payment.pledge,
+                related_payment=payment,
+            )
+        return JsonResponse({'success': True, 'message': 'Payment rejected.'})
     return JsonResponse({'success': False}, status=400)
 
 

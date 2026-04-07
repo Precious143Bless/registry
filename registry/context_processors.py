@@ -9,10 +9,17 @@ def notifications_processor(request):
         today = date.today()
         tomorrow = today + timedelta(days=1)
 
+        # Base pledge filter
+        pledge_filter = {'status__in': ['unpaid', 'partial']}
+
+        # If the logged-in user is a member, only show their own pledges
+        if hasattr(request.user, 'member_profile'):
+            pledge_filter['member'] = request.user.member_profile
+
         # Create notifications for pledges due today or tomorrow
         due_pledges = Pledge.objects.filter(
             due_date__in=[today, tomorrow],
-            status__in=['unpaid', 'partial']
+            **pledge_filter
         )
         for pledge in due_pledges:
             days_label = 'Today' if pledge.due_date == today else 'Tomorrow'
@@ -30,7 +37,7 @@ def notifications_processor(request):
         # Create notifications for overdue pledges
         overdue_pledges = Pledge.objects.filter(
             due_date__lt=today,
-            status__in=['unpaid', 'partial']
+            **pledge_filter
         )
         for pledge in overdue_pledges:
             Notification.objects.get_or_create(

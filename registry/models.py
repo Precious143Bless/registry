@@ -157,7 +157,7 @@ class Pledge(models.Model):
 
     @property
     def total_paid(self):
-        return sum(p.amount for p in self.payments.all())
+        return sum(p.amount for p in self.payments.filter(status='approved'))
 
     @property
     def balance(self):
@@ -214,10 +214,18 @@ class ParishInfo(models.Model):
 
 
 class PledgePayment(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending Approval'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+
     pledge = models.ForeignKey(Pledge, on_delete=models.CASCADE, related_name='payments')
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     date_paid = models.DateField()
     notes = models.CharField(max_length=255, blank=True)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='approved')
+    submitted_by_member = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['-date_paid']
@@ -227,7 +235,9 @@ class PledgePayment(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        self.pledge.update_status()
+        # Only count approved payments toward pledge status
+        if self.status == 'approved':
+            self.pledge.update_status()
 
 class ParishPriest(models.Model):
     user = models.OneToOneField(
@@ -400,6 +410,7 @@ class Notification(models.Model):
     NOTIFICATION_TYPES = [
         ('pledge_due', 'Pledge Payment Due'),
         ('pledge_overdue', 'Pledge Payment Overdue'),
+        ('payment_pending', 'Payment Pending Approval'),
     ]
 
     user = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='notifications')
@@ -407,6 +418,7 @@ class Notification(models.Model):
     title = models.CharField(max_length=200)
     message = models.TextField()
     related_pledge = models.ForeignKey(Pledge, on_delete=models.CASCADE, null=True, blank=True)
+    related_payment = models.ForeignKey(PledgePayment, on_delete=models.CASCADE, null=True, blank=True)
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 

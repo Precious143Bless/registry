@@ -23,6 +23,8 @@ urlpatterns = [
     # Notifications
     path('notifications/<int:notification_id>/read/', views.mark_notification_read, name='mark_notification_read'),
     path('notifications/mark-all-read/', views.mark_all_notifications_read, name='mark_all_notifications_read'),
+    path('payments/<int:payment_id>/approve/', views.approve_payment, name='approve_payment'),
+    path('payments/<int:payment_id>/reject/', views.reject_payment, name='reject_payment'),
 
     # Members
     path('members/', views.member_list, name='member_list'),
