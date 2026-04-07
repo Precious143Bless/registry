@@ -3106,9 +3106,11 @@ def user_list(request):
     if role_filter == 'admin':
         users = users.filter(is_superuser=True)
     elif role_filter == 'staff':
-        users = users.filter(is_superuser=False, is_staff=True)
+        users = users.filter(is_superuser=False).filter(
+            Q(is_staff=True) | Q(priest_profile__isnull=False)
+        )
     elif role_filter == 'member':
-        users = users.filter(is_superuser=False, is_staff=False)
+        users = users.filter(is_superuser=False, member_profile__isnull=False)
     if status_filter == 'active':
         users = users.filter(is_active=True)
     elif status_filter == 'inactive':
