@@ -1,0 +1,20 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Offering — {{ offering.member.full_name }}</title>
+<style>body{font-family:'Georgia',serif;background:#fff;font-size:13px;}.doc{max-width:700px;margin:30px auto;padding:35px;border:2px solid #6b3a2a;}.doc-header{text-align:center;border-bottom:2px solid #c9a84c;padding-bottom:16px;margin-bottom:20px;}.doc-header .cross{font-size:2.5rem;color:#6b3a2a;}.doc-header h2{color:#4e2a1e;font-size:1.3rem;margin:4px 0 2px;}.doc-header p{color:#888;font-size:0.78rem;margin:0;}.doc-title{text-align:center;margin-bottom:18px;}.doc-title h3{color:#6b3a2a;font-size:1rem;letter-spacing:2px;text-transform:uppercase;margin:0;}.section-label{background:#f5ede8;color:#4e2a1e;font-weight:bold;font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;padding:4px 10px;margin:14px 0 8px;border-left:4px solid #c9a84c;}.field-row{display:flex;margin-bottom:6px;}.field-label{width:160px;color:#666;font-size:0.82rem;flex-shrink:0;}.field-value{flex:1;font-size:0.88rem;color:#111;border-bottom:1px dotted #ccc;padding-bottom:2px;}.amount-box{border:1px solid #e0d0c8;border-radius:8px;padding:16px;text-align:center;background:#fdf8f6;margin:14px 0;}.amount-box .big{font-size:1.8rem;font-weight:bold;color:#4e2a1e;}.amount-box .lbl{font-size:0.75rem;color:#888;text-transform:uppercase;}.cat-badge{background:#f5ede8;color:#6b3a2a;padding:3px 10px;border-radius:10px;font-size:0.78rem;}.doc-footer{margin-top:30px;display:flex;justify-content:space-between;}.sig{text-align:center;width:180px;}.sig hr{border-top:1px solid #333;margin-bottom:4px;}.sig small{font-size:0.72rem;color:#666;}.issued{text-align:center;color:#aaa;font-size:0.72rem;margin-top:20px;}@media print{.no-print{display:none!important;}body{margin:0;}}</style>
+</head><body>
+<div class="doc">
+    <div class="doc-header"><div class="cross">&#10013;</div><h2>Parish of {{ parish.parish_name|default:"[Parish Name]" }}</h2><p>{{ parish.street_address|default:"" }}{% if parish.municipality %}, {{ parish.municipality }}{% endif %} &bull; {{ parish.contact_number|default:"[Contact]" }}</p></div>
+    <div class="doc-title"><h3>Offering Record</h3></div>
+    <div class="section-label">Offering Information</div>
+    <div class="field-row"><div class="field-label">Member:</div><div class="field-value">{{ offering.member.full_name }}</div></div>
+    <div class="field-row"><div class="field-label">Description:</div><div class="field-value">{{ offering.description }}</div></div>
+    <div class="field-row"><div class="field-label">Date:</div><div class="field-value">{{ offering.date }}</div></div>
+    <div class="field-row"><div class="field-label">Category:</div><div class="field-value"><span class="cat-badge">{{ offering.get_category_display }}</span></div></div>
+    <div class="amount-box"><div class="big">&#8369;{{ offering.total_amount }}</div><div class="lbl">Total Amount</div></div>
+    <div class="doc-footer"><div class="sig"><hr><small>Parish Priest</small></div><div class="sig"><hr><small>Parish Secretary</small></div></div>
+    <div class="issued">Issued on: {% now "F d, Y" %} &bull; Official Parish Record</div>
+</div>
+<div class="text-center mt-3 no-print">
+    <button onclick="window.print()" style="background:#6b3a2a;color:#fff;border:none;padding:6px 16px;border-radius:6px;cursor:pointer;">&#128424; Print</button>
+    <a href="javascript:history.back()" style="margin-left:8px;">Back</a>
+</div>
+</body></html>

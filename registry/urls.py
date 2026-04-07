@@ -76,6 +76,22 @@ urlpatterns = [
     path('payment/<int:pk>/delete/', views.payment_delete, name='payment_delete'),
     path('payment/<int:pk>/edit/', views.payment_edit, name='payment_edit'),
 
+    # Donations
+    path('donations/new/', views.donation_create, name='donation_create'),
+    path('donations/<int:pk>/', views.donation_detail, name='donation_detail'),
+    path('donations/<int:pk>/edit/', views.donation_edit, name='donation_edit'),
+    path('donations/<int:pk>/delete/', views.donation_delete, name='donation_delete'),
+    path('donations/<int:pk>/print/', views.donation_print, name='donation_print'),
+    path('donations/print/all/', views.donation_list_print, name='donation_list_print'),
+
+    # Offerings
+    path('offerings/new/', views.offering_create, name='offering_create'),
+    path('offerings/<int:pk>/', views.offering_detail, name='offering_detail'),
+    path('offerings/<int:pk>/edit/', views.offering_edit, name='offering_edit'),
+    path('offerings/<int:pk>/delete/', views.offering_delete, name='offering_delete'),
+    path('offerings/<int:pk>/print/', views.offering_print, name='offering_print'),
+    path('offerings/print/all/', views.offering_list_print, name='offering_list_print'),
+
     # Database Management
     path('database/backup/', views.backup_database, name='database_backup'),
     path('database/restore/', views.restore_database, name='database_restore'),

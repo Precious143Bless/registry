@@ -1,0 +1,25 @@
+{% extends 'registry/base.html' %}
+{% block page_title %}Donation Detail{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm" style="border-radius:12px;">
+            <div class="card-body p-4">
+                <div class="mb-3 text-center" style="font-size:3rem;color:#c9a84c;"><i class="bi bi-heart"></i></div>
+                <h6 class="fw-bold text-center mb-1" style="color:#4e2a1e;">{{ donation.description }}</h6>
+                <p class="text-center text-muted small mb-4"><a href="{% url 'member_detail' donation.member.pk %}" class="text-decoration-none" style="color:#6b3a2a;">{{ donation.member.full_name }}</a></p>
+                <table class="table table-sm mb-0">
+                    <tr><td class="text-muted small">Member</td><td class="fw-semibold">{{ donation.member.full_name }}</td></tr>
+                    <tr><td class="text-muted small">Description</td><td class="fw-semibold">{{ donation.description }}</td></tr>
+                    <tr><td class="text-muted small">Amount Donated</td><td class="fw-semibold text-success">&#8369;{{ donation.amount }}</td></tr>
+                    <tr><td class="text-muted small">Date Donated</td><td class="fw-semibold">{{ donation.date_donated }}</td></tr>
+                </table>
+                <div class="d-flex gap-2 mt-4">
+                    <a href="{% url 'donation_print' donation.pk %}" class="btn btn-sm btn-outline-secondary" target="_blank"><i class="bi bi-printer me-1"></i>Print</a>
+                    <a href="{% url 'pledge_list' %}?tab=donations" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Back</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -602,3 +602,37 @@ class Cathedral(models.Model):
 
     def __str__(self):
         return self.name
+
+class Donation(models.Model):
+    member = models.ForeignKey(Member, on_delete=models.CASCADE, related_name='donations')
+    description = models.CharField(max_length=255)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    date_donated = models.DateField()
+    date_created = models.DateField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-date_donated']
+
+    def __str__(self):
+        return f"{self.member} - {self.description}"
+
+
+class Offering(models.Model):
+    CATEGORY_CHOICES = [
+        ('sunday_offering', 'Sunday Offering'),
+        ('special_mass', 'Special Mass'),
+        ('event', 'Event'),
+    ]
+
+    member = models.ForeignKey(Member, on_delete=models.CASCADE, related_name='offerings')
+    description = models.CharField(max_length=255)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    date = models.DateField()
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='sunday_offering')
+    date_created = models.DateField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-date']
+
+    def __str__(self):
+        return f"{self.member} - {self.get_category_display()}"

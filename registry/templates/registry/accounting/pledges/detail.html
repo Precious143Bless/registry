@@ -1,0 +1,65 @@
+{% extends 'registry/base.html' %}
+{% block page_title %}Pledge Detail{% endblock %}
+{% block content %}
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm" style="border-radius:12px;">
+            <div class="card-body p-4">
+                <div class="mb-3 text-center" style="font-size:3rem;color:#c9a84c;"><i class="bi bi-cash-coin"></i></div>
+                <h6 class="fw-bold text-center mb-1" style="color:#4e2a1e;">{{ pledge.description }}</h6>
+                <p class="text-center text-muted small mb-3"><a href="{% url 'member_detail' pledge.member.pk %}" class="text-decoration-none" style="color:#6b3a2a;">{{ pledge.member.full_name }}</a></p>
+                <div class="text-center mb-3">
+                    {% if pledge.status == 'paid' %}<span class="badge badge-paid px-3 py-2">Fully Paid</span>
+                    {% elif pledge.status == 'partial' %}<span class="badge badge-partial px-3 py-2">Partially Paid</span>
+                    {% else %}<span class="badge badge-unpaid px-3 py-2">Unpaid</span>{% endif %}
+                </div>
+                {% if pledge.amount_pledged > 0 %}
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between small text-muted mb-1">
+                        <span>&#8369;{{ pledge.total_paid }} paid</span><span>&#8369;{{ pledge.amount_pledged }} total</span>
+                    </div>
+                    <div class="progress" style="height:8px;border-radius:4px;">
+                        {% widthratio pledge.total_paid pledge.amount_pledged 100 as pct %}
+                        <div class="progress-bar" style="width:{{ pct }}%;background:#6b3a2a;"></div>
+                    </div>
+                </div>
+                {% endif %}
+                <table class="table table-sm mb-0">
+                    <tr><td class="text-muted small">Amount Pledged</td><td class="fw-semibold">&#8369;{{ pledge.amount_pledged }}</td></tr>
+                    <tr><td class="text-muted small">Total Paid</td><td class="fw-semibold text-success">&#8369;{{ pledge.total_paid }}</td></tr>
+                    <tr><td class="text-muted small">Balance</td><td class="fw-semibold text-danger">&#8369;{{ pledge.balance }}</td></tr>
+                    <tr><td class="text-muted small">Due Date</td><td class="fw-semibold">{{ pledge.due_date }}</td></tr>
+                </table>
+                <div class="d-flex gap-2 mt-3">
+                    <a href="{% url 'pledge_print' pledge.pk %}" class="btn btn-sm btn-outline-secondary w-100" target="_blank"><i class="bi bi-printer me-1"></i>Print</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm" style="border-radius:12px;">
+            <div class="card-header bg-white border-0 pt-3 px-4 d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0" style="color:#4e2a1e;"><i class="bi bi-receipt me-2" style="color:#c9a84c;"></i>Payment History</h6>
+                <small class="text-muted">{{ pledge.payments.count }} payment(s)</small>
+            </div>
+            <div class="card-body p-0">
+                <table class="table mb-0">
+                    <thead><tr><th>#</th><th>Date Paid</th><th>Amount</th><th>Notes</th></tr></thead>
+                    <tbody>
+                        {% for payment in page_obj %}
+                        <tr>
+                            <td class="text-muted small">{{ page_obj.start_index|add:forloop.counter0 }}</td>
+                            <td>{{ payment.date_paid }}</td>
+                            <td class="fw-semibold text-success">&#8369;{{ payment.amount }}</td>
+                            <td>{{ payment.notes|default:"—" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="text-center text-muted py-4">No payments recorded yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

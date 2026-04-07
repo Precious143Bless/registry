@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from datetime import date
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Member, Baptism, Confirmation, FirstHolyCommunion, Marriage, LastRites, Pledge, PledgePayment, ParishInfo, ParishPriest, ParishOfficer, OrganizationMembership, Organization, Church, Parish, ParishOfficerEP, Cathedral
+from .models import Member, Baptism, Confirmation, FirstHolyCommunion, Marriage, LastRites, Pledge, PledgePayment, ParishInfo, ParishPriest, ParishOfficer, OrganizationMembership, Organization, Church, Parish, ParishOfficerEP, Cathedral, Donation, Offering
 
 
 # ─── REUSABLE VALIDATORS ─────────────────────────────────────────────────────
@@ -1180,4 +1180,58 @@ class CathedralForm(forms.ModelForm):
         if value:
             if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', value):
                 raise ValidationError('Enter a valid email address.')
+        return value
+
+# 
+
+class DonationForm(forms.ModelForm):
+    date_donated = forms.DateField(
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+    )
+
+    class Meta:
+        model = Donation
+        fields = ['member', 'description', 'amount', 'date_donated']
+        widgets = {
+            'member':      forms.Select(attrs={'class': 'form-select'}),
+            'description': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Donation for Church Fund'}),
+            'amount':      forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01', 'placeholder': '0.00'}),
+        }
+
+    def clean_amount(self):
+        value = self.cleaned_data['amount']
+        validate_positive_amount(value)
+        return value
+
+    def clean_date_donated(self):
+        value = self.cleaned_data['date_donated']
+        validate_not_future(value)
+        return value
+
+
+# ─── OFFERING FORM ───────────────────────────────────────────────────────────
+
+class OfferingForm(forms.ModelForm):
+    date = forms.DateField(
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+    )
+
+    class Meta:
+        model = Offering
+        fields = ['member', 'description', 'total_amount', 'date', 'category']
+        widgets = {
+            'member':       forms.Select(attrs={'class': 'form-select'}),
+            'description':  forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Sunday Mass Offering'}),
+            'total_amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01', 'placeholder': '0.00'}),
+            'category':     forms.Select(attrs={'class': 'form-select'}),
+        }
+
+    def clean_total_amount(self):
+        value = self.cleaned_data['total_amount']
+        validate_positive_amount(value)
+        return value
+
+    def clean_date(self):
+        value = self.cleaned_data['date']
+        validate_not_future(value)
         return value

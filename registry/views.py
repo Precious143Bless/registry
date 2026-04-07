@@ -18,9 +18,9 @@ from django.http import JsonResponse
 import subprocess
 from django.core.paginator import Paginator
 from datetime import datetime, date 
-from .models import Member, Baptism, Confirmation, FirstHolyCommunion, Marriage, LastRites, Pledge, PledgePayment, ParishInfo, ParishPriest, ParishOfficer, Notification, Organization, OrganizationMembership, Church, Parish, ParishOfficerEP, Cathedral
+from .models import Member, Baptism, Confirmation, FirstHolyCommunion, Marriage, LastRites, Pledge, PledgePayment, ParishInfo, ParishPriest, ParishOfficer, Notification, Organization, OrganizationMembership, Church, Parish, ParishOfficerEP, Cathedral, Donation, Offering
 from .forms import (MemberForm, BaptismForm, ConfirmationForm, CommunionForm,
-                    MarriageForm, LastRitesForm, PledgeForm, PledgePaymentForm, ParishInfoForm,ParishPriestForm, ParishOfficerForm, OrganizationForm,OrganizationMembershipForm, ChurchForm, ParishForm, ParishOfficerEPForm, CathedralForm, UnifiedRegistrationForm, MemberProfileForm)
+                    MarriageForm, LastRitesForm, PledgeForm, PledgePaymentForm, ParishInfoForm, ParishPriestForm, ParishOfficerForm, OrganizationForm, OrganizationMembershipForm, ChurchForm, ParishForm, ParishOfficerEPForm, CathedralForm, UnifiedRegistrationForm, MemberProfileForm, DonationForm, OfferingForm)
 from .decorators import admin_required, priest_required
 
 
@@ -1104,32 +1104,33 @@ def last_rites_print(request, pk):
 @login_required
 @priest_required
 def pledge_list(request):
-    from django.core.paginator import Paginator
-    
     parish_filter = get_user_parish_filter(request)
     q = request.GET.get('q', '')
-    
-    # Filter pledges by member's parish for officers
+    active_tab = request.GET.get('tab', 'pledges')
+
     if parish_filter:
         pledges = Pledge.objects.select_related('member').filter(member__parish=parish_filter)
+        donations = Donation.objects.select_related('member').filter(member__parish=parish_filter)
+        offerings = Offering.objects.select_related('member').filter(member__parish=parish_filter)
         all_members = Member.objects.filter(is_active=True, parish=parish_filter).order_by('last_name', 'first_name')
     else:
         pledges = Pledge.objects.select_related('member')
+        donations = Donation.objects.select_related('member')
+        offerings = Offering.objects.select_related('member')
         all_members = Member.objects.filter(is_active=True).order_by('last_name', 'first_name')
-    
+
     if q:
-        pledges = pledges.filter(
-            Q(member__first_name__icontains=q) | Q(member__last_name__icontains=q) |
-            Q(description__icontains=q)
-        )
-    
-    paginator = Paginator(pledges, 15)
-    page_obj = paginator.get_page(request.GET.get('page'))
-    
-    return render(request, 'registry/pledges/list.html', {
-        'pledges': page_obj,
-        'page_obj': page_obj,
+        name_q = Q(member__first_name__icontains=q) | Q(member__last_name__icontains=q) | Q(description__icontains=q)
+        pledges = pledges.filter(name_q)
+        donations = donations.filter(name_q)
+        offerings = offerings.filter(name_q)
+
+    return render(request, 'registry/accounting/list.html', {
+        'pledges': Paginator(pledges, 15).get_page(request.GET.get('page_p')),
+        'donations': Paginator(donations, 15).get_page(request.GET.get('page_d')),
+        'offerings': Paginator(offerings, 15).get_page(request.GET.get('page_o')),
         'q': q,
+        'active_tab': active_tab,
         'all_members': all_members,
         'is_officer': not request.user.is_superuser,
         'user_parish': getattr(request, 'user_parish', None),
@@ -1160,7 +1161,7 @@ def pledge_create(request):
                 messages.error(request, f'{field.replace("_", " ").title()}: {error}')
         return redirect('pledge_list')
     
-    return render(request, 'registry/pledges/form.html', {'form': form, 'title': 'Add Pledge'})
+    return render(request, 'registry/accounting/pledges/form.html', {'form': form, 'title': 'Add Pledge'})
 
 
 @login_required
@@ -1237,7 +1238,7 @@ def pledge_detail(request, pk):
 
     paginator = Paginator(payments, 7)
     page = paginator.get_page(request.GET.get('page'))
-    return render(request, 'registry/pledges/detail.html', {
+    return render(request, 'registry/accounting/pledges/detail.html', {
         'pledge': pledge,
         'page_obj': page,
         'date_from': date_from,
@@ -1262,7 +1263,7 @@ def pledge_edit(request, pk):
         form.save()
         messages.success(request, 'Pledge updated.')
         return redirect('pledge_list')
-    return render(request, 'registry/pledges/form.html', {'form': form, 'title': 'Edit Pledge'})
+    return render(request, 'registry/accounting/pledges/form.html', {'form': form, 'title': 'Edit Pledge'})
 
 
 @login_required
@@ -1372,7 +1373,7 @@ def member_list_print(request):
 
 @login_required
 def pledge_print(request, pk):
-    return render(request, 'registry/pledges/print_pledge.html', {
+    return render(request, 'registry/accounting/pledges/print.html', {
         'pledge': get_object_or_404(Pledge, pk=pk),
         'parish': _parish_ctx(),
     })
@@ -1387,8 +1388,178 @@ def pledge_list_print(request):
     else:
         pledges = Pledge.objects.select_related('member').order_by('member__last_name')
     
-    return render(request, 'registry/pledges/print_pledge_list.html', {
+    return render(request, 'registry/accounting/pledges/print_list.html', {
         'pledges': pledges,
+        'parish': _parish_ctx(),
+    })
+
+
+# ─── DONATIONS ───────────────────────────────────────────────────────────────
+
+@login_required
+@priest_required
+def donation_detail(request, pk):
+    donation = get_object_or_404(Donation, pk=pk)
+    if not check_member_access(request, donation.member):
+        messages.error(request, 'You do not have permission to view this donation.')
+        return redirect('pledge_list')
+    return render(request, 'registry/accounting/donations/detail.html', {'donation': donation})
+
+
+@login_required
+@priest_required
+def donation_create(request):
+    parish_filter = get_user_parish_filter(request)
+    if request.method == 'POST':
+        form = DonationForm(request.POST)
+        if form.is_valid():
+            donation = form.save(commit=False)
+            if parish_filter and donation.member.parish != parish_filter:
+                messages.error(request, 'You can only add donations for members in your parish.')
+                return redirect('pledge_list')
+            donation.save()
+            messages.success(request, 'Donation recorded successfully.')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field.replace("_", " ").title()}: {error}')
+    return redirect('/pledges/?tab=donations')
+
+
+@login_required
+@priest_required
+def donation_edit(request, pk):
+    donation = get_object_or_404(Donation, pk=pk)
+    if not check_member_access(request, donation.member):
+        messages.error(request, 'You do not have permission to edit this donation.')
+        return redirect('pledge_list')
+    if request.method == 'POST':
+        form = DonationForm(request.POST, instance=donation)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Donation updated.')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field.replace("_", " ").title()}: {error}')
+    return redirect('/pledges/?tab=donations')
+
+
+@login_required
+@priest_required
+def donation_delete(request, pk):
+    donation = get_object_or_404(Donation, pk=pk)
+    if not check_member_access(request, donation.member):
+        messages.error(request, 'You do not have permission to delete this donation.')
+        return redirect('pledge_list')
+    if request.method == 'POST':
+        donation.delete()
+        messages.success(request, 'Donation deleted.')
+    return redirect('/pledges/?tab=donations')
+
+
+@login_required
+def donation_print(request, pk):
+    return render(request, 'registry/accounting/donations/print.html', {
+        'donation': get_object_or_404(Donation, pk=pk),
+        'parish': _parish_ctx(),
+    })
+
+
+@login_required
+def donation_list_print(request):
+    parish_filter = get_user_parish_filter(request)
+    if parish_filter:
+        donations = Donation.objects.select_related('member').filter(member__parish=parish_filter).order_by('member__last_name')
+    else:
+        donations = Donation.objects.select_related('member').order_by('member__last_name')
+    return render(request, 'registry/accounting/donations/print_list.html', {
+        'donations': donations,
+        'parish': _parish_ctx(),
+    })
+
+
+# ─── OFFERINGS ───────────────────────────────────────────────────────────────
+
+@login_required
+@priest_required
+def offering_detail(request, pk):
+    offering = get_object_or_404(Offering, pk=pk)
+    if not check_member_access(request, offering.member):
+        messages.error(request, 'You do not have permission to view this offering.')
+        return redirect('pledge_list')
+    return render(request, 'registry/accounting/offerings/detail.html', {'offering': offering})
+
+
+@login_required
+@priest_required
+def offering_create(request):
+    parish_filter = get_user_parish_filter(request)
+    if request.method == 'POST':
+        form = OfferingForm(request.POST)
+        if form.is_valid():
+            offering = form.save(commit=False)
+            if parish_filter and offering.member.parish != parish_filter:
+                messages.error(request, 'You can only add offerings for members in your parish.')
+                return redirect('pledge_list')
+            offering.save()
+            messages.success(request, 'Offering recorded successfully.')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field.replace("_", " ").title()}: {error}')
+    return redirect('/pledges/?tab=offerings')
+
+
+@login_required
+@priest_required
+def offering_edit(request, pk):
+    offering = get_object_or_404(Offering, pk=pk)
+    if not check_member_access(request, offering.member):
+        messages.error(request, 'You do not have permission to edit this offering.')
+        return redirect('pledge_list')
+    if request.method == 'POST':
+        form = OfferingForm(request.POST, instance=offering)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Offering updated.')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field.replace("_", " ").title()}: {error}')
+    return redirect('/pledges/?tab=offerings')
+
+
+@login_required
+@priest_required
+def offering_delete(request, pk):
+    offering = get_object_or_404(Offering, pk=pk)
+    if not check_member_access(request, offering.member):
+        messages.error(request, 'You do not have permission to delete this offering.')
+        return redirect('pledge_list')
+    if request.method == 'POST':
+        offering.delete()
+        messages.success(request, 'Offering deleted.')
+    return redirect('/pledges/?tab=offerings')
+
+
+@login_required
+def offering_print(request, pk):
+    return render(request, 'registry/accounting/offerings/print.html', {
+        'offering': get_object_or_404(Offering, pk=pk),
+        'parish': _parish_ctx(),
+    })
+
+
+@login_required
+def offering_list_print(request):
+    parish_filter = get_user_parish_filter(request)
+    if parish_filter:
+        offerings = Offering.objects.select_related('member').filter(member__parish=parish_filter).order_by('member__last_name')
+    else:
+        offerings = Offering.objects.select_related('member').order_by('member__last_name')
+    return render(request, 'registry/accounting/offerings/print_list.html', {
+        'offerings': offerings,
         'parish': _parish_ctx(),
     })
 

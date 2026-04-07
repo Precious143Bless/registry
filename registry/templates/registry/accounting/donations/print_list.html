@@ -1,0 +1,16 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Donation List</title>
+<style>body{font-family:'Georgia',serif;background:#fff;font-size:12px;}.doc{max-width:900px;margin:30px auto;padding:30px;}.doc-header{text-align:center;border-bottom:2px solid #c9a84c;padding-bottom:14px;margin-bottom:18px;}.doc-header .cross{font-size:2rem;color:#6b3a2a;}.doc-header h2{color:#4e2a1e;font-size:1.2rem;margin:4px 0 2px;}.doc-header p{color:#888;font-size:0.75rem;margin:0;}.doc-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}.doc-title h3{color:#6b3a2a;font-size:0.95rem;letter-spacing:1px;text-transform:uppercase;margin:0;}table{width:100%;border-collapse:collapse;}thead th{background:#f5ede8;color:#4e2a1e;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.5px;padding:6px 8px;border:1px solid #e0d0c8;}tbody td{padding:5px 8px;border:1px solid #eee;font-size:0.82rem;}tbody tr:nth-child(even){background:#fdf8f6;}.issued{text-align:center;color:#aaa;font-size:0.72rem;margin-top:20px;}@media print{.no-print{display:none!important;}body{margin:0;}}</style>
+</head><body>
+<div class="doc">
+    <div class="doc-header"><div class="cross">&#10013;</div><h2>Parish of {{ parish.parish_name|default:"[Parish Name]" }}</h2><p>{{ parish.street_address|default:"" }}{% if parish.municipality %}, {{ parish.municipality }}{% endif %} &bull; {{ parish.contact_number|default:"[Contact]" }}</p></div>
+    <div class="doc-title"><h3>Donation Records Summary</h3><small>Total: {{ donations|length }} donation(s) &bull; As of {% now "F d, Y" %}</small></div>
+    <table><thead><tr><th>#</th><th>Member</th><th>Description</th><th>Amount Donated</th><th>Date Donated</th></tr></thead><tbody>
+        {% for d in donations %}<tr><td>{{ forloop.counter }}</td><td>{{ d.member.full_name }}</td><td>{{ d.description }}</td><td>&#8369;{{ d.amount }}</td><td>{{ d.date_donated }}</td></tr>{% empty %}<tr><td colspan="5" style="text-align:center;color:#aaa;padding:20px;">No donations found.</td></tr>{% endfor %}
+    </tbody></table>
+    <div class="issued">Printed on: {% now "F d, Y, g:i A" %} &bull; Official Parish Record</div>
+</div>
+<div class="text-center mt-3 no-print">
+    <button onclick="window.print()" style="background:#6b3a2a;color:#fff;border:none;padding:6px 16px;border-radius:6px;cursor:pointer;">&#128424; Print List</button>
+    <a href="javascript:history.back()" style="margin-left:8px;">Back</a>
+</div>
+</body></html>

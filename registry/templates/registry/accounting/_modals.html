@@ -1,0 +1,280 @@
+<!-- PLEDGE MODALS -->
+<div class="modal fade" id="addPledgeModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content" style="border-radius:12px;border:none;">
+    <div class="modal-header border-0 pb-0" style="background:#f5ede8;border-radius:12px 12px 0 0;">
+      <h6 class="modal-title fw-bold mb-0" style="color:#4e2a1e;"><i class="bi bi-cash-coin me-2" style="color:#c9a84c;"></i>Add Pledge</h6>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <form method="post" action="{% url 'pledge_create' %}" id="addPledgeForm">{% csrf_token %}
+      <div class="modal-body pt-3">
+        <div class="mb-3"><label class="form-label fw-semibold text-muted small text-uppercase">Member</label>
+          <select name="member" class="form-select" required><option value="">Select Member</option>
+            {% for m in all_members %}<option value="{{ m.pk }}">{{ m.full_name }}</option>{% endfor %}
+          </select></div>
+        <div class="mb-3"><label class="form-label fw-semibold text-muted small text-uppercase">Description</label>
+          <input type="text" name="description" class="form-control" placeholder="e.g. Church Renovation Fund" required></div>
+        <div class="mb-3"><label class="form-label fw-semibold text-muted small text-uppercase">Amount Pledged</label>
+          <div class="input-group"><span class="input-group-text" style="background:#f5ede8;color:#6b3a2a;">&#8369;</span>
+            <input type="number" name="amount_pledged" class="form-control" step="0.01" min="0.01" placeholder="0.00" required></div></div>
+        <div class="mb-1"><label class="form-label fw-semibold text-muted small text-uppercase">Due Date</label>
+          <input type="date" name="due_date" class="form-control" required></div>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-sm btn-primary-church" id="confirmAddPledgeBtn"><i class="bi bi-check-lg me-1"></i>Save Pledge</button>
+      </div>
+    </form>
+  </div></div>
+</div>
+
+<div class="modal fade" id="paymentModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content" style="border-radius:12px;border:none;">
+    <div class="modal-header border-0 pb-0" style="background:#f5ede8;border-radius:12px 12px 0 0;">
+      <div><h6 class="modal-title fw-bold mb-0" style="color:#4e2a1e;"><i class="bi bi-cash-stack me-2" style="color:#c9a84c;"></i>Add Payment</h6>
+        <small class="text-muted" id="modalPledgeInfo"></small></div>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <form method="post" id="paymentForm">{% csrf_token %}
+      <div class="modal-body pt-3">
+        <div class="mb-3 p-3 rounded" style="background:#fdf8f6;border:1px solid #e8d5c8;">
+          <div class="d-flex justify-content-between">
+            <small class="text-muted text-uppercase fw-semibold">Remaining Balance</small>
+            <span class="fw-bold" id="modalBalance" style="color:#dc2626;"></span>
+          </div>
+        </div>
+        <div class="mb-3"><label class="form-label fw-semibold text-muted small text-uppercase">Amount</label>
+          <div class="input-group"><span class="input-group-text" style="background:#f5ede8;color:#6b3a2a;">&#8369;</span>
+            <input type="number" name="amount" class="form-control" step="0.01" min="0.01" placeholder="0.00" required></div></div>
+        <div class="mb-3"><label class="form-label fw-semibold text-muted small text-uppercase">Date Paid</label>
+          <input type="date" name="date_paid" class="form-control" required></div>
+        <div class="mb-1"><label class="form-label fw-semibold text-muted small text-uppercase">Notes <span class="fw-normal">(optional)</span></label>
+          <input type="text" name="notes" class="form-control" placeholder="e.g. Cash payment"></div>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-sm btn-primary-church"><i class="bi bi-check-lg me-1"></i>Save Payment</button>
+      </div>
+    </form>
+  </div></div>
+</div>
+
+<div class="modal fade" id="editPledgeModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content" style="border-radius:12px;border:none;">
+    <div class="modal-header border-0 pb-0" style="background:#f5ede8;border-radius:12px 12px 0 0;">
+      <h6 class="modal-title fw-bold mb-0" style="color:#4e2a1e;"><i class="bi bi-pencil me-2" style="color:#c9a84c;"></i>Edit Pledge</h6>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <form method="post" id="editPledgeForm">{% csrf_token %}
+      <div class="modal-body pt-3">
+        <div class="mb-3"><label class="form-label fw-semibold text-muted small text-uppercase">Member</label>
+          <select name="member" class="form-select" required>
+            {% for m in all_members %}<option value="{{ m.pk }}">{{ m.full_name }}</option>{% endfor %}
+          </select></div>
+        <div class="mb-3"><label class="form-label fw-semibold text-muted small text-uppercase">Description</label>
+          <input type="text" name="description" class="form-control" required></div>
+        <div class="mb-3"><label class="form-label fw-semibold text-muted small text-uppercase">Amount Pledged</label>
+          <div class="input-group"><span class="input-group-text" style="background:#f5ede8;color:#6b3a2a;">&#8369;</span>
+            <input type="number" name="amount_pledged" class="form-control" step="0.01" min="0.01" required></div></div>
+        <div class="mb-1"><label class="form-label fw-semibold text-muted small text-uppercase">Due Date</label>
+          <input type="date" name="due_date" class="form-control" required></div>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-sm btn-primary-church" id="confirmEditPledgeBtn"><i class="bi bi-check-lg me-1"></i>Save Changes</button>
+      </div>
+    </form>
+  </div></div>
+</div>
+
+<div class="modal fade" id="deletePledgeModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content" style="border-radius:12px;border:none;">
+    <div class="modal-header border-0 pb-0" style="background:#fff5f5;border-radius:12px 12px 0 0;">
+      <h6 class="modal-title fw-bold mb-0" style="color:#991b1b;"><i class="bi bi-trash me-2"></i>Delete Pledge</h6>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body pt-3">
+      <p class="mb-2 text-muted">Are you sure you want to delete this pledge?</p>
+      <div class="p-3 rounded" style="background:#fdf8f6;border:1px solid #e8d5c8;">
+        <div class="fw-semibold" id="deletePledgeDesc" style="color:#4e2a1e;"></div>
+        <small class="text-muted" id="deletePledgeMember"></small>
+      </div>
+      <small class="text-danger mt-2 d-block">This will also delete all payment records.</small>
+    </div>
+    <form method="post" id="deletePledgeForm">{% csrf_token %}
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-sm btn-danger" id="confirmDeletePledgeBtn"><i class="bi bi-trash me-1"></i>Delete</button>
+      </div>
+    </form>
+  </div></div>
+</div>
+
+<!-- DONATION MODALS -->
+<div class="modal fade" id="addDonationModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content" style="border-radius:12px;border:none;">
+    <div class="modal-header border-0 pb-0" style="background:#f5ede8;border-radius:12px 12px 0 0;">
+      <h6 class="modal-title fw-bold mb-0" style="color:#4e2a1e;"><i class="bi bi-heart me-2" style="color:#c9a84c;"></i>Add Donation</h6>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <form method="post" action="{% url 'donation_create' %}" id="addDonationForm">{% csrf_token %}
+      <div class="modal-body pt-3">
+        <div class="mb-3"><label class="form-label fw-semibold text-muted small text-uppercase">Member</label>
+          <select name="member" class="form-select" required><option value="">Select Member</option>
+            {% for m in all_members %}<option value="{{ m.pk }}">{{ m.full_name }}</option>{% endfor %}
+          </select></div>
+        <div class="mb-3"><label class="form-label fw-semibold text-muted small text-uppercase">Description</label>
+          <input type="text" name="description" class="form-control" placeholder="e.g. Donation for Church Fund" required></div>
+        <div class="mb-3"><label class="form-label fw-semibold text-muted small text-uppercase">Amount Donated</label>
+          <div class="input-group"><span class="input-group-text" style="background:#f5ede8;color:#6b3a2a;">&#8369;</span>
+            <input type="number" name="amount" class="form-control" step="0.01" min="0.01" placeholder="0.00" required></div></div>
+        <div class="mb-1"><label class="form-label fw-semibold text-muted small text-uppercase">Date Donated</label>
+          <input type="date" name="date_donated" class="form-control" required></div>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-sm btn-primary-church" id="confirmAddDonationBtn"><i class="bi bi-check-lg me-1"></i>Save Donation</button>
+      </div>
+    </form>
+  </div></div>
+</div>
+
+<div class="modal fade" id="editDonationModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content" style="border-radius:12px;border:none;">
+    <div class="modal-header border-0 pb-0" style="background:#f5ede8;border-radius:12px 12px 0 0;">
+      <h6 class="modal-title fw-bold mb-0" style="color:#4e2a1e;"><i class="bi bi-pencil me-2" style="color:#c9a84c;"></i>Edit Donation</h6>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <form method="post" id="editDonationForm">{% csrf_token %}
+      <div class="modal-body pt-3">
+        <div class="mb-3"><label class="form-label fw-semibold text-muted small text-uppercase">Member</label>
+          <select name="member" class="form-select" required>
+            {% for m in all_members %}<option value="{{ m.pk }}">{{ m.full_name }}</option>{% endfor %}
+          </select></div>
+        <div class="mb-3"><label class="form-label fw-semibold text-muted small text-uppercase">Description</label>
+          <input type="text" name="description" class="form-control" required></div>
+        <div class="mb-3"><label class="form-label fw-semibold text-muted small text-uppercase">Amount Donated</label>
+          <div class="input-group"><span class="input-group-text" style="background:#f5ede8;color:#6b3a2a;">&#8369;</span>
+            <input type="number" name="amount" class="form-control" step="0.01" min="0.01" required></div></div>
+        <div class="mb-1"><label class="form-label fw-semibold text-muted small text-uppercase">Date Donated</label>
+          <input type="date" name="date_donated" class="form-control" required></div>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-sm btn-primary-church" id="confirmEditDonationBtn"><i class="bi bi-check-lg me-1"></i>Save Changes</button>
+      </div>
+    </form>
+  </div></div>
+</div>
+
+<div class="modal fade" id="deleteDonationModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content" style="border-radius:12px;border:none;">
+    <div class="modal-header border-0 pb-0" style="background:#fff5f5;border-radius:12px 12px 0 0;">
+      <h6 class="modal-title fw-bold mb-0" style="color:#991b1b;"><i class="bi bi-trash me-2"></i>Delete Donation</h6>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body pt-3">
+      <p class="mb-2 text-muted">Are you sure you want to delete this donation?</p>
+      <div class="p-3 rounded" style="background:#fdf8f6;border:1px solid #e8d5c8;">
+        <div class="fw-semibold" id="deleteDonationDesc" style="color:#4e2a1e;"></div>
+        <small class="text-muted" id="deleteDonationMember"></small>
+      </div>
+    </div>
+    <form method="post" id="deleteDonationForm">{% csrf_token %}
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-sm btn-danger" id="confirmDeleteDonationBtn"><i class="bi bi-trash me-1"></i>Delete</button>
+      </div>
+    </form>
+  </div></div>
+</div>
+
+<!-- OFFERING MODALS -->
+<div class="modal fade" id="addOfferingModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content" style="border-radius:12px;border:none;">
+    <div class="modal-header border-0 pb-0" style="background:#f5ede8;border-radius:12px 12px 0 0;">
+      <h6 class="modal-title fw-bold mb-0" style="color:#4e2a1e;"><i class="bi bi-gift me-2" style="color:#c9a84c;"></i>Add Offering</h6>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <form method="post" action="{% url 'offering_create' %}" id="addOfferingForm">{% csrf_token %}
+      <div class="modal-body pt-3">
+        <div class="mb-3"><label class="form-label fw-semibold text-muted small text-uppercase">Member</label>
+          <select name="member" class="form-select" required><option value="">Select Member</option>
+            {% for m in all_members %}<option value="{{ m.pk }}">{{ m.full_name }}</option>{% endfor %}
+          </select></div>
+        <div class="mb-3"><label class="form-label fw-semibold text-muted small text-uppercase">Description</label>
+          <input type="text" name="description" class="form-control" placeholder="e.g. Sunday Mass Offering" required></div>
+        <div class="mb-3"><label class="form-label fw-semibold text-muted small text-uppercase">Total Amount</label>
+          <div class="input-group"><span class="input-group-text" style="background:#f5ede8;color:#6b3a2a;">&#8369;</span>
+            <input type="number" name="total_amount" class="form-control" step="0.01" min="0.01" placeholder="0.00" required></div></div>
+        <div class="mb-3"><label class="form-label fw-semibold text-muted small text-uppercase">Date</label>
+          <input type="date" name="date" class="form-control" required></div>
+        <div class="mb-1"><label class="form-label fw-semibold text-muted small text-uppercase">Category</label>
+          <select name="category" class="form-select" required>
+            <option value="sunday_offering">Sunday Offering</option>
+            <option value="special_mass">Special Mass</option>
+            <option value="event">Event</option>
+          </select></div>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-sm btn-primary-church" id="confirmAddOfferingBtn"><i class="bi bi-check-lg me-1"></i>Save Offering</button>
+      </div>
+    </form>
+  </div></div>
+</div>
+
+<div class="modal fade" id="editOfferingModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content" style="border-radius:12px;border:none;">
+    <div class="modal-header border-0 pb-0" style="background:#f5ede8;border-radius:12px 12px 0 0;">
+      <h6 class="modal-title fw-bold mb-0" style="color:#4e2a1e;"><i class="bi bi-pencil me-2" style="color:#c9a84c;"></i>Edit Offering</h6>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <form method="post" id="editOfferingForm">{% csrf_token %}
+      <div class="modal-body pt-3">
+        <div class="mb-3"><label class="form-label fw-semibold text-muted small text-uppercase">Member</label>
+          <select name="member" class="form-select" required>
+            {% for m in all_members %}<option value="{{ m.pk }}">{{ m.full_name }}</option>{% endfor %}
+          </select></div>
+        <div class="mb-3"><label class="form-label fw-semibold text-muted small text-uppercase">Description</label>
+          <input type="text" name="description" class="form-control" required></div>
+        <div class="mb-3"><label class="form-label fw-semibold text-muted small text-uppercase">Total Amount</label>
+          <div class="input-group"><span class="input-group-text" style="background:#f5ede8;color:#6b3a2a;">&#8369;</span>
+            <input type="number" name="total_amount" class="form-control" step="0.01" min="0.01" required></div></div>
+        <div class="mb-3"><label class="form-label fw-semibold text-muted small text-uppercase">Date</label>
+          <input type="date" name="date" class="form-control" required></div>
+        <div class="mb-1"><label class="form-label fw-semibold text-muted small text-uppercase">Category</label>
+          <select name="category" class="form-select" required>
+            <option value="sunday_offering">Sunday Offering</option>
+            <option value="special_mass">Special Mass</option>
+            <option value="event">Event</option>
+          </select></div>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-sm btn-primary-church" id="confirmEditOfferingBtn"><i class="bi bi-check-lg me-1"></i>Save Changes</button>
+      </div>
+    </form>
+  </div></div>
+</div>
+
+<div class="modal fade" id="deleteOfferingModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content" style="border-radius:12px;border:none;">
+    <div class="modal-header border-0 pb-0" style="background:#fff5f5;border-radius:12px 12px 0 0;">
+      <h6 class="modal-title fw-bold mb-0" style="color:#991b1b;"><i class="bi bi-trash me-2"></i>Delete Offering</h6>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body pt-3">
+      <p class="mb-2 text-muted">Are you sure you want to delete this offering?</p>
+      <div class="p-3 rounded" style="background:#fdf8f6;border:1px solid #e8d5c8;">
+        <div class="fw-semibold" id="deleteOfferingDesc" style="color:#4e2a1e;"></div>
+        <small class="text-muted" id="deleteOfferingMember"></small>
+      </div>
+    </div>
+    <form method="post" id="deleteOfferingForm">{% csrf_token %}
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-sm btn-danger" id="confirmDeleteOfferingBtn"><i class="bi bi-trash me-1"></i>Delete</button>
+      </div>
+    </form>
+  </div></div>
+</div>

@@ -1,0 +1,27 @@
+{% extends 'registry/base.html' %}
+{% block page_title %}Offering Detail{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm" style="border-radius:12px;">
+            <div class="card-body p-4">
+                <div class="mb-3 text-center" style="font-size:3rem;color:#c9a84c;"><i class="bi bi-gift"></i></div>
+                <h6 class="fw-bold text-center mb-1" style="color:#4e2a1e;">{{ offering.description }}</h6>
+                <p class="text-center mb-1"><span class="badge" style="background:#f5ede8;color:#6b3a2a;">{{ offering.get_category_display }}</span></p>
+                <p class="text-center text-muted small mb-4"><a href="{% url 'member_detail' offering.member.pk %}" class="text-decoration-none" style="color:#6b3a2a;">{{ offering.member.full_name }}</a></p>
+                <table class="table table-sm mb-0">
+                    <tr><td class="text-muted small">Member</td><td class="fw-semibold">{{ offering.member.full_name }}</td></tr>
+                    <tr><td class="text-muted small">Description</td><td class="fw-semibold">{{ offering.description }}</td></tr>
+                    <tr><td class="text-muted small">Total Amount</td><td class="fw-semibold text-success">&#8369;{{ offering.total_amount }}</td></tr>
+                    <tr><td class="text-muted small">Date</td><td class="fw-semibold">{{ offering.date }}</td></tr>
+                    <tr><td class="text-muted small">Category</td><td class="fw-semibold">{{ offering.get_category_display }}</td></tr>
+                </table>
+                <div class="d-flex gap-2 mt-4">
+                    <a href="{% url 'offering_print' offering.pk %}" class="btn btn-sm btn-outline-secondary" target="_blank"><i class="bi bi-printer me-1"></i>Print</a>
+                    <a href="{% url 'pledge_list' %}?tab=offerings" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Back</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends 'registry/base.html' %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm" style="border-radius:12px;">
+            <div class="card-header bg-white border-0 pt-4 px-4">
+                <h6 class="fw-bold mb-0" style="color:#4e2a1e;"><i class="bi bi-cash-coin me-2" style="color:#c9a84c;"></i>{{ title }}</h6>
+            </div>
+            <div class="card-body px-4 pb-4">
+                {% if form.errors %}<div class="alert alert-danger py-2 px-3 mb-3" style="border-radius:8px;"><i class="bi bi-exclamation-triangle-fill me-2"></i><strong>Please fix the errors below.</strong></div>{% endif %}
+                <form method="post" novalidate>{% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Member *</label>
+                            {{ form.member }}
+                            {% if form.member.errors %}<div class="text-danger small mt-1">{{ form.member.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Description *</label>
+                            {{ form.description }}
+                            {% if form.description.errors %}<div class="text-danger small mt-1">{{ form.description.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Amount Pledged (&#8369;) *</label>
+                            {{ form.amount_pledged }}
+                            {% if form.amount_pledged.errors %}<div class="text-danger small mt-1">{{ form.amount_pledged.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Due Date *</label>
+                            {{ form.due_date }}
+                            {% if form.due_date.errors %}<div class="text-danger small mt-1">{{ form.due_date.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="button" class="btn btn-primary-church px-4" id="savePledgeBtn"><i class="bi bi-check-lg me-1"></i>Save Pledge</button>
+                        <a href="{% url 'pledge_list' %}" class="btn btn-outline-secondary px-4">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+document.getElementById('savePledgeBtn').addEventListener('click', function() {
+    const desc = document.querySelector('[name="description"]').value.trim() || 'this pledge';
+    const isEdit = {% if form.instance.pk %}true{% else %}false{% endif %};
+    showConfirmModal((isEdit ? 'Edit' : 'Add') + ' pledge "' + desc + '"?', () => document.querySelector('form').submit());
+});
+</script>
+{% endblock %}

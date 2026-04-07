@@ -1,0 +1,346 @@
+{% extends 'registry/base.html' %}
+{% block page_title %}Accounting{% endblock %}
+{% block content %}
+
+<div class="card border-0 shadow-sm mb-3" style="border-radius:12px;overflow:hidden;">
+    <div class="card-header bg-white border-0 px-4 pt-3 pb-0">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+            <h6 class="fw-bold mb-0" style="color:#4e2a1e;">
+                <i class="bi bi-cash-coin me-2" style="color:#c9a84c;"></i>Accounting
+            </h6>
+            <form class="d-flex" method="get">
+                <input type="hidden" name="tab" value="{{ active_tab }}">
+                <div class="input-group input-group-sm">
+                    <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search member or description...">
+                    <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-search"></i></button>
+                    {% if q %}<a href="?tab={{ active_tab }}" class="btn btn-outline-danger"><i class="bi bi-x"></i></a>{% endif %}
+                </div>
+            </form>
+        </div>
+        <ul class="nav" style="border-bottom:2px solid #e8d5c8;gap:4px;">
+            <li class="nav-item">
+                <a href="?tab=pledges{% if q %}&q={{ q }}{% endif %}" class="nav-link d-flex align-items-center gap-2 px-3 py-2 fw-semibold" style="font-size:0.85rem;border-radius:0;{% if active_tab == 'pledges' %}color:#4e2a1e;border-bottom:3px solid #c9a84c;{% else %}color:#888;border-bottom:3px solid transparent;{% endif %}">
+                    <i class="bi bi-cash-coin" style="color:#c9a84c;"></i> Pledges
+                    <span class="badge rounded-pill" style="background:#f5ede8;color:#6b3a2a;font-size:0.7rem;">{{ pledges.paginator.count }}</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="?tab=donations{% if q %}&q={{ q }}{% endif %}" class="nav-link d-flex align-items-center gap-2 px-3 py-2 fw-semibold" style="font-size:0.85rem;border-radius:0;{% if active_tab == 'donations' %}color:#4e2a1e;border-bottom:3px solid #c9a84c;{% else %}color:#888;border-bottom:3px solid transparent;{% endif %}">
+                    <i class="bi bi-heart" style="color:#c9a84c;"></i> Donations
+                    <span class="badge rounded-pill" style="background:#f5ede8;color:#6b3a2a;font-size:0.7rem;">{{ donations.paginator.count }}</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="?tab=offerings{% if q %}&q={{ q }}{% endif %}" class="nav-link d-flex align-items-center gap-2 px-3 py-2 fw-semibold" style="font-size:0.85rem;border-radius:0;{% if active_tab == 'offerings' %}color:#4e2a1e;border-bottom:3px solid #c9a84c;{% else %}color:#888;border-bottom:3px solid transparent;{% endif %}">
+                    <i class="bi bi-gift" style="color:#c9a84c;"></i> Offerings
+                    <span class="badge rounded-pill" style="background:#f5ede8;color:#6b3a2a;font-size:0.7rem;">{{ offerings.paginator.count }}</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    {% if active_tab == 'pledges' %}
+    <div class="card-header bg-white border-0 px-4 pt-3 pb-2 d-flex justify-content-end gap-2">
+        <a href="{% url 'pledge_list_print' %}" class="btn btn-sm btn-outline-secondary" target="_blank"><i class="bi bi-printer me-1"></i>Print List</a>
+        <button type="button" class="btn btn-sm btn-primary-church" data-bs-toggle="modal" data-bs-target="#addPledgeModal"><i class="bi bi-plus-lg me-1"></i>Add Pledge</button>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead><tr><th>#</th><th>Member</th><th>Description</th><th>Amount Pledged</th><th>Total Paid</th><th>Balance</th><th>Due Date</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody>
+                    {% for pledge in pledges %}
+                    <tr>
+                        <td class="text-muted small">{{ pledges.start_index|add:forloop.counter0 }}</td>
+                        <td><a href="{% url 'member_detail' pledge.member.pk %}" class="text-decoration-none fw-semibold" style="color:#4e2a1e;">{{ pledge.member.full_name }}</a></td>
+                        <td>{{ pledge.description }}</td>
+                        <td>&#8369;{{ pledge.amount_pledged }}</td>
+                        <td>&#8369;{{ pledge.total_paid }}</td>
+                        <td class="fw-semibold {% if pledge.balance > 0 %}text-danger{% else %}text-success{% endif %}">&#8369;{{ pledge.balance }}</td>
+                        <td>{{ pledge.due_date }}</td>
+                        <td>
+                            {% if pledge.status == 'paid' %}<span class="badge badge-paid px-2 py-1">Fully Paid</span>
+                            {% elif pledge.status == 'partial' %}<span class="badge badge-partial px-2 py-1">Partial</span>
+                            {% else %}<span class="badge badge-unpaid px-2 py-1">Unpaid</span>{% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a href="{% url 'pledge_detail' pledge.pk %}" class="btn btn-sm" style="background:#f5ede8;color:#6b3a2a;" title="View"><i class="bi bi-eye"></i></a>
+                                <button type="button" class="btn btn-sm btn-outline-success" title="Add Payment"
+                                    data-bs-toggle="modal" data-bs-target="#paymentModal"
+                                    data-pledge-id="{{ pledge.pk }}" data-pledge-desc="{{ pledge.description }}"
+                                    data-pledge-member="{{ pledge.member.full_name }}" data-pledge-balance="&#8369;{{ pledge.balance }}">
+                                    <i class="bi bi-cash-stack"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" title="Edit"
+                                    data-bs-toggle="modal" data-bs-target="#editPledgeModal"
+                                    data-pledge-id="{{ pledge.pk }}" data-member-id="{{ pledge.member.pk }}"
+                                    data-description="{{ pledge.description }}" data-amount="{{ pledge.amount_pledged }}"
+                                    data-due-date="{{ pledge.due_date|date:'Y-m-d' }}">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" title="Delete"
+                                    data-bs-toggle="modal" data-bs-target="#deletePledgeModal"
+                                    data-pledge-id="{{ pledge.pk }}" data-pledge-desc="{{ pledge.description }}"
+                                    data-pledge-member="{{ pledge.member.full_name }}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="9" class="text-center text-muted py-5"><i class="bi bi-cash-coin fs-2 d-block mb-2"></i>No pledges found{% if q %} for "{{ q }}"{% endif %}.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer bg-white border-0 px-4 py-2 d-flex justify-content-between align-items-center">
+        <small class="text-muted">{{ pledges.paginator.count }} pledge(s) found</small>
+        {% if pledges.has_other_pages %}
+        <nav><ul class="pagination pagination-sm mb-0">
+            {% if pledges.has_previous %}<li class="page-item"><a class="page-link" href="?tab=pledges{% if q %}&q={{ q }}{% endif %}&page_p={{ pledges.previous_page_number }}">&laquo;</a></li>{% endif %}
+            {% for num in pledges.paginator.page_range %}
+                {% if pledges.number == num %}<li class="page-item active"><span class="page-link" style="background:#6b3a2a;border-color:#6b3a2a;">{{ num }}</span></li>
+                {% elif num > pledges.number|add:'-3' and num < pledges.number|add:'3' %}<li class="page-item"><a class="page-link" href="?tab=pledges{% if q %}&q={{ q }}{% endif %}&page_p={{ num }}">{{ num }}</a></li>{% endif %}
+            {% endfor %}
+            {% if pledges.has_next %}<li class="page-item"><a class="page-link" href="?tab=pledges{% if q %}&q={{ q }}{% endif %}&page_p={{ pledges.next_page_number }}">&raquo;</a></li>{% endif %}
+        </ul></nav>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if active_tab == 'donations' %}
+    <div class="card-header bg-white border-0 px-4 pt-3 pb-2 d-flex justify-content-end gap-2">
+        <a href="{% url 'donation_list_print' %}" class="btn btn-sm btn-outline-secondary" target="_blank"><i class="bi bi-printer me-1"></i>Print List</a>
+        <button type="button" class="btn btn-sm btn-primary-church" data-bs-toggle="modal" data-bs-target="#addDonationModal"><i class="bi bi-plus-lg me-1"></i>Add Donation</button>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead><tr><th>#</th><th>Member</th><th>Description</th><th>Amount Donated</th><th>Date Donated</th><th>Actions</th></tr></thead>
+                <tbody>
+                    {% for donation in donations %}
+                    <tr>
+                        <td class="text-muted small">{{ donations.start_index|add:forloop.counter0 }}</td>
+                        <td><a href="{% url 'member_detail' donation.member.pk %}" class="text-decoration-none fw-semibold" style="color:#4e2a1e;">{{ donation.member.full_name }}</a></td>
+                        <td>{{ donation.description }}</td>
+                        <td>&#8369;{{ donation.amount }}</td>
+                        <td>{{ donation.date_donated }}</td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a href="{% url 'donation_detail' donation.pk %}" class="btn btn-sm" style="background:#f5ede8;color:#6b3a2a;" title="View"><i class="bi bi-eye"></i></a>
+                                <a href="{% url 'donation_print' donation.pk %}" class="btn btn-sm" style="background:#f5ede8;color:#6b3a2a;" title="Print" target="_blank"><i class="bi bi-printer"></i></a>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" title="Edit"
+                                    data-bs-toggle="modal" data-bs-target="#editDonationModal"
+                                    data-donation-id="{{ donation.pk }}" data-member-id="{{ donation.member.pk }}"
+                                    data-description="{{ donation.description }}" data-amount="{{ donation.amount }}"
+                                    data-date="{{ donation.date_donated|date:'Y-m-d' }}">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" title="Delete"
+                                    data-bs-toggle="modal" data-bs-target="#deleteDonationModal"
+                                    data-donation-id="{{ donation.pk }}" data-donation-desc="{{ donation.description }}"
+                                    data-donation-member="{{ donation.member.full_name }}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="text-center text-muted py-5"><i class="bi bi-heart fs-2 d-block mb-2"></i>No donations found{% if q %} for "{{ q }}"{% endif %}.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer bg-white border-0 px-4 py-2 d-flex justify-content-between align-items-center">
+        <small class="text-muted">{{ donations.paginator.count }} donation(s) found</small>
+        {% if donations.has_other_pages %}
+        <nav><ul class="pagination pagination-sm mb-0">
+            {% if donations.has_previous %}<li class="page-item"><a class="page-link" href="?tab=donations{% if q %}&q={{ q }}{% endif %}&page_d={{ donations.previous_page_number }}">&laquo;</a></li>{% endif %}
+            {% for num in donations.paginator.page_range %}
+                {% if donations.number == num %}<li class="page-item active"><span class="page-link" style="background:#6b3a2a;border-color:#6b3a2a;">{{ num }}</span></li>
+                {% elif num > donations.number|add:'-3' and num < donations.number|add:'3' %}<li class="page-item"><a class="page-link" href="?tab=donations{% if q %}&q={{ q }}{% endif %}&page_d={{ num }}">{{ num }}</a></li>{% endif %}
+            {% endfor %}
+            {% if donations.has_next %}<li class="page-item"><a class="page-link" href="?tab=donations{% if q %}&q={{ q }}{% endif %}&page_d={{ donations.next_page_number }}">&raquo;</a></li>{% endif %}
+        </ul></nav>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if active_tab == 'offerings' %}
+    <div class="card-header bg-white border-0 px-4 pt-3 pb-2 d-flex justify-content-end gap-2">
+        <a href="{% url 'offering_list_print' %}" class="btn btn-sm btn-outline-secondary" target="_blank"><i class="bi bi-printer me-1"></i>Print List</a>
+        <button type="button" class="btn btn-sm btn-primary-church" data-bs-toggle="modal" data-bs-target="#addOfferingModal"><i class="bi bi-plus-lg me-1"></i>Add Offering</button>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead><tr><th>#</th><th>Member</th><th>Description</th><th>Total Amount</th><th>Date</th><th>Category</th><th>Actions</th></tr></thead>
+                <tbody>
+                    {% for offering in offerings %}
+                    <tr>
+                        <td class="text-muted small">{{ offerings.start_index|add:forloop.counter0 }}</td>
+                        <td><a href="{% url 'member_detail' offering.member.pk %}" class="text-decoration-none fw-semibold" style="color:#4e2a1e;">{{ offering.member.full_name }}</a></td>
+                        <td>{{ offering.description }}</td>
+                        <td>&#8369;{{ offering.total_amount }}</td>
+                        <td>{{ offering.date }}</td>
+                        <td><span class="badge" style="background:#f5ede8;color:#6b3a2a;">{{ offering.get_category_display }}</span></td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a href="{% url 'offering_detail' offering.pk %}" class="btn btn-sm" style="background:#f5ede8;color:#6b3a2a;" title="View"><i class="bi bi-eye"></i></a>
+                                <a href="{% url 'offering_print' offering.pk %}" class="btn btn-sm" style="background:#f5ede8;color:#6b3a2a;" title="Print" target="_blank"><i class="bi bi-printer"></i></a>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" title="Edit"
+                                    data-bs-toggle="modal" data-bs-target="#editOfferingModal"
+                                    data-offering-id="{{ offering.pk }}" data-member-id="{{ offering.member.pk }}"
+                                    data-description="{{ offering.description }}" data-amount="{{ offering.total_amount }}"
+                                    data-date="{{ offering.date|date:'Y-m-d' }}" data-category="{{ offering.category }}">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" title="Delete"
+                                    data-bs-toggle="modal" data-bs-target="#deleteOfferingModal"
+                                    data-offering-id="{{ offering.pk }}" data-offering-desc="{{ offering.description }}"
+                                    data-offering-member="{{ offering.member.full_name }}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="text-center text-muted py-5"><i class="bi bi-gift fs-2 d-block mb-2"></i>No offerings found{% if q %} for "{{ q }}"{% endif %}.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer bg-white border-0 px-4 py-2 d-flex justify-content-between align-items-center">
+        <small class="text-muted">{{ offerings.paginator.count }} offering(s) found</small>
+        {% if offerings.has_other_pages %}
+        <nav><ul class="pagination pagination-sm mb-0">
+            {% if offerings.has_previous %}<li class="page-item"><a class="page-link" href="?tab=offerings{% if q %}&q={{ q }}{% endif %}&page_o={{ offerings.previous_page_number }}">&laquo;</a></li>{% endif %}
+            {% for num in offerings.paginator.page_range %}
+                {% if offerings.number == num %}<li class="page-item active"><span class="page-link" style="background:#6b3a2a;border-color:#6b3a2a;">{{ num }}</span></li>
+                {% elif num > offerings.number|add:'-3' and num < offerings.number|add:'3' %}<li class="page-item"><a class="page-link" href="?tab=offerings{% if q %}&q={{ q }}{% endif %}&page_o={{ num }}">{{ num }}</a></li>{% endif %}
+            {% endfor %}
+            {% if offerings.has_next %}<li class="page-item"><a class="page-link" href="?tab=offerings{% if q %}&q={{ q }}{% endif %}&page_o={{ offerings.next_page_number }}">&raquo;</a></li>{% endif %}
+        </ul></nav>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+{% include 'registry/accounting/_modals.html' %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const today = new Date().toISOString().split('T')[0];
+
+// PLEDGE
+document.getElementById('confirmAddPledgeBtn').addEventListener('click', function() {
+    const form = document.getElementById('addPledgeForm');
+    const desc = form.querySelector('[name=description]').value.trim() || 'this pledge';
+    bootstrap.Modal.getInstance(document.getElementById('addPledgeModal')).hide();
+    showConfirmModal('Add pledge "' + desc + '"?', () => form.submit());
+});
+document.getElementById('paymentModal').addEventListener('show.bs.modal', function(e) {
+    const b = e.relatedTarget;
+    document.getElementById('paymentForm').action = '/pledges/' + b.dataset.pledgeId + '/payment/add/';
+    document.getElementById('modalPledgeInfo').textContent = b.dataset.pledgeMember + ' - ' + b.dataset.pledgeDesc;
+    document.getElementById('modalBalance').textContent = b.dataset.pledgeBalance;
+    this.querySelector('[name=date_paid]').value = today;
+    this.querySelector('[name=amount]').value = '';
+    this.querySelector('[name=notes]').value = '';
+});
+document.getElementById('editPledgeModal').addEventListener('show.bs.modal', function(e) {
+    const b = e.relatedTarget, f = document.getElementById('editPledgeForm');
+    f.action = '/pledges/' + b.dataset.pledgeId + '/edit/';
+    f.querySelector('[name=member]').value = b.dataset.memberId;
+    f.querySelector('[name=description]').value = b.dataset.description;
+    f.querySelector('[name=amount_pledged]').value = b.dataset.amount;
+    f.querySelector('[name=due_date]').value = b.dataset.dueDate;
+});
+document.getElementById('confirmEditPledgeBtn').addEventListener('click', function() {
+    const desc = document.getElementById('editPledgeForm').querySelector('[name=description]').value.trim() || 'this pledge';
+    bootstrap.Modal.getInstance(document.getElementById('editPledgeModal')).hide();
+    showConfirmModal('Edit pledge "' + desc + '"?', () => document.getElementById('editPledgeForm').submit());
+});
+document.getElementById('deletePledgeModal').addEventListener('show.bs.modal', function(e) {
+    const b = e.relatedTarget;
+    document.getElementById('deletePledgeForm').action = '/pledges/' + b.dataset.pledgeId + '/delete/';
+    document.getElementById('deletePledgeDesc').textContent = b.dataset.pledgeDesc;
+    document.getElementById('deletePledgeMember').textContent = b.dataset.pledgeMember;
+});
+document.getElementById('confirmDeletePledgeBtn').addEventListener('click', function() {
+    const desc = document.getElementById('deletePledgeDesc').textContent;
+    bootstrap.Modal.getInstance(document.getElementById('deletePledgeModal')).hide();
+    showConfirmModal('Delete pledge "' + desc + '"? This will also remove all payment records.', () => document.getElementById('deletePledgeForm').submit());
+});
+
+// DONATION
+document.getElementById('confirmAddDonationBtn').addEventListener('click', function() {
+    const form = document.getElementById('addDonationForm');
+    const desc = form.querySelector('[name=description]').value.trim() || 'this donation';
+    bootstrap.Modal.getInstance(document.getElementById('addDonationModal')).hide();
+    showConfirmModal('Add donation "' + desc + '"?', () => form.submit());
+});
+document.getElementById('editDonationModal').addEventListener('show.bs.modal', function(e) {
+    const b = e.relatedTarget, f = document.getElementById('editDonationForm');
+    f.action = '/donations/' + b.dataset.donationId + '/edit/';
+    f.querySelector('[name=member]').value = b.dataset.memberId;
+    f.querySelector('[name=description]').value = b.dataset.description;
+    f.querySelector('[name=amount]').value = b.dataset.amount;
+    f.querySelector('[name=date_donated]').value = b.dataset.date;
+});
+document.getElementById('confirmEditDonationBtn').addEventListener('click', function() {
+    const desc = document.getElementById('editDonationForm').querySelector('[name=description]').value.trim() || 'this donation';
+    bootstrap.Modal.getInstance(document.getElementById('editDonationModal')).hide();
+    showConfirmModal('Edit donation "' + desc + '"?', () => document.getElementById('editDonationForm').submit());
+});
+document.getElementById('deleteDonationModal').addEventListener('show.bs.modal', function(e) {
+    const b = e.relatedTarget;
+    document.getElementById('deleteDonationForm').action = '/donations/' + b.dataset.donationId + '/delete/';
+    document.getElementById('deleteDonationDesc').textContent = b.dataset.donationDesc;
+    document.getElementById('deleteDonationMember').textContent = b.dataset.donationMember;
+});
+document.getElementById('confirmDeleteDonationBtn').addEventListener('click', function() {
+    const desc = document.getElementById('deleteDonationDesc').textContent;
+    bootstrap.Modal.getInstance(document.getElementById('deleteDonationModal')).hide();
+    showConfirmModal('Delete donation "' + desc + '"?', () => document.getElementById('deleteDonationForm').submit());
+});
+
+// OFFERING
+document.getElementById('confirmAddOfferingBtn').addEventListener('click', function() {
+    const form = document.getElementById('addOfferingForm');
+    const desc = form.querySelector('[name=description]').value.trim() || 'this offering';
+    bootstrap.Modal.getInstance(document.getElementById('addOfferingModal')).hide();
+    showConfirmModal('Add offering "' + desc + '"?', () => form.submit());
+});
+document.getElementById('editOfferingModal').addEventListener('show.bs.modal', function(e) {
+    const b = e.relatedTarget, f = document.getElementById('editOfferingForm');
+    f.action = '/offerings/' + b.dataset.offeringId + '/edit/';
+    f.querySelector('[name=member]').value = b.dataset.memberId;
+    f.querySelector('[name=description]').value = b.dataset.description;
+    f.querySelector('[name=total_amount]').value = b.dataset.amount;
+    f.querySelector('[name=date]').value = b.dataset.date;
+    f.querySelector('[name=category]').value = b.dataset.category;
+});
+document.getElementById('confirmEditOfferingBtn').addEventListener('click', function() {
+    const desc = document.getElementById('editOfferingForm').querySelector('[name=description]').value.trim() || 'this offering';
+    bootstrap.Modal.getInstance(document.getElementById('editOfferingModal')).hide();
+    showConfirmModal('Edit offering "' + desc + '"?', () => document.getElementById('editOfferingForm').submit());
+});
+document.getElementById('deleteOfferingModal').addEventListener('show.bs.modal', function(e) {
+    const b = e.relatedTarget;
+    document.getElementById('deleteOfferingForm').action = '/offerings/' + b.dataset.offeringId + '/delete/';
+    document.getElementById('deleteOfferingDesc').textContent = b.dataset.offeringDesc;
+    document.getElementById('deleteOfferingMember').textContent = b.dataset.offeringMember;
+});
+document.getElementById('confirmDeleteOfferingBtn').addEventListener('click', function() {
+    const desc = document.getElementById('deleteOfferingDesc').textContent;
+    bootstrap.Modal.getInstance(document.getElementById('deleteOfferingModal')).hide();
+    showConfirmModal('Delete offering "' + desc + '"?', () => document.getElementById('deleteOfferingForm').submit());
+});
+</script>
+{% endblock %}

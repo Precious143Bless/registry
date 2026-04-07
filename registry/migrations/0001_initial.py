@@ -518,4 +518,38 @@ class Migration(migrations.Migration):
             model_name='parishofficerep',
             index=models.Index(fields=['last_name', 'first_name'], name='officer_name_idx'),
         ),
+
+        migrations.CreateModel(
+            name='Donation',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('description', models.CharField(max_length=255)),
+                ('amount', models.DecimalField(decimal_places=2, max_digits=10)),
+                ('date_donated', models.DateField()),
+                ('date_created', models.DateField(auto_now_add=True)),
+                ('member', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='donations', to='registry.member')),
+            ],
+            options={'ordering': ['-date_donated']},
+        ),
+
+        migrations.CreateModel(
+            name='Offering',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('description', models.CharField(max_length=255)),
+                ('total_amount', models.DecimalField(decimal_places=2, max_digits=10)),
+                ('date', models.DateField()),
+                ('category', models.CharField(
+                    choices=[
+                        ('sunday_offering', 'Sunday Offering'),
+                        ('special_mass', 'Special Mass'),
+                        ('event', 'Event'),
+                    ],
+                    default='sunday_offering', max_length=20,
+                )),
+                ('date_created', models.DateField(auto_now_add=True)),
+                ('member', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='offerings', to='registry.member')),
+            ],
+            options={'ordering': ['-date']},
+        ),
     ]
