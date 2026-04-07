@@ -399,19 +399,30 @@ def member_dashboard(request):
     total_balance = total_pledged - total_paid
     active_pledges = pledges.filter(status__in=['unpaid', 'partial']).count()
     
+    # Count sacraments
+    sacrament_count = sum([baptism, confirmation, communion, len(marriages)])
+    
+    # Get user parish if assigned
+    user_parish = getattr(request, 'user_parish', None)
+    
     context = {
         'member': member,
-        'baptism': baptism,
-        'confirmation': confirmation,
-        'communion': communion,
-        'last_rites': last_rites,
-        'marriages': marriages,
+        'member_since': member.date_registered,
+        'sacraments': {
+            'baptism': baptism,
+            'confirmation': confirmation,
+            'first_communion': communion,
+            'matrimony': len(marriages) > 0,
+        },
+        'sacrament_count': sacrament_count,
         'pledges': pledges,
-        'organization_memberships': organization_memberships,
+        'organizations': organization_memberships,
+        'active_organizations': organization_memberships.count(),
         'total_pledged': total_pledged,
         'total_paid': total_paid,
         'total_balance': total_balance,
         'active_pledges': active_pledges,
+        'user_parish': user_parish,
     }
     
     return render(request, 'registry/member_dashboard.html', context)
