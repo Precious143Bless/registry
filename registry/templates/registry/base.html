@@ -395,7 +395,7 @@
             <ul class="nav-sub collapse {% if 'member' in request.resolver_match.url_name or 'sacrament' in request.resolver_match.url_name or 'baptism' in request.resolver_match.url_name or 'confirmation' in request.resolver_match.url_name or 'communion' in request.resolver_match.url_name or 'marriage' in request.resolver_match.url_name or 'last_rites' in request.resolver_match.url_name or 'pledge' in request.resolver_match.url_name or 'payment' in request.resolver_match.url_name %}show{% endif %}" id="nav-records">
                 <li><a href="{% url 'member_list' %}" class="nav-link {% if 'member' in request.resolver_match.url_name %}active{% endif %}">Members</a></li>
                 <li><a href="{% url 'sacrament_list' %}" class="nav-link {% if 'sacrament' in request.resolver_match.url_name or 'baptism' in request.resolver_match.url_name or 'confirmation' in request.resolver_match.url_name or 'communion' in request.resolver_match.url_name or 'marriage' in request.resolver_match.url_name or 'last_rites' in request.resolver_match.url_name %}active{% endif %}">Sacraments</a></li>
-                <li><a href="{% url 'pledge_list' %}" class="nav-link {% if 'pledge' in request.resolver_match.url_name or 'payment' in request.resolver_match.url_name %}active{% endif %}">Pledges</a></li>
+                <li><a href="{% url 'pledge_list' %}" class="nav-link {% if 'pledge' in request.resolver_match.url_name or 'payment' in request.resolver_match.url_name %}active{% endif %}">Accounting</a></li>
             </ul>
         </li>
 
@@ -454,7 +454,7 @@
             <ul class="nav-sub collapse {% if 'member' in request.resolver_match.url_name or 'sacrament' in request.resolver_match.url_name or 'baptism' in request.resolver_match.url_name or 'confirmation' in request.resolver_match.url_name or 'communion' in request.resolver_match.url_name or 'marriage' in request.resolver_match.url_name or 'last_rites' in request.resolver_match.url_name or 'pledge' in request.resolver_match.url_name or 'payment' in request.resolver_match.url_name %}show{% endif %}" id="nav-records">
                 <li><a href="{% url 'member_list' %}" class="nav-link {% if 'member' in request.resolver_match.url_name %}active{% endif %}">Our Members</a></li>
                 <li><a href="{% url 'sacrament_list' %}" class="nav-link {% if 'sacrament' in request.resolver_match.url_name or 'baptism' in request.resolver_match.url_name or 'confirmation' in request.resolver_match.url_name or 'communion' in request.resolver_match.url_name or 'marriage' in request.resolver_match.url_name or 'last_rites' in request.resolver_match.url_name %}active{% endif %}">Sacraments</a></li>
-                <li><a href="{% url 'pledge_list' %}" class="nav-link {% if 'pledge' in request.resolver_match.url_name or 'payment' in request.resolver_match.url_name %}active{% endif %}">Pledges</a></li>
+                <li><a href="{% url 'pledge_list' %}" class="nav-link {% if 'pledge' in request.resolver_match.url_name or 'payment' in request.resolver_match.url_name %}active{% endif %}">Accounting</a></li>
             </ul>
         </li>
 
