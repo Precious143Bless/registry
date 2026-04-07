@@ -24,6 +24,7 @@
                     <option value="">All Roles</option>
                     <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Admin</option>
                     <option value="staff" {% if role_filter == 'staff' %}selected{% endif %}>Staff</option>
+                    <option value="member" {% if role_filter == 'member' %}selected{% endif %}>Member</option>
                 </select>
             </div>
             <div class="col-md-3 d-flex gap-2">
@@ -64,13 +65,21 @@
                     <td class="small text-muted">{{ u.username }}</td>
                     <td class="small">{{ u.email|default:"—" }}</td>
                     <td>
-                        {% if u.is_superuser %}
+                        {% if u.user_role == 'admin' %}
                         <span class="badge" style="background:#fef3c7;color:#92400e;">
                             <i class="bi bi-shield-fill me-1"></i>Admin
                         </span>
-                        {% else %}
+                        {% elif u.user_role == 'staff' %}
                         <span class="badge" style="background:#e0f2fe;color:#0369a1;">
                             <i class="bi bi-person-fill me-1"></i>Staff
+                        </span>
+                        {% elif u.user_role == 'member' %}
+                        <span class="badge" style="background:#d1fae5;color:#166534;">
+                            <i class="bi bi-person-circle me-1"></i>Member
+                        </span>
+                        {% else %}
+                        <span class="badge" style="background:#fde68a;color:#92400e;">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i>Unknown
                         </span>
                         {% endif %}
                     </td>

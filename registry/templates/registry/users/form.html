@@ -34,40 +34,65 @@
                         <!-- Role -->
                         <div class="col-12">
                             <label class="form-label small fw-semibold">Role <span class="text-danger">*</span></label>
-                            <div class="d-flex gap-3 mt-1">
+                            <div class="d-flex gap-3 mt-1 flex-wrap">
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="role" id="roleAdmin" value="admin"
                                         {% if current_role == 'admin' %}checked{% endif %}
-                                        onchange="toggleParishField()">
+                                        onchange="togglePriestMemberField()">
                                     <label class="form-check-label" for="roleAdmin">
                                         <i class="bi bi-shield-fill me-1" style="color:#92400e;"></i>Admin
                                     </label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="role" id="roleStaff" value="staff"
-                                        {% if current_role != 'admin' %}checked{% endif %}
-                                        onchange="toggleParishField()">
-                                    <label class="form-check-label" for="roleStaff">
-                                        <i class="bi bi-person-fill me-1" style="color:#0369a1;"></i>Staff
+                                    <input class="form-check-input" type="radio" name="role" id="rolePriest" value="priest"
+                                        {% if current_role == 'priest' %}checked{% endif %}
+                                        onchange="togglePriestMemberField()">
+                                    <label class="form-check-label" for="rolePriest">
+                                        <i class="bi bi-cross-lg me-1" style="color:#dc2626;"></i>Staff (Priest)
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="role" id="roleMember" value="member"
+                                        {% if current_role == 'member' %}checked{% endif %}
+                                        onchange="togglePriestMemberField()">
+                                    <label class="form-check-label" for="roleMember">
+                                        <i class="bi bi-person-fill me-1" style="color:#0369a1;"></i>Member
                                     </label>
                                 </div>
                             </div>
-                            <small class="text-muted">Admin has full access. Staff is limited to their assigned parish.</small>
+                            <small class="text-muted">
+                                Admin has full access. Staff (Priest) accesses their assigned parish. Members access only their profile.
+                            </small>
                         </div>
 
-                        <!-- Parish (Staff only) -->
-                        <div class="col-12" id="parishField" style="display:{% if current_role == 'admin' %}none{% else %}block{% endif %};">
-                            <label class="form-label small fw-semibold">Assigned Parish</label>
-                            <select name="parish_id" class="form-select">
-                                <option value="">— Select Parish —</option>
-                                {% for p in parishes %}
+                        <!-- Priest Selection (Staff only) -->
+                        <div class="col-12" id="priestField" style="display:{% if current_role == 'priest' %}block{% else %}none{% endif %};">
+                            <label class="form-label small fw-semibold">Select Priest <span class="text-danger">*</span></label>
+                            <select name="priest_id" id="priestSelect" class="form-select">
+                                <option value="">— Select Priest —</option>
+                                {% for p in priests %}
                                 <option value="{{ p.pk }}"
-                                    {% if officer and officer.parish_id == p.pk %}selected{% endif %}>
-                                    {{ p.name }} ({{ p.church.name }})
+                                    {% if target_user and target_user.priest_profile == p %}selected{% endif %}>
+                                    {{ p.full_name }} — {{ p.assignment_display }}
                                 </option>
                                 {% endfor %}
                             </select>
-                            <small class="text-muted">Required for staff to access their parish data.</small>
+                            <small class="text-muted">Link this user to an existing priest record.</small>
+                        </div>
+
+                        <!-- Member Selection (Member only) -->
+                        <div class="col-12" id="memberField" style="display:{% if current_role == 'member' %}block{% else %}none{% endif %};">
+                            <label class="form-label small fw-semibold">Select Member <span class="text-danger">*</span></label>
+                            <select name="member_id" id="memberSelect" class="form-select">
+                                <option value="">— Select Member —</option>
+                                {% for m in members %}
+                                <option value="{{ m.pk }}"
+                                    {% if target_user and target_user.member_profile == m %}selected{% endif %}>
+                                    {{ m.full_name }} — {{ m.church_parish_display }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted">Link this user to an existing member record.</small>
                         </div>
 
                         <!-- Password -->
@@ -148,9 +173,19 @@ function showSaveConfirm() {
     new bootstrap.Modal(document.getElementById('saveModal')).show();
 }
 
-function toggleParishField() {
-    const isStaff = document.getElementById('roleStaff').checked;
-    document.getElementById('parishField').style.display = isStaff ? 'block' : 'none';
+function togglePriestMemberField() {
+    const role = document.querySelector('input[name="role"]:checked').value;
+    
+    // Hide all fields first
+    document.getElementById('priestField').style.display = 'none';
+    document.getElementById('memberField').style.display = 'none';
+    
+    // Show appropriate field based on role
+    if (role === 'priest') {
+        document.getElementById('priestField').style.display = 'block';
+    } else if (role === 'member') {
+        document.getElementById('memberField').style.display = 'block';
+    }
 }
 
 function togglePassword(fieldId, iconId) {

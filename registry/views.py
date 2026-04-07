@@ -192,13 +192,17 @@ def register_view(request):
             last_name = form.cleaned_data['last_name']
             
             # Create the User
+            # Priests are created as staff, members are not
+            is_staff = True if user_type == 'priest' else False
+            
             user = User.objects.create_user(
                 username=email,  # Use email as username
                 email=email,
                 password=password,
                 first_name=first_name,
                 last_name=last_name,
-                is_active=True
+                is_active=True,
+                is_staff=is_staff
             )
             
             # Link to the appropriate profile
@@ -3092,7 +3096,7 @@ def user_list(request):
     role_filter = request.GET.get('role', '')
     status_filter = request.GET.get('status', '')
 
-    users = User.objects.filter(is_active=True).order_by('-date_joined')
+    users = User.objects.filter(is_active=True).order_by('-date_joined').select_related('priest_profile', 'member_profile')
 
     if q:
         users = users.filter(
@@ -3102,7 +3106,9 @@ def user_list(request):
     if role_filter == 'admin':
         users = users.filter(is_superuser=True)
     elif role_filter == 'staff':
-        users = users.filter(is_superuser=False)
+        users = users.filter(is_superuser=False, is_staff=True)
+    elif role_filter == 'member':
+        users = users.filter(is_superuser=False, is_staff=False)
     if status_filter == 'active':
         users = users.filter(is_active=True)
     elif status_filter == 'inactive':
@@ -3111,12 +3117,25 @@ def user_list(request):
     paginator = Paginator(users, 15)
     page_obj = paginator.get_page(request.GET.get('page'))
 
-    # Attach parish_display to each user for the template
-    emails = [u.email for u in page_obj if u.email]
-    officers = ParishOfficerEP.objects.filter(email__in=emails, is_active=True).select_related('parish')
-    parish_map = {o.email: o.parish.name for o in officers}
+    # Attach parish_display and role to each user for the template
     for u in page_obj:
-        u.parish_display = parish_map.get(u.email, '—')
+        if u.is_superuser:
+            u.user_role = 'admin'
+        elif hasattr(u, 'priest_profile') and u.priest_profile:
+            u.user_role = 'staff'
+        elif hasattr(u, 'member_profile') and u.member_profile:
+            u.user_role = 'member'
+        elif u.is_staff:
+            u.user_role = 'staff'
+        else:
+            u.user_role = 'member'
+
+        if hasattr(u, 'priest_profile') and u.priest_profile:
+            u.parish_display = u.priest_profile.assignment_display
+        elif hasattr(u, 'member_profile') and u.member_profile:
+            u.parish_display = u.member_profile.church_parish_display
+        else:
+            u.parish_display = '—'
 
     return render(request, 'registry/users/list.html', {
         'users': page_obj,
@@ -3136,8 +3155,9 @@ def user_create(request):
         email = request.POST.get('email', '').strip()
         password = request.POST.get('password', '')
         confirm_password = request.POST.get('confirm_password', '')
-        role = request.POST.get('role', 'staff')
-        parish_id = request.POST.get('parish_id', '')
+        role = request.POST.get('role', 'member')
+        priest_id = request.POST.get('priest_id', '')
+        member_id = request.POST.get('member_id', '')
 
         errors = []
         if not first_name or not last_name:
@@ -3150,6 +3170,12 @@ def user_create(request):
             errors.append('Password must be at least 8 characters.')
         if password != confirm_password:
             errors.append('Passwords do not match.')
+
+        # Validate role selections
+        if role == 'priest' and not priest_id:
+            errors.append('Please select a priest for the staff role.')
+        if role == 'member' and not member_id:
+            errors.append('Please select a member for the member role.')
 
         if errors:
             for e in errors:
@@ -3169,39 +3195,49 @@ def user_create(request):
                 last_name=last_name,
                 password=password,
             )
+            
+            # Set role flags
             if role == 'admin':
                 user.is_superuser = True
                 user.is_staff = True
-            else:
+            elif role == 'priest':
+                user.is_superuser = False
+                user.is_staff = True
+            else:  # member
                 user.is_superuser = False
                 user.is_staff = False
             user.save()
 
-            # If staff role and parish selected, create/link ParishOfficerEP
-            if role == 'staff' and parish_id:
+            # Link to selected Priest or Member
+            if role == 'priest' and priest_id:
                 try:
-                    parish = Parish.objects.get(pk=parish_id)
-                    ParishOfficerEP.objects.get_or_create(
-                        email=email,
-                        defaults={
-                            'first_name': first_name,
-                            'last_name': last_name,
-                            'parish': parish,
-                            'position': 'secretary',
-                            'date_assigned': datetime.now().date(),
-                            'is_active': True,
-                        }
-                    )
-                except Parish.DoesNotExist:
-                    pass
-
-            messages.success(request, f'User {user.get_full_name()} created successfully.')
+                    priest = ParishPriest.objects.get(pk=priest_id)
+                    priest.user = user
+                    priest.save()
+                    messages.success(request, f'User {user.get_full_name()} created successfully and linked to priest account.')
+                except ParishPriest.DoesNotExist:
+                    messages.warning(request, f'User {user.get_full_name()} created but priest could not be linked.')
+                    
+            elif role == 'member' and member_id:
+                try:
+                    member = Member.objects.get(pk=member_id)
+                    member.user = user
+                    member.save()
+                    messages.success(request, f'User {user.get_full_name()} created successfully and linked to member account.')
+                except Member.DoesNotExist:
+                    messages.warning(request, f'User {user.get_full_name()} created but member could not be linked.')
+            else:
+                messages.success(request, f'User {user.get_full_name()} created successfully.')
+                
             return redirect('user_list')
 
-    parishes = Parish.objects.filter(is_active=True).order_by('name')
+    priests = ParishPriest.objects.filter(status='active').order_by('last_name', 'first_name')
+    members = Member.objects.filter(is_active=True).order_by('last_name', 'first_name')
+    
     return render(request, 'registry/users/form.html', {
         'title': 'Add New User',
-        'parishes': parishes,
+        'priests': priests,
+        'members': members,
     })
 
 
@@ -3214,8 +3250,9 @@ def user_edit(request, pk):
         first_name = request.POST.get('first_name', '').strip()
         last_name = request.POST.get('last_name', '').strip()
         email = request.POST.get('email', '').strip()
-        role = request.POST.get('role', 'staff')
-        parish_id = request.POST.get('parish_id', '')
+        role = request.POST.get('role', 'member')
+        priest_id = request.POST.get('priest_id', '')
+        member_id = request.POST.get('member_id', '')
         new_password = request.POST.get('new_password', '')
         confirm_password = request.POST.get('confirm_password', '')
 
@@ -3231,6 +3268,12 @@ def user_edit(request, pk):
         if new_password and new_password != confirm_password:
             errors.append('Passwords do not match.')
 
+        # Validate role selections
+        if role == 'priest' and not priest_id:
+            errors.append('Please select a priest for the staff role.')
+        if role == 'member' and not member_id:
+            errors.append('Please select a member for the member role.')
+
         if errors:
             for e in errors:
                 messages.error(request, e)
@@ -3238,56 +3281,71 @@ def user_edit(request, pk):
             target_user.first_name = first_name
             target_user.last_name = last_name
             target_user.email = email
+            
+            # Set role flags
             if role == 'admin':
                 target_user.is_superuser = True
                 target_user.is_staff = True
-            else:
+            elif role == 'priest':
+                target_user.is_superuser = False
+                target_user.is_staff = True
+            else:  # member
                 target_user.is_superuser = False
                 target_user.is_staff = False
+            
             if new_password:
                 target_user.set_password(new_password)
             target_user.save()
 
-            # Sync ParishOfficerEP record
-            if role == 'staff' and parish_id:
-                try:
-                    parish = Parish.objects.get(pk=parish_id)
-                    officer = ParishOfficerEP.objects.filter(email=email).first()
-                    if officer:
-                        officer.first_name = first_name
-                        officer.last_name = last_name
-                        officer.parish = parish
-                        officer.is_active = True
-                        officer.save()
-                    else:
-                        ParishOfficerEP.objects.create(
-                            email=email,
-                            first_name=first_name,
-                            last_name=last_name,
-                            parish=parish,
-                            position='secretary',
-                            date_assigned=datetime.now().date(),
-                            is_active=True,
-                        )
-                except Parish.DoesNotExist:
-                    pass
-            elif role == 'admin':
-                # Deactivate any officer record if promoted to admin
-                ParishOfficerEP.objects.filter(email=email).update(is_active=False)
+            # Unlink from existing profiles
+            ParishPriest.objects.filter(user=target_user).update(user=None)
+            Member.objects.filter(user=target_user).update(user=None)
 
-            messages.success(request, f'User {target_user.get_full_name()} updated successfully.')
+            # Link to selected Priest or Member
+            if role == 'priest' and priest_id:
+                try:
+                    priest = ParishPriest.objects.get(pk=priest_id)
+                    priest.user = target_user
+                    priest.save()
+                    messages.success(request, f'User {target_user.get_full_name()} updated and linked to priest account.')
+                except ParishPriest.DoesNotExist:
+                    messages.warning(request, f'User {target_user.get_full_name()} updated but priest could not be linked.')
+                    
+            elif role == 'member' and member_id:
+                try:
+                    member = Member.objects.get(pk=member_id)
+                    member.user = target_user
+                    member.save()
+                    messages.success(request, f'User {target_user.get_full_name()} updated and linked to member account.')
+                except Member.DoesNotExist:
+                    messages.warning(request, f'User {target_user.get_full_name()} updated but member could not be linked.')
+            else:
+                messages.success(request, f'User {target_user.get_full_name()} updated successfully.')
+                
             return redirect('user_list')
 
-    parishes = Parish.objects.filter(is_active=True).order_by('name')
-    officer = ParishOfficerEP.objects.filter(email=target_user.email).first()
-    current_role = 'admin' if target_user.is_superuser else 'staff'
+    priests = ParishPriest.objects.filter(status='active').order_by('last_name', 'first_name')
+    members = Member.objects.filter(is_active=True).order_by('last_name', 'first_name')
+    
+    # Determine current role
+    current_role = 'admin'
+    if target_user.is_superuser:
+        current_role = 'admin'
+    elif hasattr(target_user, 'priest_profile') and target_user.priest_profile:
+        current_role = 'priest'
+    elif hasattr(target_user, 'member_profile') and target_user.member_profile:
+        current_role = 'member'
+    elif target_user.is_staff:
+        current_role = 'priest'
+    else:
+        current_role = 'member'
 
     return render(request, 'registry/users/form.html', {
         'title': 'Edit User',
         'target_user': target_user,
         'current_role': current_role,
-        'parishes': parishes,
-        'officer': officer,
+        'priests': priests,
+        'members': members,
     })
 
 
