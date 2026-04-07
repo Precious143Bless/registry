@@ -1,5 +1,5 @@
 from django.utils.deprecation import MiddlewareMixin
-from .models import ParishOfficerEP
+from .models import ParishOfficerEP, ParishPriest
 
 
 class ParishPriestMiddleware(MiddlewareMixin):
