@@ -4,8 +4,11 @@
 
 {% block content %}
 <div class="card shadow-sm">
-    <div class="card-header bg-white">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
         <h4 class="mb-0"><i class="bi bi-credit-card me-2"></i>My Pledges</h4>
+        <a href="{% url 'member_donations' %}" class="btn btn-sm" style="background:#6b3a2a;color:#fff;">
+            <i class="bi bi-heart me-1"></i>View My Donations
+        </a>
     </div>
     <div class="card-body">
         {% if pledges %}
@@ -26,23 +29,29 @@
                         {% for pledge in pledges %}
                         <tr>
                             <td>{{ pledge.description }}</td>
-                            <td>₱{{ pledge.amount_pledged|floatformat:2 }}</td>
-                            <td>₱{{ pledge.total_paid|floatformat:2 }}</td>
-                            <td>₱{{ pledge.balance|floatformat:2 }}</td>
+                            <td>&#8369;{{ pledge.amount_pledged|floatformat:2 }}</td>
+                            <td>&#8369;{{ pledge.total_paid|floatformat:2 }}</td>
+                            <td>&#8369;{{ pledge.balance|floatformat:2 }}</td>
                             <td>{{ pledge.due_date|date:"M d, Y" }}</td>
                             <td>
                                 {% if pledge.status == 'paid' %}
                                     <span class="badge bg-success">Fully Paid</span>
                                 {% elif pledge.status == 'partial' %}
-                                    <span class="badge bg-warning">Partially Paid</span>
+                                    <span class="badge bg-warning text-dark">Partially Paid</span>
                                 {% else %}
                                     <span class="badge bg-danger">Unpaid</span>
                                 {% endif %}
                             </td>
-                            <td>
+                            <td class="d-flex gap-1">
                                 <a href="{% url 'member_pledge_detail' pledge.id %}" class="btn btn-sm btn-outline-primary">
-                                    <i class="bi bi-eye"></i> View Details
+                                    <i class="bi bi-eye"></i> View
                                 </a>
+                                {% if pledge.status != 'paid' %}
+                                <button class="btn btn-sm" style="background:#6b3a2a;color:#fff;"
+                                        data-bs-toggle="modal" data-bs-target="#payModal{{ pledge.id }}">
+                                    <i class="bi bi-plus-circle"></i> Pay
+                                </button>
+                                {% endif %}
                             </td>
                         </tr>
                         {% endfor %}
@@ -57,4 +66,47 @@
         {% endif %}
     </div>
 </div>
+
+{% for pledge in pledges %}
+{% if pledge.status != 'paid' %}
+<div class="modal fade" id="payModal{{ pledge.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'member_pledge_add_payment' pledge.pk %}">
+                {% csrf_token %}
+                <div class="modal-header" style="background:#6b3a2a;color:#fff;">
+                    <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Add Payment</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-3">{{ pledge.description }} — Balance: <strong>&#8369;{{ pledge.balance|floatformat:2 }}</strong></p>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Amount <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text">&#8369;</span>
+                            <input type="number" name="amount" class="form-control" step="0.01" min="0.01"
+                                   max="{{ pledge.balance }}" placeholder="0.00" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Date Paid <span class="text-danger">*</span></label>
+                        <input type="date" name="date_paid" class="form-control" required max="{% now 'Y-m-d' %}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Notes</label>
+                        <input type="text" name="notes" class="form-control" placeholder="Optional notes">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn" style="background:#6b3a2a;color:#fff;">
+                        <i class="bi bi-check-circle me-1"></i>Save Payment
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endfor %}
 {% endblock %}

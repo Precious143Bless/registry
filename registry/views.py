@@ -567,6 +567,57 @@ def member_pledge_detail(request, pk):
 
 
 @login_required
+def member_pledge_add_payment(request, pk):
+    """Allow member to add a payment to their own pledge"""
+    if not hasattr(request.user, 'member_profile'):
+        messages.error(request, 'Access denied.')
+        return redirect('login')
+
+    pledge = get_object_or_404(Pledge, pk=pk, member=request.user.member_profile)
+
+    if request.method == 'POST':
+        form = PledgePaymentForm(request.POST)
+        if form.is_valid():
+            payment = form.save(commit=False)
+            payment.pledge = pledge
+            payment.save()
+            messages.success(request, 'Payment recorded successfully.')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field.replace("_", " ").title()}: {error}')
+
+    return redirect('member_pledge_detail', pk=pk)
+
+
+@login_required
+def member_pledge_print(request, pk):
+    """Print a member's own pledge — same layout as staff print"""
+    if not hasattr(request.user, 'member_profile'):
+        messages.error(request, 'Access denied.')
+        return redirect('login')
+
+    pledge = get_object_or_404(Pledge, pk=pk, member=request.user.member_profile)
+    return render(request, 'registry/accounting/pledges/print.html', {
+        'pledge': pledge,
+        'parish': _parish_ctx(),
+    })
+
+
+@login_required
+def member_donations(request):
+    """View member's donations (read-only)"""
+    if not hasattr(request.user, 'member_profile'):
+        messages.error(request, 'Access denied.')
+        return redirect('login')
+
+    member = request.user.member_profile
+    donations = member.donations.all().order_by('-date_donated')
+
+    return render(request, 'registry/member_donations.html', {'donations': donations, 'member': member})
+
+
+@login_required
 def member_sacraments(request):
     """View member's sacramental records"""
     if not hasattr(request.user, 'member_profile'):
@@ -1377,7 +1428,8 @@ def pledge_edit(request, pk):
     
     form = PledgeForm(request.POST or None, instance=pledge)
     if form.is_valid():
-        form.save()
+        updated_pledge = form.save()
+        updated_pledge.update_status()
         messages.success(request, 'Pledge updated.')
         return redirect('pledge_list')
     return render(request, 'registry/accounting/pledges/form.html', {'form': form, 'title': 'Edit Pledge'})
