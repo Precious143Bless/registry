@@ -92,6 +92,9 @@ urlpatterns = [
     path('offerings/<int:pk>/print/', views.offering_print, name='offering_print'),
     path('offerings/print/all/', views.offering_list_print, name='offering_list_print'),
 
+    # Accounting combined print
+    path('accounting/print/all/', views.accounting_all_print, name='accounting_all_print'),
+
     # Database Management
     path('database/backup/', views.backup_database, name='database_backup'),
     path('database/restore/', views.restore_database, name='database_restore'),

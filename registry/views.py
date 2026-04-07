@@ -1106,7 +1106,7 @@ def last_rites_print(request, pk):
 def pledge_list(request):
     parish_filter = get_user_parish_filter(request)
     q = request.GET.get('q', '')
-    active_tab = request.GET.get('tab', 'pledges')
+    active_tab = request.GET.get('tab', 'all')
 
     if parish_filter:
         pledges = Pledge.objects.select_related('member').filter(member__parish=parish_filter)
@@ -1125,10 +1125,52 @@ def pledge_list(request):
         donations = donations.filter(name_q)
         offerings = offerings.filter(name_q)
 
+    # Build combined list for "All" tab
+    all_records = []
+    for p in pledges.order_by('-date_created'):
+        all_records.append({
+            'type': 'Pledge', 'member': p.member.full_name,
+            'description': p.description, 'amount': p.amount_pledged,
+            'date': p.date_created, 'category': '—',
+            'status': p.get_status_display(), 'pk': p.pk,
+        })
+    for d in donations.order_by('-date_donated'):
+        all_records.append({
+            'type': 'Donation', 'member': d.member.full_name,
+            'description': d.description, 'amount': d.amount,
+            'date': d.date_donated, 'category': '—',
+            'status': '—', 'pk': d.pk,
+        })
+    for o in offerings.order_by('-date'):
+        all_records.append({
+            'type': 'Offering', 'member': o.member.full_name,
+            'description': o.description, 'amount': o.total_amount,
+            'date': o.date, 'category': o.get_category_display(),
+            'status': '—', 'pk': o.pk,
+        })
+    all_records.sort(key=lambda x: x['date'], reverse=True)
+    all_paginator = Paginator(all_records, 15)
+    all_page = all_paginator.get_page(request.GET.get('page_a'))
+
+    # Totals for stat cards
+    from decimal import Decimal
+    total_pledges_amount = sum(p.amount_pledged for p in pledges)
+    total_donations_amount = sum(d.amount for d in donations)
+    total_offerings_amount = sum(o.total_amount for o in offerings)
+    total_all_amount = total_pledges_amount + total_donations_amount + total_offerings_amount
+
     return render(request, 'registry/accounting/list.html', {
         'pledges': Paginator(pledges, 15).get_page(request.GET.get('page_p')),
         'donations': Paginator(donations, 15).get_page(request.GET.get('page_d')),
         'offerings': Paginator(offerings, 15).get_page(request.GET.get('page_o')),
+        'all_records': all_page,
+        'total_all_amount': total_all_amount,
+        'total_pledges_amount': total_pledges_amount,
+        'total_donations_amount': total_donations_amount,
+        'total_offerings_amount': total_offerings_amount,
+        'total_pledges_count': pledges.count(),
+        'total_donations_count': donations.count(),
+        'total_offerings_count': offerings.count(),
         'q': q,
         'active_tab': active_tab,
         'all_members': all_members,
@@ -1560,6 +1602,33 @@ def offering_list_print(request):
         offerings = Offering.objects.select_related('member').order_by('member__last_name')
     return render(request, 'registry/accounting/offerings/print_list.html', {
         'offerings': offerings,
+        'parish': _parish_ctx(),
+    })
+
+
+@login_required
+def accounting_all_print(request):
+    parish_filter = get_user_parish_filter(request)
+    if parish_filter:
+        pledges = Pledge.objects.select_related('member').filter(member__parish=parish_filter)
+        donations = Donation.objects.select_related('member').filter(member__parish=parish_filter)
+        offerings = Offering.objects.select_related('member').filter(member__parish=parish_filter)
+    else:
+        pledges = Pledge.objects.select_related('member')
+        donations = Donation.objects.select_related('member')
+        offerings = Offering.objects.select_related('member')
+
+    all_records = []
+    for p in pledges:
+        all_records.append({'type': 'Pledge', 'member': p.member.full_name, 'description': p.description, 'amount': p.amount_pledged, 'date': p.date_created, 'category': '—', 'status': p.get_status_display()})
+    for d in donations:
+        all_records.append({'type': 'Donation', 'member': d.member.full_name, 'description': d.description, 'amount': d.amount, 'date': d.date_donated, 'category': '—', 'status': '—'})
+    for o in offerings:
+        all_records.append({'type': 'Offering', 'member': o.member.full_name, 'description': o.description, 'amount': o.total_amount, 'date': o.date, 'category': o.get_category_display(), 'status': '—'})
+    all_records.sort(key=lambda x: x['date'], reverse=True)
+
+    return render(request, 'registry/accounting/print_all.html', {
+        'all_records': all_records,
         'parish': _parish_ctx(),
     })
 

@@ -2,6 +2,62 @@
 {% block page_title %}Accounting{% endblock %}
 {% block content %}
 
+<!-- Stat Cards -->
+<div class="row g-3 mb-3">
+    <div class="col-6 col-md-3">
+        <a href="?tab=all" class="text-decoration-none">
+            <div class="card border-0 shadow-sm stat-card {% if active_tab == 'all' %}border-bottom border-3{% endif %}" style="border-radius:12px;{% if active_tab == 'all' %}border-bottom-color:#c9a84c!important;{% endif %}">
+                <div class="card-body d-flex align-items-center gap-3 py-3">
+                    <div class="icon-box" style="background:#f5ede8;"><i class="bi bi-list-ul" style="color:#c9a84c;"></i></div>
+                    <div>
+                        <div class="fw-bold" style="font-size:1.1rem;color:#4e2a1e;">&#8369;{{ total_all_amount|floatformat:2 }}</div>
+                        <div class="text-muted small">All Accounting <span class="badge rounded-pill" style="background:#f5ede8;color:#6b3a2a;">{{ total_pledges_count|add:total_donations_count|add:total_offerings_count }}</span></div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-md-3">
+        <a href="?tab=pledges" class="text-decoration-none">
+            <div class="card border-0 shadow-sm stat-card" style="border-radius:12px;{% if active_tab == 'pledges' %}border-bottom:3px solid #c9a84c;{% endif %}">
+                <div class="card-body d-flex align-items-center gap-3 py-3">
+                    <div class="icon-box" style="background:#dbeafe;"><i class="bi bi-cash-coin" style="color:#1e40af;"></i></div>
+                    <div>
+                        <div class="fw-bold" style="font-size:1.1rem;color:#4e2a1e;">&#8369;{{ total_pledges_amount|floatformat:2 }}</div>
+                        <div class="text-muted small">Pledges <span class="badge rounded-pill" style="background:#f5ede8;color:#6b3a2a;">{{ total_pledges_count }}</span></div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-md-3">
+        <a href="?tab=donations" class="text-decoration-none">
+            <div class="card border-0 shadow-sm stat-card" style="border-radius:12px;{% if active_tab == 'donations' %}border-bottom:3px solid #c9a84c;{% endif %}">
+                <div class="card-body d-flex align-items-center gap-3 py-3">
+                    <div class="icon-box" style="background:#d1fae5;"><i class="bi bi-heart" style="color:#065f46;"></i></div>
+                    <div>
+                        <div class="fw-bold" style="font-size:1.1rem;color:#4e2a1e;">&#8369;{{ total_donations_amount|floatformat:2 }}</div>
+                        <div class="text-muted small">Donations <span class="badge rounded-pill" style="background:#f5ede8;color:#6b3a2a;">{{ total_donations_count }}</span></div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-md-3">
+        <a href="?tab=offerings" class="text-decoration-none">
+            <div class="card border-0 shadow-sm stat-card" style="border-radius:12px;{% if active_tab == 'offerings' %}border-bottom:3px solid #c9a84c;{% endif %}">
+                <div class="card-body d-flex align-items-center gap-3 py-3">
+                    <div class="icon-box" style="background:#fef3c7;"><i class="bi bi-gift" style="color:#92400e;"></i></div>
+                    <div>
+                        <div class="fw-bold" style="font-size:1.1rem;color:#4e2a1e;">&#8369;{{ total_offerings_amount|floatformat:2 }}</div>
+                        <div class="text-muted small">Offerings <span class="badge rounded-pill" style="background:#f5ede8;color:#6b3a2a;">{{ total_offerings_count }}</span></div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
 <div class="card border-0 shadow-sm mb-3" style="border-radius:12px;overflow:hidden;">
     <div class="card-header bg-white border-0 px-4 pt-3 pb-0">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
@@ -18,6 +74,11 @@
             </form>
         </div>
         <ul class="nav" style="border-bottom:2px solid #e8d5c8;gap:4px;">
+            <li class="nav-item">
+                <a href="?tab=all{% if q %}&q={{ q }}{% endif %}" class="nav-link d-flex align-items-center gap-2 px-3 py-2 fw-semibold" style="font-size:0.85rem;border-radius:0;{% if active_tab == 'all' %}color:#4e2a1e;border-bottom:3px solid #c9a84c;{% else %}color:#888;border-bottom:3px solid transparent;{% endif %}">
+                    <i class="bi bi-list-ul" style="color:#c9a84c;"></i> All
+                </a>
+            </li>
             <li class="nav-item">
                 <a href="?tab=pledges{% if q %}&q={{ q }}{% endif %}" class="nav-link d-flex align-items-center gap-2 px-3 py-2 fw-semibold" style="font-size:0.85rem;border-radius:0;{% if active_tab == 'pledges' %}color:#4e2a1e;border-bottom:3px solid #c9a84c;{% else %}color:#888;border-bottom:3px solid transparent;{% endif %}">
                     <i class="bi bi-cash-coin" style="color:#c9a84c;"></i> Pledges
@@ -38,6 +99,50 @@
             </li>
         </ul>
     </div>
+
+    {% if active_tab == 'all' %}
+    <div class="card-header bg-white border-0 px-4 pt-3 pb-2 d-flex justify-content-end gap-2">
+        <a href="{% url 'accounting_all_print' %}" class="btn btn-sm btn-outline-secondary" target="_blank"><i class="bi bi-printer me-1"></i>Print All</a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead><tr><th>#</th><th>Type</th><th>Member</th><th>Description</th><th>Amount</th><th>Date</th></tr></thead>
+                <tbody>
+                    {% for r in all_records %}
+                    <tr>
+                        <td class="text-muted small">{{ all_records.start_index|add:forloop.counter0 }}</td>
+                        <td>
+                            {% if r.type == 'Pledge' %}<span class="badge" style="background:#dbeafe;color:#1e40af;">Pledge</span>
+                            {% elif r.type == 'Donation' %}<span class="badge" style="background:#d1fae5;color:#065f46;">Donation</span>
+                            {% else %}<span class="badge" style="background:#fef3c7;color:#92400e;">Offering</span>{% endif %}
+                        </td>
+                        <td class="fw-semibold" style="color:#4e2a1e;">{{ r.member }}</td>
+                        <td>{{ r.description }}</td>
+                        <td>&#8369;{{ r.amount }}</td>
+                        <td>{{ r.date }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="text-center text-muted py-5"><i class="bi bi-inbox fs-2 d-block mb-2"></i>No records found{% if q %} for "{{ q }}"{% endif %}.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer bg-white border-0 px-4 py-2 d-flex justify-content-between align-items-center">
+        <small class="text-muted">{{ all_records.paginator.count }} record(s) found</small>
+        {% if all_records.has_other_pages %}
+        <nav><ul class="pagination pagination-sm mb-0">
+            {% if all_records.has_previous %}<li class="page-item"><a class="page-link" href="?tab=all{% if q %}&q={{ q }}{% endif %}&page_a={{ all_records.previous_page_number }}">&laquo;</a></li>{% endif %}
+            {% for num in all_records.paginator.page_range %}
+                {% if all_records.number == num %}<li class="page-item active"><span class="page-link" style="background:#6b3a2a;border-color:#6b3a2a;">{{ num }}</span></li>
+                {% elif num > all_records.number|add:'-3' and num < all_records.number|add:'3' %}<li class="page-item"><a class="page-link" href="?tab=all{% if q %}&q={{ q }}{% endif %}&page_a={{ num }}">{{ num }}</a></li>{% endif %}
+            {% endfor %}
+            {% if all_records.has_next %}<li class="page-item"><a class="page-link" href="?tab=all{% if q %}&q={{ q }}{% endif %}&page_a={{ all_records.next_page_number }}">&raquo;</a></li>{% endif %}
+        </ul></nav>
+        {% endif %}
+    </div>
+    {% endif %}
 
     {% if active_tab == 'pledges' %}
     <div class="card-header bg-white border-0 px-4 pt-3 pb-2 d-flex justify-content-end gap-2">
