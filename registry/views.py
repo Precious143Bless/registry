@@ -555,19 +555,6 @@ def member_pledges(request):
 
 
 @login_required
-def member_pledge_detail(request, pk):
-    """View single pledge details"""
-    if not hasattr(request.user, 'member_profile'):
-        messages.error(request, 'Access denied.')
-        return redirect('login')
-    
-    pledge = get_object_or_404(Pledge, pk=pk, member=request.user.member_profile)
-    payments = pledge.payments.all().order_by('-date_paid')
-    
-    return render(request, 'registry/member_pledge_detail.html', {'pledge': pledge, 'payments': payments})
-
-
-@login_required
 def member_pledge_add_payment(request, pk):
     """Allow member to add a payment — saved as pending until staff approves"""
     if not hasattr(request.user, 'member_profile'):

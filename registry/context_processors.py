@@ -1,5 +1,5 @@
 from datetime import date, timedelta
-from .models import Notification, Pledge
+from .models import Notification, Pledge, ParishPriest
 from .models import ParishOfficerEP
 
 
