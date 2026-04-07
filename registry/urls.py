@@ -181,7 +181,6 @@ urlpatterns = [
     # Member Portal
     path('member/dashboard/', views.member_dashboard, name='member_dashboard'),
     path('member/profile/', views.member_profile, name='member_profile'),
-    path('member/change-password/', views.member_change_password, name='member_change_password'),
     path('member/pledges/', views.member_pledges, name='member_pledges'),
     path('member/pledges/<int:pk>/', views.member_pledge_detail, name='member_pledge_detail'),
     path('member/sacraments/', views.member_sacraments, name='member_sacraments'),
