@@ -37,10 +37,54 @@
         </div>
     </div>
     <div class="col-md-8">
+        {% if pending_payments %}
+        <div class="card border-0 shadow-sm mb-3" style="border-radius:12px;">
+            <div class="card-header bg-white border-0 pt-3 px-4 d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0" style="color:#856404;">
+                    <i class="bi bi-hourglass-split me-2" style="color:#ffc107;"></i>Pending Approval
+                </h6>
+                <span class="badge" style="background:#fff3cd;color:#856404;">{{ pending_payments.count }} pending</span>
+            </div>
+            <div class="card-body p-0">
+                <table class="table mb-0">
+                    <thead style="background:#fffbf0;">
+                        <tr><th class="ps-4">Date</th><th>Amount</th><th>Notes</th><th>Submitted By</th><th>Action</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in pending_payments %}
+                        <tr>
+                            <td class="ps-4">{{ payment.date_paid }}</td>
+                            <td class="fw-semibold" style="color:#856404;">&#8369;{{ payment.amount }}</td>
+                            <td>{{ payment.notes|default:"—" }}</td>
+                            <td>
+                                {% if payment.submitted_by_member %}
+                                    <span class="badge bg-info text-dark">Member</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Staff</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-success py-0 px-2"
+                                        onclick="handlePaymentAction({{ payment.id }}, 'approve', this)">
+                                    <i class="bi bi-check-circle me-1"></i>Approve
+                                </button>
+                                <button class="btn btn-sm btn-danger py-0 px-2 ms-1"
+                                        onclick="handlePaymentAction({{ payment.id }}, 'reject', this)">
+                                    <i class="bi bi-x-circle me-1"></i>Reject
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
         <div class="card border-0 shadow-sm" style="border-radius:12px;">
             <div class="card-header bg-white border-0 pt-3 px-4 d-flex justify-content-between align-items-center">
                 <h6 class="fw-bold mb-0" style="color:#4e2a1e;"><i class="bi bi-receipt me-2" style="color:#c9a84c;"></i>Payment History</h6>
-                <small class="text-muted">{{ pledge.payments.count }} payment(s)</small>
+                <small class="text-muted">{{ page_obj.paginator.count }} payment(s)</small>
             </div>
             <div class="card-body p-0">
                 <table class="table mb-0">
@@ -62,4 +106,26 @@
         </div>
     </div>
 </div>
+
+<script>
+function handlePaymentAction(paymentId, action, btn) {
+    btn.disabled = true;
+    const row = btn.closest('tr');
+    fetch(`/payments/${paymentId}/${action}/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': document.cookie.match(/csrftoken=([^;]+)/)?.[1] || ''},
+        credentials: 'same-origin'
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            // Reload to reflect updated balance and tables
+            location.reload();
+        } else {
+            btn.disabled = false;
+        }
+    })
+    .catch(() => { btn.disabled = false; });
+}
+</script>
 {% endblock %}

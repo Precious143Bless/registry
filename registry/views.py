@@ -1464,7 +1464,9 @@ def pledge_detail(request, pk):
         messages.error(request, 'You do not have permission to view this pledge.')
         return redirect('pledge_list')
     
-    payments = pledge.payments.all()
+    # Only show approved payments in the history table
+    payments = pledge.payments.filter(status='approved')
+    pending_payments = pledge.payments.filter(status='pending')
 
     date_from = request.GET.get('date_from', '')
     date_to = request.GET.get('date_to', '')
@@ -1485,6 +1487,7 @@ def pledge_detail(request, pk):
     return render(request, 'registry/accounting/pledges/detail.html', {
         'pledge': pledge,
         'page_obj': page,
+        'pending_payments': pending_payments,
         'date_from': date_from,
         'date_to': date_to,
         'amount_min': amount_min,
