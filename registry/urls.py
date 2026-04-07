@@ -68,6 +68,7 @@ urlpatterns = [
     path('pledges/new/', views.pledge_create, name='pledge_create'),
     path('members/<int:member_pk>/pledge/add/', views.member_pledge_create, name='member_pledge_create'),
     path('pledges/print/all/', views.pledge_list_print, name='pledge_list_print'),
+    path('pledges/summary/', views.pledge_summary, name='pledge_summary'),
     path('pledges/<int:pk>/', views.pledge_detail, name='pledge_detail'),
     path('pledges/<int:pk>/edit/', views.pledge_edit, name='pledge_edit'),
     path('pledges/<int:pk>/delete/', views.pledge_delete, name='pledge_delete'),

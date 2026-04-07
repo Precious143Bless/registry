@@ -147,6 +147,7 @@
     {% if active_tab == 'pledges' %}
     <div class="card-header bg-white border-0 px-4 pt-3 pb-2 d-flex justify-content-end gap-2">
         <a href="{% url 'pledge_list_print' %}" class="btn btn-sm btn-outline-secondary" target="_blank"><i class="bi bi-printer me-1"></i>Print List</a>
+        <a href="{% url 'pledge_summary' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-table me-1"></i>Summary</a>
         <button type="button" class="btn btn-sm btn-primary-church" data-bs-toggle="modal" data-bs-target="#addPledgeModal"><i class="bi bi-plus-lg me-1"></i>Add Pledge</button>
     </div>
     <div class="card-body p-0">
