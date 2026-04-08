@@ -59,7 +59,7 @@ WSGI_APPLICATION = 'church_registry.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default=os.environ.get('postgresql://church_registry_user:mFbENL8m22wm2YGH2xzTE1wDoOkobt9n@dpg-d7arivdm5p6s73ai40c0-a/church_registry'),
+        default=os.environ.get('postgresql://church_registry_hk3y_user:Uoqg73WxoF267IzcAxJbv2QdoFzCTJHw@dpg-d7asqa2dbo4c73aqsp40-a/church_registry_hk3y'),
         conn_max_age=600,
         conn_health_checks=True,
     )
