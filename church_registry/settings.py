@@ -59,14 +59,11 @@ TEMPLATES = [
 WSGI_APPLICATION = 'church_registry.wsgi.application'
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('DB_NAME', 'church_registry'),
-        'USER': os.environ.get('DB_USER', 'root'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-        'HOST': os.environ.get('DB_HOST', '127.0.0.1'),
-        'PORT': os.environ.get('DB_PORT', '3306'),
-    }
+    'default': dj_database_url.config(
+        default=os.environ.get('postgresql://church_registry_user:mFbENL8m22wm2YGH2xzTE1wDoOkobt9n@dpg-d7arivdm5p6s73ai40c0-a/church_registry'),
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 
 AUTH_PASSWORD_VALIDATORS = [
