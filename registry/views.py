@@ -663,6 +663,56 @@ def member_sacraments(request):
 
 
 @login_required
+def member_sacrament_print_baptism(request):
+    if not hasattr(request.user, 'member_profile'):
+        return redirect('login')
+    baptism = get_object_or_404(Baptism, member=request.user.member_profile)
+    return render(request, 'registry/sacraments/print_baptism.html', {
+        'baptism': baptism, 'parish': _parish_ctx(),
+    })
+
+
+@login_required
+def member_sacrament_print_confirmation(request):
+    if not hasattr(request.user, 'member_profile'):
+        return redirect('login')
+    conf = get_object_or_404(Confirmation, member=request.user.member_profile)
+    return render(request, 'registry/sacraments/print_confirmation.html', {
+        'conf': conf, 'parish': _parish_ctx(),
+    })
+
+
+@login_required
+def member_sacrament_print_communion(request):
+    if not hasattr(request.user, 'member_profile'):
+        return redirect('login')
+    communion = get_object_or_404(FirstHolyCommunion, member=request.user.member_profile)
+    return render(request, 'registry/sacraments/print_communion.html', {
+        'communion': communion, 'parish': _parish_ctx(),
+    })
+
+
+@login_required
+def member_sacrament_print_marriage(request, pk):
+    if not hasattr(request.user, 'member_profile'):
+        return redirect('login')
+    marriage = get_object_or_404(Marriage, pk=pk, member=request.user.member_profile)
+    return render(request, 'registry/sacraments/print_marriage.html', {
+        'marriage': marriage, 'parish': _parish_ctx(),
+    })
+
+
+@login_required
+def member_sacrament_print_last_rites(request):
+    if not hasattr(request.user, 'member_profile'):
+        return redirect('login')
+    lr = get_object_or_404(LastRites, member=request.user.member_profile)
+    return render(request, 'registry/sacraments/print_last_rites.html', {
+        'lr': lr, 'parish': _parish_ctx(),
+    })
+
+
+@login_required
 def member_organizations(request):
     """View member's organization memberships"""
     if not hasattr(request.user, 'member_profile'):

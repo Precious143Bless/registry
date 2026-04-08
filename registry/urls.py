@@ -190,6 +190,11 @@ urlpatterns = [
     path('member/pledges/<int:pk>/print/', views.member_pledge_print, name='member_pledge_print'),
     path('member/donations/', views.member_donations, name='member_donations'),
     path('member/sacraments/', views.member_sacraments, name='member_sacraments'),
+    path('member/sacraments/print/baptism/', views.member_sacrament_print_baptism, name='member_sacrament_print_baptism'),
+    path('member/sacraments/print/confirmation/', views.member_sacrament_print_confirmation, name='member_sacrament_print_confirmation'),
+    path('member/sacraments/print/communion/', views.member_sacrament_print_communion, name='member_sacrament_print_communion'),
+    path('member/sacraments/print/marriage/<int:pk>/', views.member_sacrament_print_marriage, name='member_sacrament_print_marriage'),
+    path('member/sacraments/print/last-rites/', views.member_sacrament_print_last_rites, name='member_sacrament_print_last_rites'),
     path('member/organizations/', views.member_organizations, name='member_organizations'),
 ]
 

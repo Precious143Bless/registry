@@ -1,109 +1,137 @@
 {% extends 'registry/member_base.html' %}
-
 {% block title %}My Sacraments{% endblock %}
-
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <div class="card shadow-sm mb-4">
-            <div class="card-header bg-white">
-                <h4 class="mb-0"><i class="bi bi-book me-2"></i>My Sacramental Records</h4>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <!-- Baptism -->
-                    <div class="col-md-6 mb-3">
-                        <div class="card h-100">
-                            <div class="card-body">
-                                <h5><i class="bi bi-droplet text-primary me-2"></i>Baptism</h5>
-                                {% if baptism %}
-                                    <p class="mb-1"><strong>Date:</strong> {{ baptism.date_baptized|date:"F d, Y" }}</p>
-                                    <p class="mb-1"><strong>Priest:</strong> {{ baptism.priest }}</p>
-                                    <p class="mb-0"><strong>Birth Certificate:</strong> {{ baptism.birth_certificate_no|default:"N/A" }}</p>
-                                {% else %}
-                                    <p class="text-muted">No baptism record found.</p>
-                                {% endif %}
-                            </div>
-                        </div>
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white">
+        <h5 class="mb-0"><i class="bi bi-journal-bookmark-fill me-2" style="color:#c9a84c;"></i>Sacramental Records</h5>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+
+            <!-- Baptism — blue/lavender -->
+            <div class="col-md-6">
+                <div class="p-3 h-100" style="background:#eef2ff;border-radius:12px;">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <h6 class="fw-bold mb-2" style="color:#3b4fa8;">
+                            <i class="bi bi-droplet-fill me-1" style="color:#4e6ef2;"></i>Baptism
+                        </h6>
+                        {% if baptism %}
+                        <a href="{% url 'member_sacrament_print_baptism' %}" target="_blank"
+                           class="btn btn-sm p-1" style="border:1px solid #4e6ef2;color:#4e6ef2;border-radius:8px;" title="Print">
+                            <i class="bi bi-printer"></i>
+                        </a>
+                        {% endif %}
                     </div>
-                    
-                    <!-- Confirmation -->
-                    <div class="col-md-6 mb-3">
-                        <div class="card h-100">
-                            <div class="card-body">
-                                <h5><i class="bi bi-star-fill text-success me-2"></i>Confirmation</h5>
-                                {% if confirmation %}
-                                    <p class="mb-1"><strong>Date:</strong> {{ confirmation.date_confirmed|date:"F d, Y" }}</p>
-                                    <p class="mb-1"><strong>Bishop:</strong> {{ confirmation.bishop }}</p>
-                                    <p class="mb-0"><strong>Confirmation Name:</strong> {{ confirmation.confirmation_name }}</p>
-                                {% else %}
-                                    <p class="text-muted">No confirmation record found.</p>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- First Holy Communion -->
-                    <div class="col-md-6 mb-3">
-                        <div class="card h-100">
-                            <div class="card-body">
-                                <h5><i class="bi bi-cup-straw text-info me-2"></i>First Holy Communion</h5>
-                                {% if communion %}
-                                    <p class="mb-1"><strong>Date:</strong> {{ communion.date_received|date:"F d, Y" }}</p>
-                                    <p class="mb-0"><strong>Priest:</strong> {{ communion.priest }}</p>
-                                {% else %}
-                                    <p class="text-muted">No first communion record found.</p>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Last Rites -->
-                    <div class="col-md-6 mb-3">
-                        <div class="card h-100">
-                            <div class="card-body">
-                                <h5><i class="bi bi-heart text-warning me-2"></i>Last Rites</h5>
-                                {% if last_rites %}
-                                    <p class="mb-1"><strong>Date:</strong> {{ last_rites.date_administered|date:"F d, Y" }}</p>
-                                    <p class="mb-0"><strong>Priest:</strong> {{ last_rites.priest }}</p>
-                                {% else %}
-                                    <p class="text-muted">No last rites record found.</p>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Marriages -->
-                <div class="mt-4">
-                    <h5><i class="bi bi-heart-fill text-danger me-2"></i>Marriages</h5>
-                    {% if marriages %}
-                        <div class="table-responsive">
-                            <table class="table table-sm">
-                                <thead>
-                                    <tr>
-                                        <th>Spouse</th>
-                                        <th>Date Married</th>
-                                        <th>Priest</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for marriage in marriages %}
-                                    <tr>
-                                        <td>{{ marriage.spouse_name }}</td>
-                                        <td>{{ marriage.date_married|date:"F d, Y" }}</td>
-                                        <td>{{ marriage.priest }}</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
+                    {% if baptism %}
+                        <p class="text-muted small mb-1">{{ baptism.date_baptized|date:"F d, Y" }}</p>
+                        <p class="mb-1 small fw-semibold">{{ baptism.priest }}</p>
+                        {% if baptism.get_godfathers %}<p class="mb-0 small text-muted">GF: {{ baptism.get_godfathers|join:", " }}</p>{% endif %}
+                        {% if baptism.get_godmothers %}<p class="mb-0 small text-muted">GM: {{ baptism.get_godmothers|join:", " }}</p>{% endif %}
                     {% else %}
-                        <p class="text-muted">No marriage records found.</p>
+                        <p class="text-muted small mb-0">No baptism record found.</p>
                     {% endif %}
                 </div>
             </div>
+
+            <!-- Confirmation — green -->
+            <div class="col-md-6">
+                <div class="p-3 h-100" style="background:#edfaf1;border-radius:12px;">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <h6 class="fw-bold mb-2" style="color:#1a7a4a;">
+                            <i class="bi bi-patch-check-fill me-1" style="color:#28a745;"></i>Confirmation
+                        </h6>
+                        {% if confirmation %}
+                        <a href="{% url 'member_sacrament_print_confirmation' %}" target="_blank"
+                           class="btn btn-sm p-1" style="border:1px solid #28a745;color:#28a745;border-radius:8px;" title="Print">
+                            <i class="bi bi-printer"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% if confirmation %}
+                        <p class="text-muted small mb-1">{{ confirmation.date_confirmed|date:"F d, Y" }}</p>
+                        <p class="mb-1 small fw-semibold">{{ confirmation.bishop }}</p>
+                        <p class="mb-0 small text-muted">{{ confirmation.confirmation_name }}</p>
+                    {% else %}
+                        <p class="text-muted small mb-0">No confirmation record found.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- First Holy Communion — yellow -->
+            <div class="col-md-6">
+                <div class="p-3 h-100" style="background:#fffde7;border-radius:12px;">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <h6 class="fw-bold mb-2" style="color:#a07800;">
+                            <i class="bi bi-cup-hot-fill me-1" style="color:#c9a84c;"></i>First Holy Communion
+                        </h6>
+                        {% if communion %}
+                        <a href="{% url 'member_sacrament_print_communion' %}" target="_blank"
+                           class="btn btn-sm p-1" style="border:1px solid #c9a84c;color:#a07800;border-radius:8px;" title="Print">
+                            <i class="bi bi-printer"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% if communion %}
+                        <p class="text-muted small mb-1">{{ communion.date_received|date:"F d, Y" }}</p>
+                        <p class="mb-0 small fw-semibold">{{ communion.priest }}</p>
+                    {% else %}
+                        <p class="text-muted small mb-0">No first communion record found.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Last Rites — grey/dark -->
+            <div class="col-md-6">
+                <div class="p-3 h-100" style="background:#f4f4f6;border-radius:12px;">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <h6 class="fw-bold mb-2" style="color:#444;">
+                            <i class="bi bi-moon-fill me-1" style="color:#666;"></i>Last Rites
+                        </h6>
+                        {% if last_rites %}
+                        <a href="{% url 'member_sacrament_print_last_rites' %}" target="_blank"
+                           class="btn btn-sm p-1" style="border:1px solid #888;color:#555;border-radius:8px;" title="Print">
+                            <i class="bi bi-printer"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% if last_rites %}
+                        <p class="text-muted small mb-1">{{ last_rites.date_administered|date:"F d, Y" }}</p>
+                        <p class="mb-0 small fw-semibold">{{ last_rites.priest }}</p>
+                    {% else %}
+                        <p class="text-muted small mb-0">No last rites record found.</p>
+                    {% endif %}
+                </div>
+            </div>
+
         </div>
+
+        <!-- Marriage — pink/red -->
+        <div class="mt-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="fw-bold mb-0" style="color:#c0392b;">
+                    <i class="bi bi-heart-fill me-1" style="color:#e74c3c;"></i>Marriage Record
+                </h6>
+            </div>
+            {% if marriages %}
+                {% for marriage in marriages %}
+                <div class="p-3 mb-2" style="background:#fff0f0;border-radius:12px;">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="fw-semibold mb-1 small">{{ marriage.spouse_name }}</p>
+                            <p class="text-muted small mb-0">{{ marriage.date_married|date:"F d, Y" }} — {{ marriage.priest }}</p>
+                        </div>
+                        <a href="{% url 'member_sacrament_print_marriage' marriage.pk %}" target="_blank"
+                           class="btn btn-sm p-1" style="border:1px solid #e74c3c;color:#c0392b;border-radius:8px;" title="Print">
+                            <i class="bi bi-printer"></i>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-muted small">No marriage records found.</p>
+            {% endif %}
+        </div>
+
     </div>
 </div>
 {% endblock %}
