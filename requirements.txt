@@ -3,3 +3,4 @@ django-crispy-forms==2.1
 crispy-bootstrap5==0.7
 Pillow
 pymysql
+gunicorn
