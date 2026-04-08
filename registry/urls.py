@@ -188,6 +188,7 @@ urlpatterns = [
     path('member/pledges/<int:pk>/', views.member_pledge_detail, name='member_pledge_detail'),
     path('member/pledges/<int:pk>/pay/', views.member_pledge_add_payment, name='member_pledge_add_payment'),
     path('member/pledges/<int:pk>/print/', views.member_pledge_print, name='member_pledge_print'),
+    path('member/pledges/print/', views.member_pledges_print, name='member_pledges_print'),
     path('member/donations/', views.member_donations, name='member_donations'),
     path('member/sacraments/', views.member_sacraments, name='member_sacraments'),
     path('member/sacraments/print/baptism/', views.member_sacrament_print_baptism, name='member_sacrament_print_baptism'),

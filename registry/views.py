@@ -629,6 +629,22 @@ def member_pledge_print(request, pk):
 
 
 @login_required
+def member_pledges_print(request):
+    """Print all pledges for the logged-in member"""
+    if not hasattr(request.user, 'member_profile'):
+        messages.error(request, 'Access denied.')
+        return redirect('login')
+
+    member = request.user.member_profile
+    pledges = member.pledges.all().order_by('-due_date')
+    return render(request, 'registry/member_pledges_print.html', {
+        'pledges': pledges,
+        'member': member,
+        'parish': _parish_ctx(),
+    })
+
+
+@login_required
 def member_donations(request):
     """View member's donations (read-only)"""
     if not hasattr(request.user, 'member_profile'):
