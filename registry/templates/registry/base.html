@@ -511,10 +511,13 @@
                 <li><hr class="dropdown-divider my-1"></li>
                 {% if unread_notifications %}
                     {% for notification in unread_notifications %}
-                        <li class="notification-item px-3 py-2" data-id="{{ notification.id }}">
+                        <li class="notification-item px-3 py-2" data-id="{{ notification.id }}" data-unread="true">
                             <div class="d-flex align-items-start">
                                 <div class="flex-grow-1 pe-2">
-                                    <div class="fw-bold small mb-1">{{ notification.title }}</div>
+                                    <div class="fw-bold small mb-1 d-flex align-items-center gap-1">
+                                        <span class="unread-dot" style="width:8px;height:8px;border-radius:50%;background:#dc3545;display:inline-block;flex-shrink:0;"></span>
+                                        {{ notification.title }}
+                                    </div>
                                     <small class="text-muted d-block mb-1">{{ notification.message }}</small>
                                     <div class="text-muted" style="font-size: 0.65rem;">
                                         {{ notification.created_at|date:"M d, Y g:i A" }}
@@ -659,27 +662,15 @@ function showSuccessModal(message) {
 
 // Notification functions
 function markNotificationRead(notificationId, element) {
-    console.log('Marking notification as read:', notificationId, element);
     fetch(`/notifications/${notificationId}/read/`, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin'
     })
-    .then(response => {
-        console.log('Response status:', response.status);
-        return response.json();
-    })
+    .then(r => r.json())
     .then(data => {
-        console.log('Response data:', data);
         if (data.success) {
-            // Remove the notification from the dropdown
-            if (element) {
-                element.remove();
-                console.log('Removed notification from DOM');
-            }
-            // Update notification count
+            if (element) element.remove();
             updateNotificationCount();
         }
     })
@@ -698,7 +689,6 @@ function handlePayment(paymentId, action, notificationId, btn) {
     .then(r => r.json())
     .then(data => {
         if (data.success) {
-            // Mark notification read and remove from DOM
             fetch(`/notifications/${notificationId}/read/`, {
                 method: 'POST',
                 credentials: 'same-origin'
@@ -711,50 +701,35 @@ function handlePayment(paymentId, action, notificationId, btn) {
 }
 
 function markAllNotificationsRead() {
-    console.log('Marking all notifications as read');
-    // Remove all notifications from DOM immediately
-    const notificationItems = document.querySelectorAll('.notification-item');
-    notificationItems.forEach(item => {
-        console.log('Removing item:', item);
-        item.remove();
+    // Remove red dots and mark items as read visually — keep items in list
+    document.querySelectorAll('.notification-item .unread-dot').forEach(dot => dot.remove());
+    document.querySelectorAll('.notification-item').forEach(item => {
+        item.removeAttribute('data-unread');
     });
-    // Update notification count
-    updateNotificationCount();
-    
-    // Then make the AJAX call
+    // Hide the badge immediately
+    const badge = document.querySelector('.notification-badge');
+    if (badge) badge.style.display = 'none';
+    // Hide Mark All Read button
+    const markAllBtn = document.querySelector('[onclick="markAllNotificationsRead()"]');
+    if (markAllBtn) markAllBtn.style.display = 'none';
+
     fetch('/notifications/mark-all-read/', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin'
-    })
-    .then(response => {
-        console.log('Mark all response status:', response.status);
-        return response.json();
-    })
-    .then(data => {
-        console.log('Mark all response data:', data);
-        // DOM is already updated, so we don't need to do anything else
     })
     .catch(error => console.error('Error:', error));
 }
 
 function updateNotificationCount() {
-    const notificationItems = document.querySelectorAll('.notification-item');
-    console.log('Remaining notification items:', notificationItems.length);
+    const unreadItems = document.querySelectorAll('.notification-item[data-unread="true"]');
     const badge = document.querySelector('.notification-badge');
-    
-    if (notificationItems.length === 0) {
-        console.log('No notifications left, removing badge');
-        if (badge) badge.remove();
-        // Close notification dropdown if no notifications
-        const dropdown = bootstrap.Dropdown.getInstance(document.getElementById('notificationDropdown'));
-        if (dropdown) dropdown.hide();
+    if (unreadItems.length === 0) {
+        if (badge) badge.style.display = 'none';
     } else {
-        console.log('Updating badge to:', notificationItems.length);
         if (badge) {
-            badge.textContent = notificationItems.length;
+            badge.style.display = '';
+            badge.textContent = unreadItems.length;
         }
     }
 }

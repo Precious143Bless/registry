@@ -23,16 +23,19 @@ def notifications_processor(request):
         )
         for pledge in due_pledges:
             days_label = 'Today' if pledge.due_date == today else 'Tomorrow'
-            Notification.objects.get_or_create(
+            if not Notification.objects.filter(
                 user=request.user,
                 notification_type='pledge_due',
                 related_pledge=pledge,
-                is_read=False,
-                defaults={
-                    'title': f'Pledge Payment Due {days_label}',
-                    'message': f'Payment of ₱{pledge.balance:.2f} is due {days_label.lower()} for {pledge.description} by {pledge.member.full_name}',
-                }
-            )
+            ).exists():
+                Notification.objects.create(
+                    user=request.user,
+                    notification_type='pledge_due',
+                    related_pledge=pledge,
+                    title=f'Pledge Payment Due {days_label}',
+                    message=f'Payment of ₱{pledge.balance:.2f} is due {days_label.lower()} for {pledge.description} by {pledge.member.full_name}',
+                    is_read=False,
+                )
 
         # Create notifications for overdue pledges
         overdue_pledges = Pledge.objects.filter(
@@ -40,16 +43,19 @@ def notifications_processor(request):
             **pledge_filter
         )
         for pledge in overdue_pledges:
-            Notification.objects.get_or_create(
+            if not Notification.objects.filter(
                 user=request.user,
                 notification_type='pledge_overdue',
                 related_pledge=pledge,
-                is_read=False,
-                defaults={
-                    'title': 'Pledge Payment Overdue',
-                    'message': f'Payment of ₱{pledge.balance:.2f} is overdue for {pledge.description} by {pledge.member.full_name}',
-                }
-            )
+            ).exists():
+                Notification.objects.create(
+                    user=request.user,
+                    notification_type='pledge_overdue',
+                    related_pledge=pledge,
+                    title='Pledge Payment Overdue',
+                    message=f'Payment of ₱{pledge.balance:.2f} is overdue for {pledge.description} by {pledge.member.full_name}',
+                    is_read=False,
+                )
 
         unread_notifications = Notification.objects.filter(
             user=request.user,

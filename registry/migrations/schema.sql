@@ -102,3 +102,15 @@ ALTER TABLE `registry_notification` ADD CONSTRAINT `registry_notificatio_related
 ALTER TABLE `registry_notification` ADD CONSTRAINT `registry_notification_user_id_a07cd5de_fk_auth_user_id` FOREIGN KEY (`user_id`) REFERENCES `auth_user` (`id`);
 ALTER TABLE `registry_donation` ADD CONSTRAINT `registry_donation_member_id_3562a204_fk_registry_member_id` FOREIGN KEY (`member_id`) REFERENCES `registry_member` (`id`);
 ALTER TABLE `registry_offering` ADD CONSTRAINT `registry_offering_member_id_88b692ca_fk_registry_member_id` FOREIGN KEY (`member_id`) REFERENCES `registry_member` (`id`);
+
+-- ─── MAINTENANCE: Remove duplicate pledge notifications ───────────────────────
+-- Run this once on existing databases where duplicate notifications were created
+-- by the old context_processor logic (is_read=False was part of the lookup key).
+-- Safe to run multiple times — only deletes duplicates, keeps the oldest record.
+
+DELETE n1 FROM registry_notification n1
+INNER JOIN registry_notification n2
+  ON n1.user_id = n2.user_id
+  AND n1.notification_type = n2.notification_type
+  AND n1.related_pledge_id = n2.related_pledge_id
+  AND n1.id > n2.id;

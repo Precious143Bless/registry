@@ -389,10 +389,13 @@
                         <li><hr class="dropdown-divider my-1"></li>
                         {% if unread_notifications %}
                             {% for notification in unread_notifications %}
-                                <li class="notification-item px-3 py-2" data-id="{{ notification.id }}">
+                                <li class="notification-item px-3 py-2" data-id="{{ notification.id }}" data-unread="true">
                                     <div class="d-flex align-items-start">
                                         <div class="flex-grow-1 pe-2">
-                                            <div class="fw-bold small mb-1">{{ notification.title }}</div>
+                                            <div class="fw-bold small mb-1 d-flex align-items-center gap-1">
+                                                <span class="unread-dot" style="width:8px;height:8px;border-radius:50%;background:#dc3545;display:inline-block;flex-shrink:0;"></span>
+                                                {{ notification.title }}
+                                            </div>
                                             <small class="text-muted d-block mb-1">{{ notification.message }}</small>
                                             <div class="text-muted" style="font-size: 0.65rem;">
                                                 {{ notification.created_at|date:"M d, Y g:i A" }}
@@ -509,7 +512,6 @@
 
         // Notification functions (identical to base)
         function markNotificationRead(notificationId, element) {
-            console.log('Marking notification as read:', notificationId);
             fetch(`/notifications/${notificationId}/read/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -526,9 +528,14 @@
         }
 
         function markAllNotificationsRead() {
-            const notificationItems = document.querySelectorAll('.notification-item');
-            notificationItems.forEach(item => item.remove());
-            updateNotificationCount();
+            // Remove red dots, keep items visible, hide badge
+            document.querySelectorAll('.notification-item .unread-dot').forEach(dot => dot.remove());
+            document.querySelectorAll('.notification-item').forEach(item => item.removeAttribute('data-unread'));
+            const badge = document.querySelector('.notification-badge');
+            if (badge) badge.style.display = 'none';
+            const markAllBtn = document.querySelector('[onclick="markAllNotificationsRead()"]');
+            if (markAllBtn) markAllBtn.style.display = 'none';
+
             fetch('/notifications/mark-all-read/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -538,15 +545,15 @@
         }
 
         function updateNotificationCount() {
-            const notificationItems = document.querySelectorAll('.notification-item');
+            const unreadItems = document.querySelectorAll('.notification-item[data-unread="true"]');
             const badge = document.querySelector('.notification-badge');
-            if (notificationItems.length === 0) {
-                if (badge) badge.remove();
-                const dropdownBtn = document.getElementById('notificationDropdown');
-                const dropdown = bootstrap.Dropdown.getInstance(dropdownBtn);
-                if (dropdown) dropdown.hide();
+            if (unreadItems.length === 0) {
+                if (badge) badge.style.display = 'none';
             } else {
-                if (badge) badge.textContent = notificationItems.length;
+                if (badge) {
+                    badge.style.display = '';
+                    badge.textContent = unreadItems.length;
+                }
             }
         }
     </script>
