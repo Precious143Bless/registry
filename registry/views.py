@@ -3523,7 +3523,7 @@ def user_edit(request, pk):
         role = request.POST.get('role', 'member')
         priest_id = request.POST.get('priest_id', '')
         member_id = request.POST.get('member_id', '')
-        new_password = request.POST.get('new_password', '')
+        new_password = request.POST.get('password', '')
         confirm_password = request.POST.get('confirm_password', '')
 
         errors = []
@@ -3551,6 +3551,7 @@ def user_edit(request, pk):
             target_user.first_name = first_name
             target_user.last_name = last_name
             target_user.email = email
+            target_user.username = email  # keep username in sync with email
             
             # Set role flags
             if role == 'admin':
