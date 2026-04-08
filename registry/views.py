@@ -3501,8 +3501,8 @@ def user_create(request):
                 
             return redirect('user_list')
 
-    priests = ParishPriest.objects.filter(status='active').order_by('last_name', 'first_name')
-    members = Member.objects.filter(is_active=True).order_by('last_name', 'first_name')
+    priests = ParishPriest.objects.filter(status='active', user__isnull=True).order_by('last_name', 'first_name')
+    members = Member.objects.filter(is_active=True, user__isnull=True).order_by('last_name', 'first_name')
     
     return render(request, 'registry/users/form.html', {
         'title': 'Add New User',
