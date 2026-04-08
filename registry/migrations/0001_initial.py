@@ -48,7 +48,6 @@ class Migration(migrations.Migration):
                 ('contact_number', models.CharField(blank=True, max_length=20)),
                 ('email', models.EmailField(blank=True, max_length=254)),
                 ('bishop', models.CharField(blank=True, help_text='Current bishop of the church', max_length=200)),
-                ('prime_bishop_name', models.CharField(blank=True, max_length=200)),
                 ('prime_bishop_image', models.ImageField(blank=True, null=True, upload_to='assets/images/priests/')),
                 ('image', models.ImageField(blank=True, null=True, upload_to='logo/', verbose_name='Church Logo')),
                 ('is_active', models.BooleanField(default=True)),
